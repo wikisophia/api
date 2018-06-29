@@ -1,0 +1,9 @@
+language: go
+go: "1.10.2"
+env:
+  - DEP_VERSION="0.4.1"
+install:
+  - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+  - dep ensure
+script:
+  - go test ./...
