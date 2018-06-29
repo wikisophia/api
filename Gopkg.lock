@@ -131,26 +131,6 @@
   version = "v1.2.1"
 
 [[projects]]
-  name = "github.com/tdewolff/minify"
-  packages = [
-    ".",
-    "html"
-  ]
-  revision = "222672169d634c440a73abc47685074e1a9daa60"
-  version = "v2.3.4"
-
-[[projects]]
-  name = "github.com/tdewolff/parse"
-  packages = [
-    ".",
-    "buffer",
-    "html",
-    "strconv"
-  ]
-  revision = "639f6272aec6b52094db77b9ec488214b0b4b1a1"
-  version = "v2.3.2"
-
-[[projects]]
   branch = "master"
   name = "golang.org/x/sys"
   packages = ["unix"]
@@ -178,6 +158,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "c01117437d63a997e2c44e25b52aa50b2648d627b9a6b000a75c81f4d7932cea"
+  inputs-digest = "5f9aa0dae24119e1bafb2fcced9c9c1922fe318939128933922059d89263350f"
   solver-name = "gps-cdcl"
   solver-version = 1
