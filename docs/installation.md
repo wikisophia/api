@@ -27,19 +27,7 @@ go build .
 ./api-arguments
 ```
 
-You can access the API through `http://localhost:8081`.
-```
+You can hit the API through `http://localhost:8081`.
 
-## Using Postgres
-
-By default, the app will store all the state changes from the website in memory.
-If you have [Postgres](https://www.postgresql.org/) set up, it can also be configured
-to use that.
-
-```sh
-WKSPH_STORAGE_TYPE=postgres .server
-```
-
-Just make sure you've created the user & database, and run
-[the init script](../postgres/scripts/clear.sql) on it
-to create all the tables.
+Beware that the default app config will store all Arguments in memory.
+To use Postgres, set [the config options](./configuration.md).
