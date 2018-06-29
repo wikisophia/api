@@ -24,10 +24,10 @@ Then build and run the app:
 
 ```sh
 go build .
-./server
+./api-arguments
 ```
 
-You can access the API through `localhost:8081`.
+You can access the API through `http://localhost:8081`.
 ```
 
 ## Using Postgres

@@ -25,14 +25,15 @@ func (cfg *Server) WriteTimeout() time.Duration {
 }
 
 func (cfg *Server) logValues() {
-	log.Printf("server.external_url=%s", cfg.ExternalURL)
 	log.Printf("server.addr=%s", cfg.Addr)
+	log.Printf("server.external_url=%s", cfg.ExternalURL)
 	log.Printf("server.read_timeout_millis=%d", cfg.ReadTimeoutMillis)
 	log.Printf("server.write_timeout_millis=%d", cfg.WriteTimeoutMillis)
 	log.Printf("server.cors_allowed_origins=%#v", cfg.CorsAllowedOrigins)
 }
 
 func (cfg *Server) setDefaults(v *viper.Viper) {
+	log.Printf("server.addr=%s", "localhost:8001")
 	v.SetDefault("server.external_url", "http://localhost:8001")
 	v.SetDefault("server.read_timeout_millis", 5000)
 	v.SetDefault("server.write_timeout_millis", 5000)
