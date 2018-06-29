@@ -63,10 +63,9 @@ func (s *Server) Start(done chan<- struct{}) error {
 	}
 
 	httpServer := &http.Server{
-		Addr:         s.config.Server.Addr,
-		Handler:      handler,
-		ReadTimeout:  s.config.Server.ReadTimeout(),
-		WriteTimeout: s.config.Server.WriteTimeout(),
+		Addr:              s.config.Server.Addr,
+		Handler:           handler,
+		ReadHeaderTimeout: s.config.Server.ReadHeaderTimeout(),
 	}
 
 	go shutdownOnSignal(httpServer, done)
