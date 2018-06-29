@@ -26,7 +26,7 @@ func ParseConfigFromPath(path string) Configuration {
 	respectEnvironmentVariables(v)
 
 	if err := v.Unmarshal(&cfg); err != nil {
-		log.Fatalf("Failed to read config: %v", err)
+		log.Fatalf("Failed to unmarshal config: %v", err)
 	}
 	cfg.logValues()
 	panicOnErrors(cfg.validate())
@@ -37,7 +37,11 @@ func respectConfigFile(v *viper.Viper, path string) {
 	v.SetConfigName("config")
 	v.AddConfigPath(path)
 	if err := v.ReadInConfig(); err != nil {
-		log.Fatalf("Failed to read in the config: %v", err)
+		// If the config file doesn't exist, that should be fine. It'll just use
+		// the defaults & environment variables.
+		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+			log.Fatalf("Failed to read the config: %v", err)
+		}
 	}
 }
 
