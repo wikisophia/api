@@ -25,7 +25,7 @@ func (cfg *Storage) setDefaults(v *viper.Viper) {
 	v.SetDefault("storage.postgres.host", "localhost")
 	v.SetDefault("storage.postgres.port", 5432)
 	v.SetDefault("storage.postgres.user", "postgres")
-	v.SetDefault("storage.postgres.password", "root")
+	v.SetDefault("storage.postgres.password", "")
 }
 
 func (cfg *Storage) validate() []error {
@@ -62,6 +62,7 @@ func (cfg *Postgres) logValues() {
 	log.Printf("postgres.port=%d", cfg.Port)
 	log.Printf("postgres.user=%s", cfg.User)
 	// Don't log the password, for security reasons
+	// log.Printf("postgres.password=%s", cfg.Password)
 }
 
 func (cfg *Postgres) validate() []error {

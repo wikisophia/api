@@ -31,7 +31,7 @@ func TestArgumentStorageIntegration(t *testing.T) {
 	}
 
 	// These tests will be slow... so do as much as we can up front to save time
-	sqlScripts, err := purse.New(filepath.Join("..", "..", "storage", "postgres", "scripts"))
+	sqlScripts, err := purse.New(filepath.Join("..", "..", "postgres", "scripts"))
 	if err != nil {
 		t.Fatalf("Failed to load file in purse: %v", err)
 	}
