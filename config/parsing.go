@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-const envPrefix = "WKS_ARGS"
+const envPrefix = "WKSPH_ARGS"
 
 // ParseConfig loads the app config using Viper.
 // It logs all the values before returning, and panics on validation errors.
