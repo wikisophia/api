@@ -59,6 +59,7 @@ func (s *Server) Start(done chan<- struct{}) error {
 		handler = cors.New(cors.Options{
 			AllowedOrigins: s.config.Server.CorsAllowedOrigins,
 			AllowedMethods: []string{"GET", "POST", "PATCH"},
+			ExposedHeaders: []string{"Location"},
 		}).Handler(handler)
 	}
 
