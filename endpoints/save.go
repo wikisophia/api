@@ -34,7 +34,7 @@ func (s *Server) saveArgument() http.HandlerFunc {
 			http.Error(w, "Failed to save argument: "+err.Error(), http.StatusServiceUnavailable)
 			return
 		}
-		w.WriteHeader(http.StatusCreated)
 		w.Header().Set("Location", "/arguments/"+strconv.FormatInt(id, 10))
+		w.WriteHeader(http.StatusCreated)
 	}
 }
