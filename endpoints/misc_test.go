@@ -96,7 +96,10 @@ func newServerWithData(t *testing.T, argument arguments.Argument, updates ...[]s
 			return nil, -1, false
 		}
 		rr := doPatchArgument(server, id, string(updatePayload))
-		if !assert.Equal(t, http.StatusOK, rr.Code) {
+
+		// Firefox parses empty response to AJAX calls as XML and throws an error.
+		// The 204 response makes it works as expected.
+		if !assert.Equal(t, http.StatusNoContent, rr.Code) {
 			return nil, -1, false
 		}
 	}
