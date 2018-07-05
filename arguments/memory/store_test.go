@@ -13,7 +13,13 @@ import (
 //    1. The inMemoryStore, which is used throughout app tests to avoid a DB dependency.
 //    2.The StoreTests suite, which is reused to test the real Postgres implementation.
 func TestInMemoryStore(t *testing.T) {
-	suite.Run(t, &argumentstest.StoreTests{
+	suite.Run(t, &InMemoryTests{
 		Store: memory.NewStore(),
 	})
+}
+
+type InMemoryTests argumentstest.StoreTests
+
+func (suite *InMemoryTests) SetupTest() {
+	suite.Store = memory.NewStore()
 }

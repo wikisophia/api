@@ -116,6 +116,50 @@ func (suite *StoreTests) TestFetchUnknownReturnsError() {
 	}
 }
 
+// TestBasicFetchAll makes sure the Store returns all the arguments for a conclusion.
+func (suite *StoreTests) TestBasicFetchAll() {
+	arg1ID := suite.saveWithUpdates(originalArguments)
+	otherArg := arguments.Argument{
+		Conclusion: originalArguments.Conclusion,
+		Premises:   updatedPremises,
+	}
+	suite.saveWithUpdates(arguments.Argument{
+		Conclusion: "some other conclusion",
+		Premises:   []string{"premise1", "premise2"},
+	})
+	arg2ID := suite.saveWithUpdates(otherArg)
+
+	allArgs, err := suite.Store.FetchAll(context.Background(), originalArguments.Conclusion)
+
+	if !assert.NoError(suite.T(), err) {
+		return
+	}
+	if !assert.Len(suite.T(), allArgs, 2) {
+		return
+	}
+	assert.Equal(suite.T(), originalArguments.Conclusion, allArgs[0].Conclusion)
+	assert.ElementsMatch(suite.T(), originalArguments.Premises, allArgs[0].Premises)
+	assert.Equal(suite.T(), arg1ID, allArgs[0].ID)
+	assert.Equal(suite.T(), originalArguments.Conclusion, allArgs[1].Conclusion)
+	assert.ElementsMatch(suite.T(), updatedPremises, allArgs[1].Premises)
+	assert.Equal(suite.T(), arg2ID, allArgs[1].ID)
+}
+
+// TestVersionedFetchAll makes sure the Store returns the argument's live version only.
+func (suite *StoreTests) TestVersionedFetchAll() {
+	arg1ID := suite.saveWithUpdates(originalArguments, updatedPremises)
+	allArgs, err := suite.Store.FetchAll(context.Background(), originalArguments.Conclusion)
+	if !assert.NoError(suite.T(), err) {
+		return
+	}
+	if !assert.Len(suite.T(), allArgs, 1) {
+		return
+	}
+	assert.Equal(suite.T(), originalArguments.Conclusion, allArgs[0].Conclusion)
+	assert.ElementsMatch(suite.T(), updatedPremises, allArgs[0].Premises)
+	assert.Equal(suite.T(), arg1ID, allArgs[0].ID)
+}
+
 func (suite *StoreTests) saveWithUpdates(arg arguments.Argument, premiseUpdates ...[]string) int64 {
 	id, err := suite.Store.Save(context.Background(), arg)
 	if !assert.NoError(suite.T(), err) {

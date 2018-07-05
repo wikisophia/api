@@ -14,6 +14,7 @@
   * CREATE DATABASE {config.postgres.dbname} WITH OWNER {config.postgres.user}  ;
   */
 
+DROP INDEX IF EXISTS one_max_default_argument;
 DROP TABLE IF EXISTS premises;
 DROP TABLE IF EXISTS arguments;
 DROP TABLE IF EXISTS claims;
@@ -37,6 +38,7 @@ CREATE TABLE IF NOT EXISTS arguments (
   conclusion_id bigint NOT NULL REFERENCES claims(id),
   latest_version smallint NOT NULL,
   live_version smallint NOT NULL CONSTRAINT live_less_max CHECK (live_version <= latest_version),
+  isDefault boolean NOT NULL DEFAULT false,
   deleted boolean NOT NULL DEFAULT false,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -46,6 +48,9 @@ COMMENT ON COLUMN arguments.latest_version IS 'This tracks the number of revisio
 COMMENT ON COLUMN arguments.live_version IS 'This tracks the version of the argument which is live on the site. In normal cases, this equals latest_version. It exists to support quick reverts to old versions.';
 COMMENT ON COLUMN arguments.deleted IS 'If an argument was deleted, this is set to true. This allows deleted arguments to be restored easily.';
 COMMENT ON COLUMN claims.created_at IS 'The time when this argument was first added.';
+
+-- Make sure each conclusion has at most one default argument
+CREATE UNIQUE INDEX one_max_default_argument ON arguments (conclusion_id) WHERE (isDefault = true);
 
 -- Make the table insert- and alter-able.
 REVOKE ALL ON TABLE arguments FROM PUBLIC;

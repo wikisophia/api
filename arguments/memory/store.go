@@ -64,6 +64,19 @@ func (s *inMemoryStore) FetchLive(ctx context.Context, id int64) (arguments.Argu
 	return versions[len(versions)-1], nil
 }
 
+func (s *inMemoryStore) FetchAll(ctx context.Context, conclusion string) ([]arguments.ArgumentFromAll, error) {
+	args := make([]arguments.ArgumentFromAll, 0, 20)
+	for i := 1; i < len(s.arguments); i++ {
+		if s.arguments[i][0].Conclusion == conclusion {
+			args = append(args, arguments.ArgumentFromAll{
+				Argument: s.arguments[i][len(s.arguments[i])-1],
+				ID:       int64(i),
+			})
+		}
+	}
+	return args, nil
+}
+
 func (s *inMemoryStore) Save(ctx context.Context, argument arguments.Argument) (id int64, err error) {
 	s.arguments = append(s.arguments, []arguments.Argument{
 		argument, // Add this twice because the 0th index will be ignored by Fetches
