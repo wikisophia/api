@@ -35,6 +35,7 @@ func (s *Server) saveArgument() http.HandlerFunc {
 			return
 		}
 		w.Header().Set("Location", "/arguments/"+strconv.FormatInt(id, 10))
+		w.Header().Set("Content-Type", "text/plain")
 		w.WriteHeader(http.StatusCreated)
 	}
 }

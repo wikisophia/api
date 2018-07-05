@@ -103,7 +103,6 @@ func (store *dbStore) FetchAll(ctx context.Context, conclusion string) ([]argume
 	var isDefault bool
 	var premise string
 	for rows.Next() {
-		fmt.Println("Processing a row.")
 		if err := rows.Scan(&id, &isDefault, &premise); err != nil {
 			return nil, errors.Wrap(err, "fetch result scan failed")
 		}
@@ -122,10 +121,8 @@ func (store *dbStore) FetchAll(ctx context.Context, conclusion string) ([]argume
 			}
 		}
 	}
-	fmt.Printf("Map is: %#v\n", args)
 	toReturn := make([]arguments.ArgumentFromAll, 0, len(args))
 	for _, val := range args {
-		fmt.Printf("Map value is %#v\n", val)
 		toReturn = append(toReturn, *val)
 	}
 	return toReturn, nil
