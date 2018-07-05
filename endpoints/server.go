@@ -34,6 +34,7 @@ func NewServer(cfg config.Configuration) *Server {
 	// The HTTP Methods used here should stay in sync with the cors
 	// AllowedMethods in Start().
 	server.router.HandlerFunc("POST", "/arguments", server.saveArgument())
+	server.router.GET("/all-arguments", server.getAllArguments())
 	server.router.GET("/arguments/:id", server.getLiveArgument())
 	server.router.PATCH("/arguments/:id", server.updateArgument())
 	server.router.GET("/arguments/:id/version/:version", server.getArgumentVersion())
