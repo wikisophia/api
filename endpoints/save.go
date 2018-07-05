@@ -35,6 +35,10 @@ func (s *Server) saveArgument() http.HandlerFunc {
 			return
 		}
 		w.Header().Set("Location", "/arguments/"+strconv.FormatInt(id, 10))
+
+		// Firefox tries to parse the empty response to the AJAX call as XML
+		// and throws an error without this
+		w.Header().Set("Content-Type", "text/plain")
 		w.WriteHeader(http.StatusCreated)
 	}
 }

@@ -44,7 +44,7 @@ func (s *Server) updateArgument() httprouter.Handle {
 			return
 		}
 
-		w.WriteHeader(200)
+		w.WriteHeader(http.StatusNoContent)
 		w.Header().Set("Location", "/arguments/"+strconv.FormatInt(id, 10)+"/version/"+strconv.Itoa(int(version)))
 	}
 }
