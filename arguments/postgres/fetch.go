@@ -20,6 +20,20 @@ SELECT claims.claim, 'conclusion' as type
 	WHERE arguments.id = $1 AND arguments.deleted = false;
 `
 
+const fetchAllQuery = `
+WITH these_arguments AS (
+	SELECT arguments.id, arguments.live_version, arguments.isDefault
+		FROM arguments INNER JOIN claims ON arguments.conclusion_id = claims.id
+		WHERE claims.claim = $1
+), these_premises AS (
+	SELECT these_arguments.id, these_arguments.isDefault, premises.claim_id
+		FROM these_arguments INNER JOIN premises ON these_arguments.live_version = premises.argument_version
+		WHERE these_arguments.id = premises.argument_id
+)
+SELECT these_premises.id, these_premises.isDefault, claims.claim
+	FROM these_premises INNER JOIN claims ON these_premises.claim_id = claims.id;
+`
+
 const fetchLiveVersionQuery = `SELECT live_version FROM arguments WHERE id = $1;`
 
 func (store *dbStore) FetchVersion(ctx context.Context, id int64, version int16) (arguments.Argument, error) {
@@ -75,6 +89,46 @@ func (store *dbStore) FetchLive(ctx context.Context, id int64) (arguments.Argume
 		return arguments.Argument{}, err
 	}
 	return store.FetchVersion(ctx, id, liveVersion)
+}
+
+func (store *dbStore) FetchAll(ctx context.Context, conclusion string) ([]arguments.ArgumentFromAll, error) {
+	rows, err := store.fetchAllStatement.QueryContext(ctx, conclusion)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed fetchAll query")
+	}
+	defer tryClose(rows)
+
+	args := make(map[int64]*arguments.ArgumentFromAll, 10)
+	var id int64
+	var isDefault bool
+	var premise string
+	for rows.Next() {
+		fmt.Println("Processing a row.")
+		if err := rows.Scan(&id, &isDefault, &premise); err != nil {
+			return nil, errors.Wrap(err, "fetch result scan failed")
+		}
+		if val, ok := args[id]; ok {
+			val.Premises = append(val.Premises, premise)
+		} else {
+			premises := make([]string, 0, 10)
+			premises = append(premises, premise)
+			args[id] = &arguments.ArgumentFromAll{
+				Argument: arguments.Argument{
+					Conclusion: conclusion,
+					Premises:   premises,
+				},
+				ID:        id,
+				IsDefault: isDefault,
+			}
+		}
+	}
+	fmt.Printf("Map is: %#v\n", args)
+	toReturn := make([]arguments.ArgumentFromAll, 0, len(args))
+	for _, val := range args {
+		fmt.Printf("Map value is %#v\n", val)
+		toReturn = append(toReturn, *val)
+	}
+	return toReturn, nil
 }
 
 func tryClose(rows *sql.Rows) {

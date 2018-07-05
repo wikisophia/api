@@ -18,6 +18,7 @@ func NewStore(db *sql.DB) arguments.Store {
 	return &dbStore{
 		db:                        db,
 		deleteStatement:           mustPrepareQuery(db, deleteQuery),
+		fetchAllStatement:         mustPrepareQuery(db, fetchAllQuery),
 		fetchStatement:            mustPrepareQuery(db, fetchQuery),
 		fetchLiveVersionStatement: mustPrepareQuery(db, fetchLiveVersionQuery),
 		saveArgumentStatement:     mustPrepareQuery(db, saveArgumentQuery),
@@ -32,6 +33,7 @@ func NewStore(db *sql.DB) arguments.Store {
 type dbStore struct {
 	db                        *sql.DB
 	deleteStatement           *sql.Stmt
+	fetchAllStatement         *sql.Stmt
 	fetchStatement            *sql.Stmt
 	fetchLiveVersionStatement *sql.Stmt
 	saveArgumentStatement     *sql.Stmt
@@ -60,6 +62,7 @@ func (errs closeErrors) Error() string {
 func (store *dbStore) Close() error {
 	var errs []error
 	errs = mayAppendError(store.deleteStatement.Close, errs)
+	errs = mayAppendError(store.fetchAllStatement.Close, errs)
 	errs = mayAppendError(store.fetchStatement.Close, errs)
 	errs = mayAppendError(store.fetchLiveVersionStatement.Close, errs)
 	errs = mayAppendError(store.saveArgumentStatement.Close, errs)

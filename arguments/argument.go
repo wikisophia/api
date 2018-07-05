@@ -11,12 +11,21 @@ type Argument struct {
 	Premises   []string `json:"premises"`
 }
 
+type ArgumentFromAll struct {
+	Argument
+	ID        int64 `json:"id"`
+	IsDefault bool  `json:"isDefault,omitempty"`
+}
+
 // A Store manages Arguments inside the database.
 type Store interface {
 	// Delete deletes an argument (and all its versions) from the site.
 	// This should only return an error if the deletion failed.
 	// It should return nil if asked to delete an argument which doesn't exist.
 	Delete(ctx context.Context, id int64) error
+	// FetchAll pulls all the available arguments for a conclusion.
+	// If none exist, error will be nil and the array empty.
+	FetchAll(ctx context.Context, conclusion string) ([]ArgumentFromAll, error)
 	// FetchVersion pulls a particular version of an argument from the database.
 	// If the query completed successfully, but the argument didn't exist, the error
 	// will be a NotFoundError.
