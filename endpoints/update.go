@@ -37,6 +37,7 @@ func (s *Server) updateArgument() httprouter.Handle {
 		}
 		if err := arguments.ValidatePremises(arg.Premises); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
 		}
 
 		version, err := s.argumentStore.UpdatePremises(context.Background(), id, arg.Premises)
