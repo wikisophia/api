@@ -42,6 +42,10 @@ func TestPatchOnePremise(t *testing.T) {
 	assertPatchRejected(t, `{"premises":["Socrates is a man"]}`)
 }
 
+func TestPatchEmpty(t *testing.T) {
+	assertPatchRejected(t, `{"premises":["Socrates is a man", ""]}`)
+}
+
 func assertPatchRejected(t *testing.T, payload string) {
 	t.Helper()
 	server, id, ok := newServerWithData(t, unintendedOrigArg)
