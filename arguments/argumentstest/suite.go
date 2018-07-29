@@ -147,12 +147,12 @@ func (suite *StoreTests) TestBasicFetchAll() {
 		fetchedSecond = tmp
 	}
 
-	assert.Equal(suite.T(), originalArguments.Conclusion, allArgs[0].Conclusion)
-	assert.ElementsMatch(suite.T(), originalArguments.Premises, allArgs[0].Premises)
-	assert.Equal(suite.T(), arg1ID, allArgs[0].ID)
-	assert.Equal(suite.T(), originalArguments.Conclusion, allArgs[1].Conclusion)
-	assert.ElementsMatch(suite.T(), updatedPremises, allArgs[1].Premises)
-	assert.Equal(suite.T(), arg2ID, allArgs[1].ID)
+	assert.Equal(suite.T(), originalArguments.Conclusion, fetchedFirst.Conclusion)
+	assert.ElementsMatch(suite.T(), originalArguments.Premises, fetchedFirst.Premises)
+	assert.Equal(suite.T(), arg1ID, fetchedFirst.ID)
+	assert.Equal(suite.T(), originalArguments.Conclusion, fetchedSecond.Conclusion)
+	assert.ElementsMatch(suite.T(), updatedPremises, fetchedSecond.Premises)
+	assert.Equal(suite.T(), arg2ID, fetchedSecond.ID)
 }
 
 // TestVersionedFetchAll makes sure the Store returns the argument's live version only.
