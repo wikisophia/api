@@ -5,12 +5,10 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-
-	"github.com/julienschmidt/httprouter"
 )
 
-func (s *Server) getAllArguments() httprouter.Handle {
-	return func(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+func (s *Server) getAllArguments() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		if r.URL == nil {
 			http.Error(w, "URL was nil. Bad Request-Line?", http.StatusBadRequest)
 			return
@@ -30,7 +28,7 @@ func (s *Server) getAllArguments() httprouter.Handle {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		if err = json.NewEncoder(w).Encode(args); err != nil {
-			log.Printf("ERROR: Failed encoding response to GET /all-arguments: %v", err)
+			log.Printf("ERROR: Failed encoding response to GET /arguments for conclusion \"%s\": %v", conclusion, err)
 		}
 	}
 }

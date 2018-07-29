@@ -42,7 +42,7 @@ var updates = []string{
 
 func TestGetCollection(t *testing.T) {
 	rr := doRequest(newServerForTests(), httptest.NewRequest("GET", "/arguments", nil))
-	assert.Equal(t, http.StatusMethodNotAllowed, rr.Code)
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
 }
 
 func TestPostWithID(t *testing.T) {

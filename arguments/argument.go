@@ -13,8 +13,7 @@ type Argument struct {
 
 type ArgumentFromAll struct {
 	Argument
-	ID        int64 `json:"id"`
-	IsDefault bool  `json:"isDefault,omitempty"`
+	ID int64 `json:"id"`
 }
 
 // A Store manages Arguments inside the database.

@@ -116,8 +116,7 @@ func (store *dbStore) FetchAll(ctx context.Context, conclusion string) ([]argume
 					Conclusion: conclusion,
 					Premises:   premises,
 				},
-				ID:        id,
-				IsDefault: isDefault,
+				ID: id,
 			}
 		}
 	}
