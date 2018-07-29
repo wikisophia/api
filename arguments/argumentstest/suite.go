@@ -137,6 +137,16 @@ func (suite *StoreTests) TestBasicFetchAll() {
 	if !assert.Len(suite.T(), allArgs, 2) {
 		return
 	}
+
+	// Fixes #1: Arguments might be returned in any order
+	fetchedFirst := allArgs[0]
+	fetchedSecond := allArgs[1]
+	if fetchedFirst.ID != arg1ID {
+		tmp := fetchedFirst
+		fetchedFirst = fetchedSecond
+		fetchedSecond = tmp
+	}
+
 	assert.Equal(suite.T(), originalArguments.Conclusion, allArgs[0].Conclusion)
 	assert.ElementsMatch(suite.T(), originalArguments.Premises, allArgs[0].Premises)
 	assert.Equal(suite.T(), arg1ID, allArgs[0].ID)
