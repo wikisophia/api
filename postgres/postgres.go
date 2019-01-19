@@ -12,7 +12,7 @@ import (
 )
 
 // NewDB makes a connection to a postgres database.
-func NewDB(cfg config.Postgres) *sql.DB {
+func NewDB(cfg *config.Postgres) *sql.DB {
 	connStr := connectionString(cfg)
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
@@ -26,7 +26,7 @@ func NewDB(cfg config.Postgres) *sql.DB {
 
 // connectionString turns the config into a string accepted by lib/pq.
 // For details, see https://godoc.org/github.com/lib/pq#hdr-Connection_String_Parameters
-func connectionString(cfg config.Postgres) string {
+func connectionString(cfg *config.Postgres) string {
 	buffer := bytes.NewBuffer(nil)
 
 	if cfg.Host != "" {

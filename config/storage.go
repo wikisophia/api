@@ -3,29 +3,13 @@ package config
 import (
 	"fmt"
 	"log"
-
-	"github.com/spf13/viper"
 )
-
-type Storage struct {
-	Type     StorageType `mapstructure:"type"`
-	Postgres Postgres    `mapstructure:"postgres"`
-}
 
 func (cfg *Storage) logValues() {
 	log.Printf("storage.type=%s", cfg.Type)
 	if cfg.Type == StorageTypePostgres {
 		cfg.Postgres.logValues()
 	}
-}
-
-func (cfg *Storage) setDefaults(v *viper.Viper) {
-	v.SetDefault("storage.type", "memory")
-	v.SetDefault("storage.postgres.dbname", "wikisophia")
-	v.SetDefault("storage.postgres.host", "localhost")
-	v.SetDefault("storage.postgres.port", 5432)
-	v.SetDefault("storage.postgres.user", "postgres")
-	v.SetDefault("storage.postgres.password", "")
 }
 
 func (cfg *Storage) validate() []error {
@@ -39,21 +23,15 @@ func (cfg *Storage) validate() []error {
 	}
 }
 
-type StorageType string
-
-const (
-	StorageTypeMemory   StorageType = "memory"
-	StorageTypePostgres StorageType = "postgres"
-)
-
-// Postgres configures the Postgres connection.
-// These options come from https://godoc.org/github.com/lib/pq#hdr-Connection_String_Parameters
-type Postgres struct {
-	Database string `mapstructure:"dbname"`
-	Host     string `mapstructure:"host"`
-	Port     int    `mapstructure:"port"`
-	User     string `mapstructure:"user"`
-	Password string `mapstructure:"password"`
+func parseStorageType(value string) (StorageType, error) {
+	switch value {
+	case "memory":
+		return StorageTypeMemory, nil
+	case "postgres":
+		return StorageTypePostgres, nil
+	default:
+		return StorageTypeMemory, fmt.Errorf("%s must be one of \"memory\" or \"postgres\"", value)
+	}
 }
 
 func (cfg *Postgres) logValues() {

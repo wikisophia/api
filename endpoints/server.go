@@ -74,7 +74,7 @@ func (s *Server) Start(done chan<- struct{}) error {
 	return httpServer.ListenAndServe()
 }
 
-func newArgumentStore(cfg config.Storage) arguments.Store {
+func newArgumentStore(cfg *config.Storage) arguments.Store {
 	switch cfg.Type {
 	case config.StorageTypeMemory:
 		return argumentsInMemory.NewStore()
