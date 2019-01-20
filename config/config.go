@@ -1,8 +1,5 @@
 package config
 
-// Namespace for environment config values.
-const envPrefix = "WKSPH_ARGS"
-
 type Configuration struct {
 	Server  *Server  `environment:"SERVER"`
 	Storage *Storage `environment:"STORAGE"`
