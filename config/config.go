@@ -1,26 +1,47 @@
 package config
 
-import (
-	"github.com/spf13/viper"
-)
+import "time"
 
 type Configuration struct {
-	Server  Server  `mapstructure:"server"`
-	Storage Storage `mapstructure:"storage"`
+	Server  *Server  `environment:"SERVER"`
+	Storage *Storage `environment:"STORAGE"`
 }
 
-func (cfg *Configuration) logValues() {
-	cfg.Server.logValues()
-	cfg.Storage.logValues()
+type Server struct {
+	Addr                    string   `environment:"ADDR"`
+	ReadHeaderTimeoutMillis int      `environment:"READ_HEADER_TIMEOUT_MILLIS"`
+	CorsAllowedOrigins      []string `environment:"CORS_ALLOWED_ORIGINS"`
 }
 
-func (cfg *Configuration) setDefaults(v *viper.Viper) {
-	cfg.Server.setDefaults(v)
-	cfg.Storage.setDefaults(v)
+type Storage struct {
+	Type     StorageType `environment:"TYPE"`
+	Postgres *Postgres   `environment:"POSTGRES"`
 }
 
-func (cfg *Configuration) validate() []error {
-	errs := cfg.Server.validate()
-	errs = append(errs, cfg.Storage.validate()...)
-	return errs
+type StorageType string
+
+const (
+	StorageTypeMemory   StorageType = "memory"
+	StorageTypePostgres StorageType = "postgres"
+)
+
+func storageTypes() []StorageType {
+	return []StorageType{
+		StorageTypeMemory,
+		StorageTypePostgres,
+	}
+}
+
+// Postgres configures the Postgres connection.
+// These options come from https://godoc.org/github.com/lib/pq#hdr-Connection_String_Parameters
+type Postgres struct {
+	Database string `environment:"DBNAME"`
+	Host     string `environment:"HOST"`
+	Port     int    `environment:"PORT"`
+	User     string `environment:"USER"`
+	Password string `environment:"PASSWORD"`
+}
+
+func (cfg *Server) ReadHeaderTimeout() time.Duration {
+	return time.Duration(cfg.ReadHeaderTimeoutMillis) * time.Millisecond
 }

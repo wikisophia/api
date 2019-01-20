@@ -40,7 +40,7 @@ func TestArgumentStorageIntegration(t *testing.T) {
 		t.Fatal("purse could not load storage/postgres/scritps/clear.sql")
 	}
 
-	db := postgres.NewDB(config.ParseConfigFromPath(filepath.Join("..", "..")).Storage.Postgres)
+	db := postgres.NewDB(config.MustParse().Storage.Postgres)
 	_, err = db.Query(contents)
 	if err != nil {
 		t.Fatalf("failed to execute queries in storage/postgres/scritps/clear.sql: %v", err)

@@ -1,47 +1,30 @@
 # Configuration
 
-Configuration uses [Viper](https://github.com/spf13/viper).
+Configuration is done through environment variables.
 
-The service should work out of the box, storing arguments in memory.
-Beware: using this default config, all data will be lost when the server shuts down.
+If no environment variables are set, some defaults will be used that work well for local development.
+One caveat is that all the data will be stored in memory, so it will be lost when the process shuts down.
 
-To connect to an actual postgres databse, or change other config options, you
-can either set environment variables or define a `config.yaml` file at the project root.
+For a list of environment variables and docs on what they all do, see
+the [TestEnvironmentOverrides](../config/config_test.go) unit test.
 
-## Environment variables
+To see the default values, just start the service and check your terminal's output on startup.
 
-|              Environment Variable            |   Description |
-|----------------------------------------------|---------------|
-| WKSPH_ARGS_SERVER_ADDR                       | TCP address to listen on. |
-| WKSPH_ARGS_SERVER_READ_HEADER_TIMEOUT_MILLIS | The number of milliseconds that the server is willing to wait for a client to send the request headers |
-| WKSPH_ARGS_SERVER_CORS_ALLOWED_ORIGINS       | Configures [CORS]() support so that the specified domains can use the API. If there are more than one, they should be space separated. |
-| WKSPH_ARGS_STORAGE_TYPE                      | Can be "memory" or "postgres", depending on how the data should be stored. |
+For convenience, you may want to define your custom config variables in a `config.env` file in the project root:
 
-If using Postgres, the following params are allowed.
+```
+export WKSPH_ARGS_SERVER_ADDR=localhost:8002
+export WKSPH_ARGS_STORAGE_TYPE=postgres
+```
 
-|          Environment Variable        |                      Description                       |
-| ------------------------------------ | ------------------------------------------------------ |
-| WKSPH_ARGS_STORAGE_POSTGRES_DBNAME   | The name of the postgres database to connect to.       |
-| WKSPH_ARGS_STORAGE_POSTGRES_HOST     | The hostname of the machine where postgres lives.      |
-| WKSPH_ARGS_STORAGE_POSTGRES_PORT     | The port of the machine where postgres listens.        |
-| WKSPH_ARGS_STORAGE_POSTGRES_USER     | The name of the postgres user to connect as.           |
-| WKSPH_ARGS_STORAGE_POSTGRES_PASSWORD | The password for the WKSPH_ARGS_STORAGE_POSTGRES_USER. |
+You can then source this file to set your environment:
 
-## Using config.yaml
+```bash
+source ./config.env
+```
 
-```yaml
-server:
-  addr: localhost:8001
-  read_header_timeout_millis: 100
-  cors_allowed_origins:
-    - "localhost"
-    - "some-domain.com"
-storage:
-  type: "postgres"
-  postgres:
-    dbname: "wikisophia"
-    host: "localhost"
-    port: 5432
-    user: "whatever"
-    password: "something-secret"
+Or, to avoid polluting your terminal's environment, run it in a bash subshell:
+
+```bash
+(source ./config.env && ./api-arguments)
 ```

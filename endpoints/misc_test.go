@@ -147,12 +147,10 @@ func parseArgumentID(location string) (int64, error) {
 	return int64(id), nil
 }
 
-var configForTests = config.Configuration{
-	Storage: config.Storage{
-		Type: config.StorageTypeMemory,
-	},
-}
-
 func newServerForTests() *endpoints.Server {
-	return endpoints.NewServer(configForTests)
+	return endpoints.NewServer(config.Configuration{
+		Storage: &config.Storage{
+			Type: config.StorageTypeMemory,
+		},
+	})
 }
