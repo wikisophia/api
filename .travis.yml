@@ -19,7 +19,9 @@ install:
 script:
   - go test ./...
   - go test ./arguments/postgres -database
-  - golint ./...
-  # gofmt always returns 0... so this is a workaround
-  - gofmt -l -s ./... # This makes the badly formatted files show up in the logs
-  - "! [[ $(gofmt -l -s ./...) ]]" # This actually makes the build fail if files have formatting issues
+    # golint and gofmt always return 0... so they're run twice to make sure their output shows
+    # up in the build logs _and_ the build fails if there are issues
+  - golint $(go list ./... | grep -v /vendor/)
+  - ! [[ $(golint $(go list ./... | grep -v /vendor/)) ]]
+  - gofmt -l -s $(ls -d */ | grep -v "vendor") *.go # works around gofmt's lack of support for "./..."
+  - ! [[ $(gofmt -l -s $(ls -d */ | grep -v "vendor") *.go) ]]
