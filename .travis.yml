@@ -1,12 +1,13 @@
 language: go
-go: "1.10.2"
+go:
+  - '1.10.7'
+  - '1.11.4'
 services:
   - postgresql
 env:
   global:
-    - DEP_VERSION="0.4.1"
+    - DEP_VERSION="0.5.0"
     - WKSPH_ARGS_STORAGE_POSTGRES_DBNAME="wikisophia_test"
-    - WKSPH_ARGS_STORAGE_POSTGRES_USER="app_wikisophia"
     - WKSPH_ARGS_STORAGE_POSTGRES_USER="postgres"
 before_script:
   - psql -c 'create database wikisophia_test;' -U postgres
