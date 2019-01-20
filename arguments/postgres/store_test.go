@@ -3,7 +3,6 @@ package postgres_test
 import (
 	"database/sql"
 	"flag"
-	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -11,6 +10,7 @@ import (
 	"github.com/wikisophia/api-arguments/arguments/argumentstest"
 
 	"github.com/smotes/purse"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	argumentsInPostgres "github.com/wikisophia/api-arguments/arguments/postgres"
 	"github.com/wikisophia/api-arguments/config"
@@ -32,18 +32,17 @@ func TestArgumentStorageIntegration(t *testing.T) {
 
 	// These tests will be slow... so do as much as we can up front to save time
 	sqlScripts, err := purse.New(filepath.Join("..", "..", "postgres", "scripts"))
-	if err != nil {
-		t.Fatalf("Failed to load file in purse: %v", err)
+	if !assert.NoError(t, err) {
+		return
 	}
 	contents, ok := sqlScripts.Get("clear.sql")
-	if !ok {
-		t.Fatal("purse could not load storage/postgres/scritps/clear.sql")
+	if !assert.True(t, ok) {
+		return
 	}
 
 	db := postgres.NewDB(config.MustParse().Storage.Postgres)
-	_, err = db.Query(contents)
-	if err != nil {
-		t.Fatalf("failed to execute queries in storage/postgres/scritps/clear.sql: %v", err)
+	if _, err = db.Query(contents); assert.NoError(t, err) {
+		return
 	}
 
 	store := argumentsInPostgres.NewStore(db)
@@ -69,9 +68,7 @@ type DatabaseTests struct {
 
 func (suite *DatabaseTests) SetupTest() {
 	if suite.db != nil {
-		_, err := suite.db.Query(suite.queryContents)
-		if err != nil {
-			fmt.Printf("failed to execute queries in storage/postgres/scritps/clear.sql: %v", err)
+		if _, err := suite.db.Query(suite.queryContents); !assert.NoError(suite.T(), err) {
 			os.Exit(1)
 		}
 	}

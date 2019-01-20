@@ -17,6 +17,8 @@ import (
 	"github.com/wikisophia/api-arguments/postgres"
 )
 
+// Server runs the service. Use NewServier() to construct one from an app config,
+// and Start() to make it start listening and serving requests.
 type Server struct {
 	argumentStore arguments.Store
 	config        *config.Configuration
