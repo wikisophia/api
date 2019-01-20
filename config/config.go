@@ -2,7 +2,6 @@ package config
 
 import "time"
 
-// Configuration stores all the application config.
 type Configuration struct {
 	Server  *Server  `environment:"SERVER"`
 	Storage *Storage `environment:"STORAGE"`
@@ -10,7 +9,7 @@ type Configuration struct {
 
 // Server has all the config values which affect the http.Server which responds to requests.
 type Server struct {
-	Addr                    string   `environment:"ADDR"`
+	Addr                    string      `environment:"ADDR"`
 	ReadHeaderTimeoutMillis int      `environment:"READ_HEADER_TIMEOUT_MILLIS"`
 	CorsAllowedOrigins      []string `environment:"CORS_ALLOWED_ORIGINS"`
 }
