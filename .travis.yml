@@ -10,6 +10,7 @@ env:
     - WKSPH_ARGS_STORAGE_POSTGRES_DBNAME="wikisophia_test"
     - WKSPH_ARGS_STORAGE_POSTGRES_USER="postgres"
 before_script:
+  - go get -u github.com/golang/lint/golint
   - psql -c 'create database wikisophia_test;' -U postgres
   - psql -c 'create user app_wikisophia;' -U postgres
 install:
@@ -19,5 +20,6 @@ script:
   - go test ./...
   - go test ./arguments/postgres -database
   - golint $(go list ./... | grep -v /vendor/)
-  - gofmt -l -s .
-  - ! [[ $(gofmt -l -s .) ]]
+  # gofmt always returns 0... so this trickery works around it
+  - gofmt -l -s . # This makes the badly formatted files show up in the logs 
+  - "! [[ $(gofmt -l -s .) ]]" # This actually makes the build fail, if files are badly formatted. 
