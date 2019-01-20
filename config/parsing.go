@@ -47,15 +47,8 @@ func Parse() (Configuration, []error) {
 	errs := loadEnvironment(reflect.ValueOf(&cfg), "WKSPH_ARGS", "Configuration", nil)
 	errs = requirePositive(cfg.Server.ReadHeaderTimeoutMillis, "WKSPH_ARGS_SERVER_READ_HEADER_TIMEOUT_MILLIS", errs)
 	errs = requirePositive(cfg.Storage.Postgres.Port, "WKSPH_ARGS_STORAGE_POSTGRES_PORT", errs)
-
+	errs = requireValidStorageType(cfg.Storage.Type, "WKSPH_ARGS_STORAGE_TYPE", errs)
 	return cfg, errs
-}
-
-func requirePositive(value int, prefix string, errs []error) []error {
-	if value <= 0 {
-		return append(errs, fmt.Errorf("%s: must be positive. Got %d", prefix, value))
-	}
-	return errs
 }
 
 func loadEnvironment(theValue reflect.Value, environmentVarSoFar string, pathSoFar string, errs []error) []error {
@@ -137,6 +130,22 @@ func parseCommaSeparated(value string) []string {
 	if value == "" {
 		return nil
 	}
-
 	return strings.Split(value, ",")
+}
+
+func requirePositive(value int, prefix string, errs []error) []error {
+	if value <= 0 {
+		return append(errs, fmt.Errorf("%s: must be positive. Got %d", prefix, value))
+	}
+	return errs
+}
+
+func requireValidStorageType(value StorageType, prefix string, errs []error) []error {
+	allowedTypes := storageTypes()
+	for _, storageType := range storageTypes() {
+		if storageType == value {
+			return errs
+		}
+	}
+	return append(errs, fmt.Errorf("%s: must be one of %v. Got %s", prefix, allowedTypes, value))
 }

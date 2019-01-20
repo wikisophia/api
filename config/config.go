@@ -1,5 +1,7 @@
 package config
 
+import "time"
+
 type Configuration struct {
 	Server  *Server  `environment:"SERVER"`
 	Storage *Storage `environment:"STORAGE"`
@@ -23,6 +25,13 @@ const (
 	StorageTypePostgres StorageType = "postgres"
 )
 
+func storageTypes() []StorageType {
+	return []StorageType{
+		StorageTypeMemory,
+		StorageTypePostgres,
+	}
+}
+
 // Postgres configures the Postgres connection.
 // These options come from https://godoc.org/github.com/lib/pq#hdr-Connection_String_Parameters
 type Postgres struct {
@@ -33,13 +42,6 @@ type Postgres struct {
 	Password string `environment:"PASSWORD"`
 }
 
-func (cfg *Configuration) logValues() {
-	cfg.Server.logValues()
-	cfg.Storage.logValues()
-}
-
-func (cfg *Configuration) validate() []error {
-	errs := cfg.Server.validate()
-	errs = append(errs, cfg.Storage.validate()...)
-	return errs
+func (cfg *Server) ReadHeaderTimeout() time.Duration {
+	return time.Duration(cfg.ReadHeaderTimeoutMillis) * time.Millisecond
 }

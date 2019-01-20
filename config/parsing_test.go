@@ -75,15 +75,16 @@ func TestInvalidEnvironment(t *testing.T) {
 	assertInvalid(t, "WKSPH_ARGS_SERVER_READ_HEADER_TIMEOUT_MILLIS", "foo")
 	assertInvalid(t, "WKSPH_ARGS_STORAGE_POSTGRES_PORT", "foo")
 	assertInvalid(t, "WKSPH_ARGS_SERVER_READ_HEADER_TIMEOUT_MILLIS", "-12")
+	assertInvalid(t, "WKSPH_ARGS_SERVER_READ_HEADER_TIMEOUT_MILLIS", "0")
 	assertInvalid(t, "WKSPH_ARGS_STORAGE_POSTGRES_PORT", "-3")
+	assertInvalid(t, "WKSPH_ARGS_STORAGE_POSTGRES_PORT", "0")
+	assertInvalid(t, "WKSPH_ARGS_STORAGE_TYPE", "invalid")
 }
 
 func TestEdgeCases(t *testing.T) {
 	assertStringSliceParses(t, "WKSPH_ARGS_SERVER_CORS_ALLOWED_ORIGINS", nil, func(cfg config.Configuration) []string {
 		return cfg.Server.CorsAllowedOrigins
 	})
-	assertInvalid(t, "WKSPH_ARGS_SERVER_READ_HEADER_TIMEOUT_MILLIS", "0")
-	assertInvalid(t, "WKSPH_ARGS_STORAGE_POSTGRES_PORT", "0")
 }
 
 func assertStringParses(t *testing.T, env string, value string, getter func(cfg config.Configuration) string) {
