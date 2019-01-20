@@ -43,8 +43,10 @@ func Parse() (Configuration, []error) {
 			},
 		},
 	}
-
+	log.SetOutput(os.Stdout)
 	errs := loadEnvironment(reflect.ValueOf(&cfg), "WKSPH_ARGS", "Configuration", nil)
+	log.SetOutput(os.Stderr)
+
 	errs = requirePositive(cfg.Server.ReadHeaderTimeoutMillis, "WKSPH_ARGS_SERVER_READ_HEADER_TIMEOUT_MILLIS", errs)
 	errs = requirePositive(cfg.Storage.Postgres.Port, "WKSPH_ARGS_STORAGE_POSTGRES_PORT", errs)
 	errs = requireValidStorageType(cfg.Storage.Type, "WKSPH_ARGS_STORAGE_TYPE", errs)
