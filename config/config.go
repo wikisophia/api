@@ -17,7 +17,7 @@ type Server struct {
 
 // Storage has all the config values related to the backend which is used to save arguments.
 type Storage struct {
-	Type     StorageType    `environment:"TYPE"`
+	Type     StorageType `environment:"TYPE"`
 	Postgres *Postgres   `environment:"POSTGRES"`
 }
 
