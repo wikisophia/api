@@ -64,11 +64,11 @@ func (s *inMemoryStore) FetchLive(ctx context.Context, id int64) (arguments.Argu
 	return versions[len(versions)-1], nil
 }
 
-func (s *inMemoryStore) FetchAll(ctx context.Context, conclusion string) ([]arguments.ArgumentFromAll, error) {
-	args := make([]arguments.ArgumentFromAll, 0, 20)
+func (s *inMemoryStore) FetchAll(ctx context.Context, conclusion string) ([]arguments.ArgumentWithID, error) {
+	args := make([]arguments.ArgumentWithID, 0, 20)
 	for i := 1; i < len(s.arguments); i++ {
 		if s.arguments[i][0].Conclusion == conclusion {
-			args = append(args, arguments.ArgumentFromAll{
+			args = append(args, arguments.ArgumentWithID{
 				Argument: s.arguments[i][len(s.arguments[i])-1],
 				ID:       int64(i),
 			})

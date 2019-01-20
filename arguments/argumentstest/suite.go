@@ -85,6 +85,7 @@ func (suite *StoreTests) TestOriginalIsAvailable() {
 	assert.ElementsMatch(suite.T(), originalArguments.Premises, fetched.Premises)
 }
 
+// TestDeletedIsUnavailable makes sure the backend doesn't return arguments that have been deleted.
 func (suite *StoreTests) TestDeletedIsUnavailable() {
 	id := suite.saveWithUpdates(originalArguments, updatedPremises)
 	if id == -1 {
@@ -103,6 +104,7 @@ func (suite *StoreTests) TestDeletedIsUnavailable() {
 	}
 }
 
+// TestFetchUnknownReturnsError makes sure the backend returns errors when asked for an unknown ID.
 func (suite *StoreTests) TestFetchUnknownReturnsError() {
 	if _, err := suite.Store.FetchLive(context.Background(), 1); !assert.Error(suite.T(), err) {
 		return
