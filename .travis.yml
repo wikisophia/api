@@ -19,4 +19,5 @@ script:
   - go test ./...
   - go test ./arguments/postgres -database
   - golint $(go list ./... | grep -v /vendor/)
-  - gofmt -w -s .
+  - gofmt -l -s .
+  - ! [[ $(gofmt -l -s .) ]]
