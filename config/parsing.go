@@ -28,7 +28,7 @@ func Parse() (Configuration, []error) {
 	// Config defaults go here
 	cfg := Configuration{
 		Server: &Server{
-			Addr: "localhost:8001",
+			Addr:                    "localhost:8001",
 			ReadHeaderTimeoutMillis: 5000,
 			CorsAllowedOrigins:      []string{"*"},
 		},
