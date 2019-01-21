@@ -1,6 +1,8 @@
 language: go
+branches:
+  only: 
+    - master
 go:
-  - '1.10.7'
   - '1.11.4'
 services:
   - postgresql
@@ -23,5 +25,6 @@ script:
     # up in the build logs _and_ the build fails if there are issues
   - golint $(go list ./... | grep -v /vendor/)
   - "! [[ $(golint $(go list ./... | grep -v /vendor/)) ]]"
-  - gofmt -l -s $(ls -d */ | grep -v "vendor") *.go # works around gofmt's lack of support for "./..."
-  - "! [[ $(gofmt -l -s $(ls -d */ | grep -v "vendor") *.go) ]]"
+    # gofmt doesn't support ./... yet either... so this lists the files/directories manually
+  - gofmt -l -s $(ls -d */ | grep -v "vendor") *.go
+  - "! [[ $(gofmt -l -s $(ls -d */ | grep -v \"vendor\") *.go) ]]"
