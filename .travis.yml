@@ -3,7 +3,6 @@ branches:
   only: 
     - master
 go:
-  - '1.10.7'
   - '1.11.4'
 services:
   - postgresql
