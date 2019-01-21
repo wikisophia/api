@@ -21,6 +21,7 @@ type Storage struct {
 	Postgres *Postgres   `environment:"POSTGRES"`
 }
 
+// StorageType determines how the service stores its arguments.
 type StorageType string
 
 const (

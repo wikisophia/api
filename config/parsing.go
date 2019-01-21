@@ -11,7 +11,7 @@ import (
 
 // MustParse wraps Parse, but prints the errors and exits rather than returning them.
 func MustParse() Configuration {
-	cfg, errs :=   Parse()
+	cfg, errs := Parse()
 	if len(errs) > 0 {
 		log.Println("Invalid app config. Check your environment variables:")
 		for _, err := range errs {
