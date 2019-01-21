@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	cfg := config.MustParse()
+	cfg :=    config.MustParse()
 
 	done := make(chan struct{}, 1)
 	server := endpoints.NewServer(cfg)

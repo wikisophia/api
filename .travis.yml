@@ -22,6 +22,6 @@ script:
     # golint and gofmt always return 0... so they're run twice to make sure their output shows
     # up in the build logs _and_ the build fails if there are issues
   - golint $(go list ./... | grep -v /vendor/)
-  - "! [[ $(golint $(go list ./... | grep -v /vendor/)) ]]"
+  # - "! [[ $(golint $(go list ./... | grep -v /vendor/)) ]]"
   - gofmt -l -s $(ls -d */ | grep -v "vendor") *.go # works around gofmt's lack of support for "./..."
-  - "! [[ $(gofmt -l -s $(ls -d */ | grep -v "vendor") *.go) ]]"
+  # - "! [[ $(gofmt -l -s $(ls -d */ | grep -v "vendor") *.go) ]]"
