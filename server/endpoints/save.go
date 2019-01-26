@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/wikisophia/api-arguments/arguments"
+	"github.com/wikisophia/api-arguments/server/arguments"
 )
 
 // Implements POST /arguments

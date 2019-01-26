@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/pkg/errors"
-	"github.com/wikisophia/api-arguments/arguments"
+	"github.com/wikisophia/api-arguments/server/arguments"
 )
 
 // NewStore returns an in-memory implementation of a Store.

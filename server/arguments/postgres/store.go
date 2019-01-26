@@ -5,7 +5,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/wikisophia/api-arguments/arguments"
+	"github.com/wikisophia/api-arguments/server/arguments"
 )
 
 // NewStore returns a Store which is used to save and load Arguments.

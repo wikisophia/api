@@ -17,14 +17,6 @@ before_script:
   - psql -c 'create user app_wikisophia;' -U postgres
 install:
   - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-  - dep ensure
+  - cd server && dep ensure
 script:
-  - go test ./...
-  - go test ./arguments/postgres -database
-    # golint and gofmt always return 0... so they're run twice to make sure their output shows
-    # up in the build logs _and_ the build fails if there are issues
-  - golint $(go list ./... | grep -v /vendor/)
-  - "! [[ $(golint $(go list ./... | grep -v /vendor/)) ]]"
-    # gofmt doesn't support ./... yet either... so this lists the files/directories manually
-  - gofmt -l -s $(ls -d */ | grep -v "vendor") *.go
-  - "! [[ $(gofmt -l -s $(ls -d */ | grep -v \"vendor\") *.go) ]]"
+  - ./test.sh

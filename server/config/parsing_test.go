@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/wikisophia/api-arguments/config"
+	"github.com/wikisophia/api-arguments/server/config"
 )
 
 func TestEnvironmentOverrides(t *testing.T) {
@@ -121,7 +121,9 @@ func assertInvalid(t *testing.T, env string, value string) {
 	t.Helper()
 	defer setEnv(t, env, value)()
 	_, errs := config.Parse()
-	assert.Len(t, errs, 1)
+	if !assert.Len(t, errs, 1) {
+		return
+	}
 	assert.True(t, strings.HasPrefix(errs[0].Error(), env), "error message \"%v\" must start with environment variable: \"%s\"", errs[0], env)
 }
 
