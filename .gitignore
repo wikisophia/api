@@ -1,3 +1,9 @@
-/config.env
-server/vendor/
-server/server
+.vscode
+config.env
+
+/client-js/coverage
+/client-js/node_modules
+/client-js/dist
+
+/server/vendor/
+/server/server

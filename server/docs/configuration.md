@@ -10,7 +10,7 @@ the [TestEnvironmentOverrides](../config/config_test.go) unit test.
 
 To see the default values, just start the service and check your terminal's output on startup.
 
-For convenience, you may want to define your custom config variables in a `config.env` file in the project root:
+For convenience, you may want to define your custom config variables in a `config.env` file in [the server directory](..):
 
 ```
 export WKSPH_ARGS_SERVER_ADDR=localhost:8002

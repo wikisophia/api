@@ -1,0 +1,8 @@
+.eslintrc.js
+.npmignore
+*.test.js
+jest.config.js
+coverage/
+docs/
+src/
+test/
