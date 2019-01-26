@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	"github.com/wikisophia/api-arguments/arguments/argumentstest"
-	"github.com/wikisophia/api-arguments/arguments/memory"
+	"github.com/wikisophia/api-arguments/server/arguments/argumentstest"
+	"github.com/wikisophia/api-arguments/server/arguments/memory"
 )
 
 // TestInMemoryStore makes sure that the inMemoryStore is consistent with the StoreTests suite.

@@ -7,7 +7,7 @@ import (
 	"log"
 
 	"github.com/pkg/errors"
-	"github.com/wikisophia/api-arguments/arguments"
+	"github.com/wikisophia/api-arguments/server/arguments"
 )
 
 const fetchQuery = `

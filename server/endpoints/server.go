@@ -10,11 +10,11 @@ import (
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/rs/cors"
-	"github.com/wikisophia/api-arguments/arguments"
-	argumentsInMemory "github.com/wikisophia/api-arguments/arguments/memory"
-	argumentsInPostgres "github.com/wikisophia/api-arguments/arguments/postgres"
-	"github.com/wikisophia/api-arguments/config"
-	"github.com/wikisophia/api-arguments/postgres"
+	"github.com/wikisophia/api-arguments/server/arguments"
+	argumentsInMemory "github.com/wikisophia/api-arguments/server/arguments/memory"
+	argumentsInPostgres "github.com/wikisophia/api-arguments/server/arguments/postgres"
+	"github.com/wikisophia/api-arguments/server/config"
+	"github.com/wikisophia/api-arguments/server/postgres"
 )
 
 // Server runs the service. Use NewServier() to construct one from an app config,

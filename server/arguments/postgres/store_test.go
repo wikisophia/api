@@ -7,14 +7,14 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/wikisophia/api-arguments/arguments/argumentstest"
+	"github.com/wikisophia/api-arguments/server/arguments/argumentstest"
 
 	"github.com/smotes/purse"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
-	argumentsInPostgres "github.com/wikisophia/api-arguments/arguments/postgres"
-	"github.com/wikisophia/api-arguments/config"
-	"github.com/wikisophia/api-arguments/postgres"
+	argumentsInPostgres "github.com/wikisophia/api-arguments/server/arguments/postgres"
+	"github.com/wikisophia/api-arguments/server/config"
+	"github.com/wikisophia/api-arguments/server/postgres"
 )
 
 var hasDatabase = flag.Bool("database", false, "run database integration tests")

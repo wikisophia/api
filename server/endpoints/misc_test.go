@@ -11,12 +11,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/wikisophia/api-arguments/endpoints"
+	"github.com/wikisophia/api-arguments/server/endpoints"
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/wikisophia/api-arguments/arguments"
-	"github.com/wikisophia/api-arguments/config"
+	"github.com/wikisophia/api-arguments/server/arguments"
+	"github.com/wikisophia/api-arguments/server/config"
 )
 
 var intendedOrigArg = arguments.Argument{

@@ -3,8 +3,8 @@ package main
 import (
 	_ "net/http/pprof"
 
-	"github.com/wikisophia/api-arguments/config"
-	"github.com/wikisophia/api-arguments/endpoints"
+	"github.com/wikisophia/api-arguments/server/config"
+	"github.com/wikisophia/api-arguments/server/endpoints"
 )
 
 func main() {

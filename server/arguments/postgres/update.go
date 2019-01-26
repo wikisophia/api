@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"strconv"
 
-	"github.com/wikisophia/api-arguments/arguments"
+	"github.com/wikisophia/api-arguments/server/arguments"
 
 	"github.com/pkg/errors"
 )

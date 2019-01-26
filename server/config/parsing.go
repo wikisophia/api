@@ -83,7 +83,7 @@ func loadEnvironment(theValue reflect.Value, environmentVarSoFar string, pathSoF
 
 func logIfLoggable(path string, value reflect.Value) {
 	if strings.Contains(path, "Password") {
-		log.Printf("%s: <redacted for security>", path)
+		log.Printf("%s: <redacted>", path)
 	} else {
 		log.Printf("%s: %#v", path, value)
 	}
