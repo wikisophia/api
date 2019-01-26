@@ -17,6 +17,6 @@ before_script:
   - psql -c 'create user app_wikisophia;' -U postgres
 install:
   - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-  - cd server && dep ensure
+  - cd server && dep ensure && cd ..
 script:
   - ./scripts/test-all.sh

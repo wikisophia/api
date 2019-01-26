@@ -4,7 +4,7 @@ set -e
 trap 'last_command=$current_command; current_command=$BASH_COMMAND' DEBUG
 trap 'CMD=${last_command} RET=$?; if [[ $RET -ne 0 ]]; then echo "\"${CMD}\" command failed with exit code $RET."; fi' EXIT
 SCRIPTPATH="$( cd "$(dirname "$0")" ; pwd -P )"
-cd $SCRIPTPATH/../server
+cd ${SCRIPTPATH}/../server
 
 go test ./...
 
@@ -17,10 +17,10 @@ fi
 
 # gofmt doesn't support ./... yet either... so this lists the files/directories manually
 FMT=$(gofmt -l -s $(ls -d */ | grep -v "vendor") *.go)
-if ! [ -z $FMT ]; then
+if ! [ -z ${FMT} ]; then
     echo ''
     echo "Some files have bad style. Run the following commands to fix them:"
-    for LINE in $FMT
+    for LINE in ${FMT}
     do
         echo "  gofmt -s -w `pwd`/${LINE}"
     done
