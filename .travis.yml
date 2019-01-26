@@ -19,4 +19,4 @@ install:
   - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
   - cd server && dep ensure
 script:
-  - ./test.sh
+  - ./scripts/test-all.sh
