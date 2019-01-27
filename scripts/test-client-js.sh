@@ -7,4 +7,4 @@ SCRIPTPATH="$( cd "$(dirname "$0")" ; pwd -P )"
 cd ${SCRIPTPATH}/../client-js
 
 npm run lint:nofix
-npm run test
+npm run test:coverage
