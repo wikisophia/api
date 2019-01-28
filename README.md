@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/wikisophia/server/api-arguments.svg?branch=master)](https://travis-ci.org/wikisophia/api-arguments)
+[![Build Status](https://travis-ci.org/wikisophia/api-arguments.svg?branch=master)](https://travis-ci.org/wikisophia/api-arguments)
 
 # Overview
 

@@ -1,4 +1,4 @@
-[![Go Report Card](https://goreportcard.com/badge/github.com/wikisophia/server/api-arguments?style=flat-square)](https://goreportcard.com/report/github.com/wikisophia/server/api-arguments)
+[![Go Report Card](https://goreportcard.com/badge/github.com/wikisophia/api-arguments?style=flat-square)](https://goreportcard.com/report/github.com/wikisophia/api-arguments)
 
 # Installation
 
