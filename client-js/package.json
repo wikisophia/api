@@ -6,7 +6,7 @@
   "scripts": {
     "build": "rollup -c",
     "clean": "rm -rf dist",
-    "dev": "BABEL_ENV=build rollup -c -w",
+    "dev": "rollup -c -w",
     "lint": "eslint src --fix",
     "lint:nofix": "eslint src",
     "test": "jest",
