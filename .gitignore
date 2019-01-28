@@ -1,5 +1,6 @@
 .vscode
 config.env
+npm-debug.log
 
 /client-js/coverage
 /client-js/node_modules

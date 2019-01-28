@@ -1,0 +1,13 @@
+let cfg = require('./jest.config.js');
+
+module.exports = Object.assign({}, cfg, {
+    collectCoverage: true,
+    coverageThreshold: {
+        global: {
+            branches: 90,
+            functions: 90,
+            lines: 90,
+            statements: 90
+        }
+    }
+});
