@@ -1,6 +1,6 @@
 function handleServerErrors(response) {
   if (response.status >= 500 && response.status < 600) {
-    throw new Error(`Server responded with ${response.status}: ${response.body}`);
+    throw new Error(`Server responded with a ${response.status}: ${response.body}`);
   }
   return response;
 }
@@ -27,7 +27,7 @@ function getResponseBody(response) {
  * @return {string|null} Null if the argument is valid, or a string error message otherwise.
  */
 function validate(argument) {
-  if (argument.length < 2) {
+  if (argument.premises.length < 2) {
     return 'An argument must have at least two premises.';
   }
 
@@ -40,7 +40,7 @@ function validate(argument) {
   let duplicate = null;
   argument.premises.forEach((premise) => {
     if (premiseSet[premise]) {
-      duplicate = `Arguments shouldn't use the same premise more than once. Yours repeats: ${premiseSet[premise]}`;
+      duplicate = `Arguments shouldn't use the same premise more than once. Yours repeats: ${premise}`;
     }
     premiseSet[premise] = true;
   });
