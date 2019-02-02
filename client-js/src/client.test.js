@@ -141,7 +141,7 @@ describe('save()', () => {
     const client = newClient({ url, fetch });
     const mangled = Object.assign({}, saveRequest);
     mangled.premises = Array(saveRequest.premises.length).fill(saveRequest.premises[0]);
-    return expect(client.save(mangled)).rejects.toThrow("Arguments shouldn't use the same premise more than once. Yours repeats: foo");
+    return expect(client.save(mangled)).rejects.toThrow(`Arguments shouldn't use the same premise more than once. Yours repeats: ${saveRequest.premises[0]}`);
   });
 
   test('rejects arguments with too few premises', () => {
