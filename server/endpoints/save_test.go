@@ -8,12 +8,14 @@ import (
 )
 
 func TestSaveArgument(t *testing.T) {
-	server, id, ok := newServerWithData(t, intendedOrigArg)
-	if !ok {
+	server := newServerForTests()
+	id := doSaveObject(t, server, intendedOrigArg)
+	rr := doGetArgument(server, id)
+	if !assertSuccessfulJSON(t, rr) {
 		return
 	}
-	rr := doGetArgument(server, id)
-	assertArgumentsMatch(t, intendedOrigArg, rr)
+	actual := assertParseArgument(t, rr.Body.Bytes())
+	assertArgumentsMatch(t, intendedOrigArg, actual)
 }
 
 func TestSaveNoConclusion(t *testing.T) {

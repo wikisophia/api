@@ -12,15 +12,18 @@ import (
 )
 
 func TestPatchLive(t *testing.T) {
-	server, id, ok := newServerWithData(t, unintendedOrigArg, updates)
-	if !ok {
+	server := newServerForTests()
+	id := doSaveObject(t, server, intendedOrigArg)
+	doUpdatePremises(t, server, id, updates)
+	rr := doGetArgument(server, id)
+	if !assertSuccessfulJSON(t, rr) {
 		return
 	}
-	rr := doGetArgument(server, id)
+	actual := assertParseArgument(t, rr.Body.Bytes())
 	assertArgumentsMatch(t, arguments.Argument{
 		Conclusion: unintendedOrigArg.Conclusion,
 		Premises:   intendedOrigArg.Premises,
-	}, rr)
+	}, actual)
 }
 
 func TestPatchUnknown(t *testing.T) {
@@ -48,10 +51,8 @@ func TestPatchEmpty(t *testing.T) {
 
 func assertPatchRejected(t *testing.T, payload string) {
 	t.Helper()
-	server, id, ok := newServerWithData(t, unintendedOrigArg)
-	if !ok {
-		return
-	}
+	server := newServerForTests()
+	id := doSaveObject(t, server, unintendedOrigArg)
 	rr := doRequest(server, httptest.NewRequest("PATCH", "/arguments/"+strconv.FormatInt(id, 10), strings.NewReader(payload)))
 	assert.Equal(t, http.StatusBadRequest, rr.Code, "body: %s", rr.Body.String())
 }
