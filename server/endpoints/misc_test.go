@@ -2,6 +2,7 @@ package endpoints_test
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -79,6 +80,21 @@ func assertArgumentsMatch(t *testing.T, expected arguments.Argument, actual argu
 	assert.ElementsMatch(t, expected.Premises, actual.Premises)
 }
 
+func assertArgumentSetsMatch(t *testing.T, expected []arguments.ArgumentWithID, actual []arguments.ArgumentWithID) {
+	expectedMap := argumentListToMap(t, expected)
+	actualMap := argumentListToMap(t, actual)
+	assert.Equal(t, expectedMap, actualMap)
+}
+
+func argumentListToMap(t *testing.T, list []arguments.ArgumentWithID) map[int64]arguments.Argument {
+	theMap := make(map[int64]arguments.Argument)
+	for i := 0; i < len(list); i++ {
+		assert.NotContains(t, theMap, list[i].ID, "duplicate ID: %d", list[i].ID)
+		theMap[list[i].ID] = list[i].Argument
+	}
+	return theMap
+}
+
 func doSaveObject(t *testing.T, server *endpoints.Server, argument arguments.Argument) int64 {
 	payload, err := json.Marshal(argument)
 	if !assert.NoError(t, err) {
@@ -152,10 +168,17 @@ func parseArgumentID(t *testing.T, location string) int64 {
 	return int64(id)
 }
 
+func parseFile(t *testing.T, unixPath string, into interface{}) bool {
+	fileBytes, err := ioutil.ReadFile(unixPath)
+	if !assert.NoError(t, err) {
+		return false
+	}
+
+	return assert.NoError(t, json.Unmarshal(fileBytes, into))
+}
+
 func newServerForTests() *endpoints.Server {
-	return endpoints.NewServer(config.Configuration{
-		Storage: &config.Storage{
-			Type: config.StorageTypeMemory,
-		},
-	})
+	cfg := config.Defaults()
+	cfg.Storage.Type = config.StorageTypeMemory
+	return endpoints.NewServer(cfg)
 }

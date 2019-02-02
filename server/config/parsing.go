@@ -25,8 +25,21 @@ func MustParse() Configuration {
 // Parse loads the app config using Viper.
 // It logs all the values before returning, and panics on validation errors.
 func Parse() (Configuration, []error) {
-	// Config defaults go here
-	cfg := Configuration{
+	cfg := Defaults()
+	log.SetOutput(os.Stdout)
+	errs := loadEnvironment(reflect.ValueOf(&cfg), "WKSPH_ARGS", "Configuration", nil)
+	log.SetOutput(os.Stderr)
+
+	errs = requirePositive(cfg.Server.ReadHeaderTimeoutMillis, "WKSPH_ARGS_SERVER_READ_HEADER_TIMEOUT_MILLIS", errs)
+	errs = requirePositive(cfg.Storage.Postgres.Port, "WKSPH_ARGS_STORAGE_POSTGRES_PORT", errs)
+	errs = requireValidStorageType(cfg.Storage.Type, "WKSPH_ARGS_STORAGE_TYPE", errs)
+	return cfg, errs
+}
+
+// Defaults returns a Configuration with all the default options.
+// This ignores environment variable values.
+func Defaults() Configuration {
+	return Configuration{
 		Server: &Server{
 			Addr:                    "localhost:8001",
 			ReadHeaderTimeoutMillis: 5000,
@@ -43,14 +56,6 @@ func Parse() (Configuration, []error) {
 			},
 		},
 	}
-	log.SetOutput(os.Stdout)
-	errs := loadEnvironment(reflect.ValueOf(&cfg), "WKSPH_ARGS", "Configuration", nil)
-	log.SetOutput(os.Stderr)
-
-	errs = requirePositive(cfg.Server.ReadHeaderTimeoutMillis, "WKSPH_ARGS_SERVER_READ_HEADER_TIMEOUT_MILLIS", errs)
-	errs = requirePositive(cfg.Storage.Postgres.Port, "WKSPH_ARGS_STORAGE_POSTGRES_PORT", errs)
-	errs = requireValidStorageType(cfg.Storage.Type, "WKSPH_ARGS_STORAGE_TYPE", errs)
-	return cfg, errs
 }
 
 func loadEnvironment(theValue reflect.Value, environmentVarSoFar string, pathSoFar string, errs []error) []error {
