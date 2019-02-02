@@ -1,6 +1,7 @@
 import newClient from './client';
-import getOneResponse from '../../server/samples/get-one.json';
-import getAllResponse from '../../server/samples/get-all.json';
+import getOneResponse from '../../server/samples/get-one-response.json';
+import getAllResponse from '../../server/samples/get-all-response.json';
+import saveRequest from '../../server/samples/save-request.json';
 
 const url = 'http://some-url.com';
 
@@ -54,10 +55,9 @@ describe('getAll()', () => {
     }));
 
     const client = newClient({ url, fetch });
-    const conclusion = 'There is no spoon.';
-    return client.getAll(conclusion).catch((result) => {
+    return client.getAll(getAllResponse[0].conclusion).catch((result) => {
       expect(fetch.mock.calls.length).toBe(1);
-      expect(fetch.mock.calls[0][0]).toBe(`${url}/arguments?${conclusion}`);
+      expect(fetch.mock.calls[0][0]).toBe(`${url}/arguments?${getAllResponse[0].conclusion}`);
       expect(fetch.mock.calls[0][1]).toEqual({ method: 'cors' });
       expect(result).toEqual(getAllResponse);
     });
@@ -103,17 +103,13 @@ describe('save()', () => {
       },
     }));
     const client = newClient({ url, fetch });
-    const argument = {
-      premises: ['foo', 'bar'],
-      conclusion: 'baz',
-    };
-    return client.save(argument).then((resolved) => {
+    return client.save(saveRequest).then((resolved) => {
       expect(fetch.mock.calls.length).toBe(1);
       expect(fetch.mock.calls[0][0]).toBe(`${url}/arguments`);
       expect(fetch.mock.calls[0][1]).toEqual({
         method: 'POST',
         mode: 'cors',
-        body: argument,
+        body: saveRequest,
       });
       expect(resolved).toEqual({
         location: '/arguments/1',
@@ -129,38 +125,30 @@ describe('save()', () => {
     }));
     const client = newClient({ url, fetch });
 
-    return expect(client.save({
-      conclusion: 'baz',
-      premises: ['foo', 'bar'],
-    })).rejects.toThrow('Server responded with a 500: Something went wrong');
+    return expect(client.save(saveRequest)).rejects.toThrow('Server responded with a 500: Something went wrong');
   });
 
   test('rejects arguments with no conclusion', () => {
     const fetch = jest.fn();
     const client = newClient({ url, fetch });
-
-    return expect(client.save({
-      premises: ['foo', 'bar'],
-    })).rejects.toThrow('An argument must have a conclusion.');
+    const mangled = Object.assign({}, saveRequest);
+    delete mangled.conclusion;
+    return expect(client.save(mangled)).rejects.toThrow('An argument must have a conclusion.');
   });
 
   test('rejects arguments with duplicate premises', () => {
     const fetch = jest.fn();
     const client = newClient({ url, fetch });
-
-    return expect(client.save({
-      conclusion: 'bar',
-      premises: ['foo', 'foo'],
-    })).rejects.toThrow("Arguments shouldn't use the same premise more than once. Yours repeats: foo");
+    const mangled = Object.assign({}, saveRequest);
+    mangled.premises = Array(saveRequest.premises.length).fill(saveRequest.premises[0]);
+    return expect(client.save(mangled)).rejects.toThrow("Arguments shouldn't use the same premise more than once. Yours repeats: foo");
   });
 
   test('rejects arguments with too few premises', () => {
     const fetch = jest.fn();
     const client = newClient({ url, fetch });
-
-    return expect(client.save({
-      conclusion: 'bar',
-      premises: ['foo'],
-    })).rejects.toThrow('An argument must have at least two premises.');
+    const mangled = Object.assign({}, saveRequest);
+    mangled.premises = ['only one'];
+    return expect(client.save(mangled)).rejects.toThrow('An argument must have at least two premises.');
   });
 });

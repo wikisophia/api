@@ -1,0 +1,4 @@
+{
+  "premises": ["foo", "bar"],
+  "conclusion": "baz"
+}
