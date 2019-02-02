@@ -30,10 +30,13 @@ type inMemoryStore struct {
 }
 
 func (s *inMemoryStore) Delete(ctx context.Context, id int64) error {
-	if id < int64(len(s.arguments)) {
+	if id > 0 && id < int64(len(s.arguments)) {
 		s.arguments[id] = nil
+		return nil
 	}
-	return nil
+	return &arguments.NotFoundError{
+		Message: fmt.Sprintf("argument with id %d does not exist", id),
+	}
 }
 
 func (s *inMemoryStore) FetchVersion(ctx context.Context, id int64, version int16) (arguments.Argument, error) {

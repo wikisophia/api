@@ -12,7 +12,7 @@ import (
 // the interface contract
 type StoreTests struct {
 	suite.Suite
-	Store arguments.Store
+	StoreFactory func() arguments.Store
 }
 
 var originalArguments = arguments.Argument{
@@ -30,12 +30,13 @@ var updatedPremises = []string{
 
 // TestSaveIsLive makes sure that an argument is "live" immediately after being saved.
 func (suite *StoreTests) TestSaveIsLive() {
-	id, err := suite.Store.Save(context.Background(), originalArguments)
+	store := suite.StoreFactory()
+	id, err := store.Save(context.Background(), originalArguments)
 	if !assert.NoError(suite.T(), err) {
 		return
 	}
 
-	fetched, err := suite.Store.FetchLive(context.Background(), id)
+	fetched, err := store.FetchLive(context.Background(), id)
 	if !assert.NoError(suite.T(), err) {
 		return
 	}
@@ -45,12 +46,13 @@ func (suite *StoreTests) TestSaveIsLive() {
 
 // TestUpdatedIsLive makes sure that a newly updated argument uses the latest premises.
 func (suite *StoreTests) TestUpdatedIsLive() {
-	id := suite.saveWithUpdates(originalArguments, updatedPremises)
+	store := suite.StoreFactory()
+	id := suite.saveWithUpdates(store, originalArguments, updatedPremises)
 	if id == -1 {
 		return
 	}
 
-	fetched, err := suite.Store.FetchLive(context.Background(), id)
+	fetched, err := store.FetchLive(context.Background(), id)
 	if !assert.NoError(suite.T(), err) {
 		return
 	}
@@ -60,7 +62,8 @@ func (suite *StoreTests) TestUpdatedIsLive() {
 
 // TestUpdateUnknownReturnsError makes sure that we can't update arguments which don't exist.
 func (suite *StoreTests) TestUpdateUnknownReturnsError() {
-	_, err := suite.Store.UpdatePremises(context.Background(), 1, []string{"Socrates is a man", "All men are mortal"})
+	store := suite.StoreFactory()
+	_, err := store.UpdatePremises(context.Background(), 1, []string{"Socrates is a man", "All men are mortal"})
 	if !assert.Error(suite.T(), err) {
 		return
 	}
@@ -72,12 +75,13 @@ func (suite *StoreTests) TestUpdateUnknownReturnsError() {
 
 // TestOriginalIsAvailable makes sure that old versions of updated arguments can still be fetched.
 func (suite *StoreTests) TestOriginalIsAvailable() {
-	id := suite.saveWithUpdates(originalArguments, updatedPremises)
+	store := suite.StoreFactory()
+	id := suite.saveWithUpdates(store, originalArguments, updatedPremises)
 	if id == -1 {
 		return
 	}
 
-	fetched, err := suite.Store.FetchVersion(context.Background(), id, 1)
+	fetched, err := store.FetchVersion(context.Background(), id, 1)
 	if !assert.NoError(suite.T(), err) {
 		return
 	}
@@ -85,19 +89,31 @@ func (suite *StoreTests) TestOriginalIsAvailable() {
 	assert.ElementsMatch(suite.T(), originalArguments.Premises, fetched.Premises)
 }
 
+// TestDeletedUnknownReturnsNotFound makes sure the backend returns a NotFoundError
+// if asked to delete an unknown entry.
+func (suite *StoreTests) TestDeletedUnknownReturnsNotFound() {
+	store := suite.StoreFactory()
+	err := store.Delete(context.Background(), 1)
+	if _, ok := err.(*arguments.NotFoundError); !ok {
+		suite.T().Error("Store.Delete() should return a NotFoundError for unknown IDs.")
+	}
+}
+
 // TestDeletedIsUnavailable makes sure the backend doesn't return arguments that have been deleted.
 func (suite *StoreTests) TestDeletedIsUnavailable() {
-	id := suite.saveWithUpdates(originalArguments, updatedPremises)
+	store := suite.StoreFactory()
+
+	id := suite.saveWithUpdates(store, originalArguments, updatedPremises)
 	if id == -1 {
 		return
 	}
-	if !assert.NoError(suite.T(), suite.Store.Delete(context.Background(), id)) {
+	if !assert.NoError(suite.T(), store.Delete(context.Background(), id)) {
 		return
 	}
-	if _, err := suite.Store.FetchVersion(context.Background(), id, 1); !assert.Error(suite.T(), err) {
+	if _, err := store.FetchVersion(context.Background(), id, 1); !assert.Error(suite.T(), err) {
 		return
 	}
-	if _, err := suite.Store.FetchLive(context.Background(), id); !assert.Error(suite.T(), err) {
+	if _, err := store.FetchLive(context.Background(), id); !assert.Error(suite.T(), err) {
 		return
 	} else if _, ok := err.(*arguments.NotFoundError); !ok {
 		suite.T().Error("Store should return a NotFoundError on deleted arguments.")
@@ -106,12 +122,13 @@ func (suite *StoreTests) TestDeletedIsUnavailable() {
 
 // TestFetchUnknownReturnsError makes sure the backend returns errors when asked for an unknown ID.
 func (suite *StoreTests) TestFetchUnknownReturnsError() {
-	if _, err := suite.Store.FetchLive(context.Background(), 1); !assert.Error(suite.T(), err) {
+	store := suite.StoreFactory()
+	if _, err := store.FetchLive(context.Background(), 1); !assert.Error(suite.T(), err) {
 		return
 	} else if _, ok := err.(*arguments.NotFoundError); !ok {
 		suite.T().Error("Store.FetchLive should return a NotFoundError on unknown arguments.")
 	}
-	if _, err := suite.Store.FetchVersion(context.Background(), 1, 1); !assert.Error(suite.T(), err) {
+	if _, err := store.FetchVersion(context.Background(), 1, 1); !assert.Error(suite.T(), err) {
 		return
 	} else if _, ok := err.(*arguments.NotFoundError); !ok {
 		suite.T().Error("Store.FetchVersion should return a NotFoundError on unknown arguments.")
@@ -120,18 +137,19 @@ func (suite *StoreTests) TestFetchUnknownReturnsError() {
 
 // TestBasicFetchAll makes sure the Store returns all the arguments for a conclusion.
 func (suite *StoreTests) TestBasicFetchAll() {
-	arg1ID := suite.saveWithUpdates(originalArguments)
+	store := suite.StoreFactory()
+	arg1ID := suite.saveWithUpdates(store, originalArguments)
 	otherArg := arguments.Argument{
 		Conclusion: originalArguments.Conclusion,
 		Premises:   updatedPremises,
 	}
-	suite.saveWithUpdates(arguments.Argument{
+	suite.saveWithUpdates(store, arguments.Argument{
 		Conclusion: "some other conclusion",
 		Premises:   []string{"premise1", "premise2"},
 	})
-	arg2ID := suite.saveWithUpdates(otherArg)
+	arg2ID := suite.saveWithUpdates(store, otherArg)
 
-	allArgs, err := suite.Store.FetchAll(context.Background(), originalArguments.Conclusion)
+	allArgs, err := store.FetchAll(context.Background(), originalArguments.Conclusion)
 
 	if !assert.NoError(suite.T(), err) {
 		return
@@ -159,8 +177,9 @@ func (suite *StoreTests) TestBasicFetchAll() {
 
 // TestVersionedFetchAll makes sure the Store returns the argument's live version only.
 func (suite *StoreTests) TestVersionedFetchAll() {
-	arg1ID := suite.saveWithUpdates(originalArguments, updatedPremises)
-	allArgs, err := suite.Store.FetchAll(context.Background(), originalArguments.Conclusion)
+	store := suite.StoreFactory()
+	arg1ID := suite.saveWithUpdates(store, originalArguments, updatedPremises)
+	allArgs, err := store.FetchAll(context.Background(), originalArguments.Conclusion)
 	if !assert.NoError(suite.T(), err) {
 		return
 	}
@@ -172,14 +191,14 @@ func (suite *StoreTests) TestVersionedFetchAll() {
 	assert.Equal(suite.T(), arg1ID, allArgs[0].ID)
 }
 
-func (suite *StoreTests) saveWithUpdates(arg arguments.Argument, premiseUpdates ...[]string) int64 {
-	id, err := suite.Store.Save(context.Background(), arg)
+func (suite *StoreTests) saveWithUpdates(store arguments.Store, arg arguments.Argument, premiseUpdates ...[]string) int64 {
+	id, err := store.Save(context.Background(), arg)
 	if !assert.NoError(suite.T(), err) {
 		return -1
 	}
 
 	for i := 0; i < len(premiseUpdates); i++ {
-		_, err = suite.Store.UpdatePremises(context.Background(), id, premiseUpdates[i])
+		_, err = store.UpdatePremises(context.Background(), id, premiseUpdates[i])
 		if !assert.NoError(suite.T(), err) {
 			return -1
 		}
