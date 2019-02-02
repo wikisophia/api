@@ -22,31 +22,42 @@ function getResponseBody(response) {
 }
 
 /**
- * Make sure the argument has everything it needs.
+ * Make sure the premises would be valid.
  * If valid, return null. If not, return an error message explaining what's wrong with it.
  *
- * @param {Argument} argument The argument to validate
- * @return {string|null} Null if the argument is valid, or a string error message otherwise.
+ * @param {string[]} premises The premises to validate
+ * @return {string|null} Null if the premises is valid, or a string error message otherwise.
  */
-function validate(argument) {
-  if (argument.premises.length < 2) {
+function validatePremises(premises) {
+  if (premises.length < 2) {
     return 'An argument must have at least two premises.';
-  }
-
-  if (!argument.conclusion) {
-    return 'An argument must have a conclusion.';
   }
 
   // Sets aren't supported in a few semi-modern browsers
   const premiseSet = {};
   let duplicate = null;
-  argument.premises.forEach((premise) => {
+  premises.forEach((premise) => {
     if (premiseSet[premise]) {
       duplicate = `Arguments shouldn't use the same premise more than once. Yours repeats: ${premise}`;
     }
     premiseSet[premise] = true;
   });
   return duplicate;
+}
+
+/**
+ * Make sure the argument has everything it needs.
+ * If valid, return null. If not, return an error message explaining what's wrong with it.
+ *
+ * @param {Argument} argument The argument to validate
+ * @return {string|null} Null if the argument is valid, or a string error message otherwise.
+ */
+function validateArgument(argument) {
+  if (!argument.conclusion) {
+    return 'An argument must have a conclusion.';
+  }
+
+  return validatePremises(argument.premises);
 }
 
 /**
@@ -85,7 +96,9 @@ export default function newClient({ url, fetch }) {
     /**
      * Get all the arguments with a given conclusion.
      *
-     * @param {Promise<Argument[]>} conclusion
+     * @param {string} conclusion The conclusion you want to fetch all arguments for.
+     * @return {Promise<Argument[]>} A list of arguments with this conclusion.
+     *   If none exist, this will be an empty array.
      */
     getAll(conclusion) {
       if (!conclusion) {
@@ -107,7 +120,7 @@ export default function newClient({ url, fetch }) {
      *   find the new argument.
      */
     save(argument) {
-      const err = validate(argument);
+      const err = validateArgument(argument);
       if (err) {
         return Promise.reject(new Error(err));
       }
@@ -117,6 +130,36 @@ export default function newClient({ url, fetch }) {
         mode: 'cors',
         body: argument,
       }).then(handleServerErrors)
+        .then(response => ({
+          location: response.headers.get('Location'),
+        }));
+    },
+
+    /**
+     * Update the premises of the argument using its ID.
+     *
+     * @param {int} id The ID of the argument you want to update.
+     * @param {string[]} premises The new premises which this argument should have.
+     */
+    update(id, premises) {
+      const err = validatePremises(premises);
+      if (err) {
+        return Promise.reject(new Error(err));
+      }
+
+      return fetch(`${url}/argument/${id}`, {
+        method: 'PATCH',
+        mode: 'cors',
+        body: {
+          premises,
+        },
+      }).then(handleServerErrors)
+        .then((response) => {
+          if (response.status === 404) {
+            throw new Error(response.body);
+          }
+          return response;
+        })
         .then(response => ({
           location: response.headers.get('Location'),
         }));

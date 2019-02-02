@@ -2,6 +2,7 @@ import newClient from './client';
 import getOneResponse from '../../server/samples/get-one-response.json';
 import getAllResponse from '../../server/samples/get-all-response.json';
 import saveRequest from '../../server/samples/save-request.json';
+import updateRequest from '../../server/samples/update-request.json';
 
 const url = 'http://some-url.com';
 
@@ -150,5 +151,56 @@ describe('save()', () => {
     const mangled = Object.assign({}, saveRequest);
     mangled.premises = ['only one'];
     return expect(client.save(mangled)).rejects.toThrow('An argument must have at least two premises.');
+  });
+});
+
+describe('update()', () => {
+  test('calls the right API endpoint with the right data', () => {
+    const fetch = jest.fn();
+    fetch.mockReturnValueOnce(Promise.resolve({
+      status: 204,
+      headers: {
+        get(header) {
+          return header === 'Location' ? '/arguments/1/version/2' : '';
+        },
+      },
+    }));
+    const client = newClient({ url, fetch });
+    return client.update(1, updateRequest.premises).then((resolved) => {
+      expect(fetch.mock.calls.length).toBe(1);
+      expect(fetch.mock.calls[0][0]).toBe(`${url}/argument/1`);
+      expect(fetch.mock.calls[0][1]).toEqual({
+        method: 'PATCH',
+        mode: 'cors',
+        body: updateRequest,
+      });
+      expect(resolved).toEqual({
+        location: '/arguments/1/version/2',
+      });
+    });
+  });
+
+  test('rejects if the server returns a 500', () => {
+    const fetch = jest.fn();
+    fetch.mockReturnValueOnce(Promise.resolve({
+      status: 500,
+      body: 'Something went wrong',
+    }));
+
+    const client = newClient({ url, fetch });
+    return expect(client.update(1, updateRequest.premises)).rejects.toThrow('Something went wrong');
+  });
+
+  test('rejects updates with duplicate premises', () => {
+    const fetch = jest.fn();
+    const client = newClient({ url, fetch });
+    const update = Array(updateRequest.premises.length).fill(updateRequest.premises[0]);
+    return expect(client.update(1, update)).rejects.toThrow(`Arguments shouldn't use the same premise more than once. Yours repeats: ${updateRequest.premises[0]}`);
+  });
+
+  test('rejects updates with too few premises', () => {
+    const fetch = jest.fn();
+    const client = newClient({ url, fetch });
+    return expect(client.update(1, ['only one'])).rejects.toThrow('An argument must have at least two premises.');
   });
 });
