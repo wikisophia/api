@@ -21,13 +21,12 @@ func TestGetDeleted(t *testing.T) {
 	assert.Equal(t, http.StatusNotFound, rr.Code)
 }
 
-// TODO: This test needs some database code updates. Deferring it 'til later.
-// func TestDeleteUnknown(t *testing.T) {
-// 	server := newServerForTests()
-// 	rr := doDeleteArgument(server, 1)
-// 	assert.Equal(t, http.StatusNotFound, rr.Code)
-// 	assert.Equal(t, "text/plain; charset=utf-8", rr.Header().Get("Content-Type"))
-// }
+func TestDeleteUnknown(t *testing.T) {
+	server := newServerForTests()
+	rr := doDeleteArgument(server, 1)
+	assert.Equal(t, http.StatusNotFound, rr.Code)
+	assert.Equal(t, "text/plain; charset=utf-8", rr.Header().Get("Content-Type"))
+}
 
 func TestDeleteUnknownString(t *testing.T) {
 	server := newServerForTests()
