@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -169,7 +170,7 @@ func parseArgumentID(t *testing.T, location string) int64 {
 }
 
 func parseFile(t *testing.T, unixPath string, into interface{}) bool {
-	fileBytes, err := ioutil.ReadFile(unixPath)
+	fileBytes, err := ioutil.ReadFile(filepath.FromSlash(unixPath))
 	if !assert.NoError(t, err) {
 		return false
 	}
