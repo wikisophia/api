@@ -123,6 +123,11 @@ func doGetArgument(server *endpoints.Server, id int64) *httptest.ResponseRecorde
 	return doRequest(server, req)
 }
 
+func doDeleteArgument(server *endpoints.Server, id int64) *httptest.ResponseRecorder {
+	req := httptest.NewRequest("DELETE", "/arguments/"+strconv.FormatInt(id, 10), nil)
+	return doRequest(server, req)
+}
+
 func doGetAllArguments(server *endpoints.Server, conclusion string) *httptest.ResponseRecorder {
 	req := httptest.NewRequest("GET", "/arguments?conclusion="+url.QueryEscape(conclusion), nil)
 	return doRequest(server, req)
