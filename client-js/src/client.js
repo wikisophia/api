@@ -109,7 +109,12 @@ export default function newClient({ url, fetch }) {
         mode: 'cors',
       }).then(handleServerErrors)
         .then(onNotFound([]))
-        .then(getResponseBody);
+        .then((response) => {
+          if (response && response.body) {
+            return response.body.arguments;
+          }
+          return response;
+        });
     },
 
     /**

@@ -56,9 +56,9 @@ describe('getAll()', () => {
     }));
 
     const client = newClient({ url, fetch });
-    return client.getAll(getAllResponse[0].conclusion).catch((result) => {
+    return client.getAll(getAllResponse.arguments[0].conclusion).catch((result) => {
       expect(fetch.mock.calls.length).toBe(1);
-      expect(fetch.mock.calls[0][0]).toBe(`${url}/arguments?${getAllResponse[0].conclusion}`);
+      expect(fetch.mock.calls[0][0]).toBe(`${url}/arguments?${getAllResponse.arguments[0].conclusion}`);
       expect(fetch.mock.calls[0][1]).toEqual({ method: 'cors' });
       expect(result).toEqual(getAllResponse);
     });

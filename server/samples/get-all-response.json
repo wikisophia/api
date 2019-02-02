@@ -1,18 +1,20 @@
-[
-  {
-    "id": 1,
-    "conclusion": "bing",
-    "premises": [
-      "foo",
-      "bar"
-    ]
-  },
-  {
-    "id": 2,
-    "conclusion": "bing",
-    "premises": [
-      "bang",
-      "boom"
-    ]
-  }
-]
+{
+  "arguments": [
+    {
+      "id": 1,
+      "conclusion": "bing",
+      "premises": [
+        "foo",
+        "bar"
+      ]
+    },
+    {
+      "id": 2,
+      "conclusion": "bing",
+      "premises": [
+        "bang",
+        "boom"
+      ]
+    }
+  ]
+}
