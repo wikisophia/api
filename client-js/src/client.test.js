@@ -1,4 +1,6 @@
 import newClient from './client';
+import getOneResponse from '../../server/samples/get-one.json';
+import getAllResponse from '../../server/samples/get-all.json';
 
 const url = 'http://some-url.com';
 
@@ -6,13 +8,15 @@ describe('getOne()', () => {
   test('calls the right API endpoint when fetching the latest version of an argument', () => {
     const fetch = jest.fn();
     fetch.mockReturnValueOnce(Promise.resolve({
-      status: 404,
+      status: 200,
+      body: getOneResponse,
     }));
 
     const client = newClient({ url, fetch });
-    return client.getOne(1).then(() => {
+    return client.getOne(1).then((result) => {
       expect(fetch.mock.calls.length).toBe(1);
       expect(fetch.mock.calls[0][0]).toBe(`${url}/arguments/1`);
+      expect(result).toEqual(getOneResponse);
     });
   });
 
@@ -23,34 +27,11 @@ describe('getOne()', () => {
     }));
 
     const client = newClient({ url, fetch });
-    return client.getOne(1, 2).then(() => {
+    return client.getOne(1, 2).then((result) => {
       expect(fetch.mock.calls.length).toBe(1);
       expect(fetch.mock.calls[0][0]).toBe(`${url}/arguments/1/version/2`);
+      expect(result).toBe(null);
     });
-  });
-
-  test('parses the response body successfully', () => {
-    const badArgument = {
-      conclusion: 'one thing',
-      premises: ["don't relate", 'at all'],
-    };
-    const fetch = jest.fn();
-    fetch.mockReturnValueOnce(Promise.resolve({
-      status: 200,
-      body: badArgument,
-    }));
-
-    const client = newClient({ url, fetch });
-    return expect(client.getOne(1)).resolves.toEqual(badArgument);
-  });
-
-  test('resolves to null null when the server responds with a 404', () => {
-    const fetch = jest.fn();
-    fetch.mockReturnValueOnce(Promise.resolve({
-      status: 404,
-    }));
-    const client = newClient({ url, fetch });
-    return expect(client.getOne(1)).resolves.toBe(null);
   });
 
   test('rejects if the server responds with a 500', () => {
@@ -61,6 +42,52 @@ describe('getOne()', () => {
     }));
     const client = newClient({ url, fetch });
     return expect(client.getOne(1)).rejects.toThrow('Server responded with a 500: something bad happened');
+  });
+});
+
+describe('getAll()', () => {
+  test('calls the right API endpoint', () => {
+    const fetch = jest.fn();
+    fetch.mockReturnValueOnce(Promise.resolve({
+      status: 200,
+      body: getAllResponse,
+    }));
+
+    const client = newClient({ url, fetch });
+    const conclusion = 'There is no spoon.';
+    return client.getAll(conclusion).catch((result) => {
+      expect(fetch.mock.calls.length).toBe(1);
+      expect(fetch.mock.calls[0][0]).toBe(`${url}/arguments?${conclusion}`);
+      expect(fetch.mock.calls[0][1]).toEqual({ method: 'cors' });
+      expect(result).toEqual(getAllResponse);
+    });
+  });
+
+  test('resolves to an empty array when the server responds with a 404', () => {
+    const fetch = jest.fn();
+    fetch.mockReturnValueOnce(Promise.resolve({
+      status: 404,
+    }));
+
+    const client = newClient({ url, fetch });
+    return expect(client.getAll('nothing ventured, nothing earned')).resolves.toEqual([]);
+  });
+
+  test('rejects if the server returns a 500', () => {
+    const fetch = jest.fn();
+    fetch.mockReturnValueOnce(Promise.resolve({
+      status: 500,
+      body: 'server failure',
+    }));
+
+    const client = newClient({ url, fetch });
+    return expect(client.getAll("don't mess with texas")).rejects.toThrow('Server responded with a 500: server failure');
+  });
+
+  test('rejects if called with an empty conclusion', () => {
+    const fetch = jest.fn();
+    const client = newClient({ url, fetch });
+    return expect(client.getAll()).rejects.toThrow("Can't get arguments with an empty conclusion.");
   });
 });
 

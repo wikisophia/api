@@ -5,15 +5,17 @@ function handleServerErrors(response) {
   return response;
 }
 
-function nullNotFound(response) {
-  if (response.status === 404) {
-    return null;
-  }
-  return response;
+function onNotFound(value) {
+  return function responseOrValue(response) {
+    if (response.status === 404) {
+      return value;
+    }
+    return response;
+  };
 }
 
 function getResponseBody(response) {
-  if (response) {
+  if (response && response.body) {
     return response.body;
   }
   return response;
@@ -76,7 +78,24 @@ export default function newClient({ url, fetch }) {
       return fetch(getURL, {
         mode: 'cors',
       }).then(handleServerErrors)
-        .then(nullNotFound)
+        .then(onNotFound(null))
+        .then(getResponseBody);
+    },
+
+    /**
+     * Get all the arguments with a given conclusion.
+     *
+     * @param {Promise<Argument[]>} conclusion
+     */
+    getAll(conclusion) {
+      if (!conclusion) {
+        return Promise.reject(new Error("Can't get arguments with an empty conclusion."));
+      }
+
+      return fetch(`${url}/arguments?conclusion=${conclusion}`, {
+        mode: 'cors',
+      }).then(handleServerErrors)
+        .then(onNotFound([]))
         .then(getResponseBody);
     },
 
