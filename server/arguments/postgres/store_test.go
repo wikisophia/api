@@ -1,12 +1,12 @@
 package postgres_test
 
 import (
-	"database/sql"
 	"flag"
 	"os"
 	"path/filepath"
 	"testing"
 
+	"github.com/wikisophia/api-arguments/server/arguments"
 	"github.com/wikisophia/api-arguments/server/arguments/argumentstest"
 
 	"github.com/smotes/purse"
@@ -41,35 +41,21 @@ func TestArgumentStorageIntegration(t *testing.T) {
 	}
 
 	db := postgres.NewDB(config.MustParse().Storage.Postgres)
-	if _, err = db.Query(contents); assert.NoError(t, err) {
+	if _, err = db.Query(contents); !assert.NoError(t, err) {
 		return
 	}
 
 	store := argumentsInPostgres.NewStore(db)
 	// Run all the same tests from the StoreTests suite.
-	suite.Run(t, &DatabaseTests{
-		StoreTests: &argumentstest.StoreTests{
-			Store: store,
+	suite.Run(t, &argumentstest.StoreTests{
+		StoreFactory: func() arguments.Store {
+			if _, err := db.Query(contents); !assert.NoError(t, err) {
+				t.FailNow()
+			}
+			return store
 		},
-		db:            db,
-		queryContents: contents,
 	})
 
 	store.Close()
 	db.Close()
-}
-
-type DatabaseTests struct {
-	*argumentstest.StoreTests
-
-	db            *sql.DB
-	queryContents string
-}
-
-func (suite *DatabaseTests) SetupTest() {
-	if suite.db != nil {
-		if _, err := suite.db.Query(suite.queryContents); !assert.NoError(suite.T(), err) {
-			os.Exit(1)
-		}
-	}
 }

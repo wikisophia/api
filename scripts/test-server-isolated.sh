@@ -6,7 +6,7 @@ trap 'CMD=${last_command} RET=$?; if [[ $RET -ne 0 ]]; then echo "\"${CMD}\" com
 SCRIPTPATH="$( cd "$(dirname "$0")" ; pwd -P )"
 cd ${SCRIPTPATH}/../server
 
-go test ./...
+go test ./... -count=1
 
 # golint and gofmt always return 0... so we need to capture the output and test it
 LINT=$(golint $(go list ./... | grep -v /vendor/))

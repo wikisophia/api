@@ -23,8 +23,7 @@ type ArgumentWithID struct {
 // A Store manages Arguments inside the database.
 type Store interface {
 	// Delete deletes an argument (and all its versions) from the site.
-	// This should only return an error if the deletion failed.
-	// It should return nil if asked to delete an argument which doesn't exist.
+	// If the argument didn't exist, the error will be a NotFoundError.
 	Delete(ctx context.Context, id int64) error
 	// FetchAll pulls all the available arguments for a conclusion.
 	// If none exist, error will be nil and the array empty.
