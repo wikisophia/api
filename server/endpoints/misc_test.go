@@ -2,10 +2,11 @@ package endpoints_test
 
 import (
 	"encoding/json"
-	"errors"
-	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -57,57 +58,84 @@ func TestPostVersion(t *testing.T) {
 	assert.Equal(t, http.StatusMethodNotAllowed, rr.Code)
 }
 
-func assertArgumentsMatch(t *testing.T, expected arguments.Argument, rr *httptest.ResponseRecorder) {
-	if !assert.Equal(t, http.StatusOK, rr.Code) {
-		return
-	}
-	if !assert.Equal(t, "application/json", rr.Header().Get("Content-Type")) {
-		return
-	}
-	var actual arguments.Argument
-	if !assert.NoError(t, json.Unmarshal(rr.Body.Bytes(), &actual)) {
-		return
-	}
+func assertSuccessfulJSON(t *testing.T, rr *httptest.ResponseRecorder) bool {
+	assert.Equal(t, http.StatusOK, rr.Code)
+	assert.Equal(t, "application/json", rr.Header().Get("Content-Type"))
+	return !t.Failed()
+}
 
+func assertParseArgument(t *testing.T, data []byte) arguments.Argument {
+	var argument arguments.Argument
+	assert.NoError(t, json.Unmarshal(data, &argument))
+	return argument
+}
+
+func assertParseAllArguments(t *testing.T, data []byte) endpoints.GetAllResponse {
+	var getAll endpoints.GetAllResponse
+	assert.NoError(t, json.Unmarshal(data, &getAll))
+	return getAll
+}
+
+func assertArgumentsMatch(t *testing.T, expected arguments.Argument, actual arguments.Argument) {
 	assert.Equal(t, expected.Conclusion, actual.Conclusion)
 	assert.ElementsMatch(t, expected.Premises, actual.Premises)
 }
 
-func newServerWithData(t *testing.T, argument arguments.Argument, updates ...[]string) (*endpoints.Server, int64, bool) {
+func assertArgumentSetsMatch(t *testing.T, expected []arguments.ArgumentWithID, actual []arguments.ArgumentWithID) {
+	expectedMap := argumentListToMap(t, expected)
+	actualMap := argumentListToMap(t, actual)
+	assert.Equal(t, expectedMap, actualMap)
+}
+
+func argumentListToMap(t *testing.T, list []arguments.ArgumentWithID) map[int64]arguments.Argument {
+	theMap := make(map[int64]arguments.Argument)
+	for i := 0; i < len(list); i++ {
+		assert.NotContains(t, theMap, list[i].ID, "duplicate ID: %d", list[i].ID)
+		theMap[list[i].ID] = list[i].Argument
+	}
+	return theMap
+}
+
+func doSaveObject(t *testing.T, server *endpoints.Server, argument arguments.Argument) int64 {
 	payload, err := json.Marshal(argument)
 	if !assert.NoError(t, err) {
-		return nil, -1, false
+		return -1
 	}
-	server := newServerForTests()
 	rr := doSaveArgument(server, string(payload))
 	if !assert.Equal(t, http.StatusCreated, rr.Code) {
-		return nil, -1, false
+		return -1
 	}
-	id, err := parseArgumentID(rr.Header().Get("Location"))
+	id := parseArgumentID(t, rr.Header().Get("Location"))
 	if !assert.NoError(t, err) {
-		return nil, -1, false
+		return -1
 	}
+	return id
+}
+
+func doUpdatePremises(t *testing.T, server *endpoints.Server, id int64, updates ...[]string) {
 	for _, update := range updates {
 		arg := arguments.Argument{
 			Premises: update,
 		}
 		updatePayload, err := json.Marshal(arg)
 		if !assert.NoError(t, err) {
-			return nil, -1, false
+			return
 		}
 		rr := doPatchArgument(server, id, string(updatePayload))
 
 		// Firefox parses empty response to AJAX calls as XML and throws an error.
 		// The 204 response makes it works as expected.
-		if !assert.Equal(t, http.StatusNoContent, rr.Code) {
-			return nil, -1, false
-		}
+		assert.Equal(t, http.StatusNoContent, rr.Code)
 	}
-	return server, id, true
 }
 
 func doGetArgument(server *endpoints.Server, id int64) *httptest.ResponseRecorder {
 	req := httptest.NewRequest("GET", "/arguments/"+strconv.FormatInt(id, 10), nil)
+	return doRequest(server, req)
+}
+
+func doGetAllArguments(server *endpoints.Server, conclusion string) *httptest.ResponseRecorder {
+	req := httptest.NewRequest("GET", "/arguments?conclusion="+url.QueryEscape(conclusion), nil)
 	return doRequest(server, req)
 }
 
@@ -130,27 +158,28 @@ func doRequest(server *endpoints.Server, req *http.Request) *httptest.ResponseRe
 	return rr
 }
 
-func parseArgumentID(location string) (int64, error) {
-	if location == "" {
-		return -1, errors.New("response Location header should not be empty")
-	}
+func parseArgumentID(t *testing.T, location string) int64 {
+	assert.NotEmpty(t, location)
 	capture := regexp.MustCompile(`/arguments/(.*)`)
 	matches := capture.FindStringSubmatch(location)
-	if len(matches) != 2 {
-		return -1, fmt.Errorf("response Location header should be of the form /arguments/:id. Got %s", location)
-	}
+	assert.Len(t, matches, 2)
 	idString := matches[1]
 	id, err := strconv.Atoi(idString)
-	if err != nil {
-		return -1, fmt.Errorf("response Location header /arguments/:id had an invalid ID: %s", idString)
+	assert.NoError(t, err)
+	return int64(id)
+}
+
+func parseFile(t *testing.T, unixPath string, into interface{}) bool {
+	fileBytes, err := ioutil.ReadFile(filepath.FromSlash(unixPath))
+	if !assert.NoError(t, err) {
+		return false
 	}
-	return int64(id), nil
+
+	return assert.NoError(t, json.Unmarshal(fileBytes, into))
 }
 
 func newServerForTests() *endpoints.Server {
-	return endpoints.NewServer(config.Configuration{
-		Storage: &config.Storage{
-			Type: config.StorageTypeMemory,
-		},
-	})
+	cfg := config.Defaults()
+	cfg.Storage.Type = config.StorageTypeMemory
+	return endpoints.NewServer(cfg)
 }

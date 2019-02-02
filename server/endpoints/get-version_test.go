@@ -9,19 +9,20 @@ import (
 )
 
 func TestGetVersion(t *testing.T) {
-	server, id, ok := newServerWithData(t, unintendedOrigArg, updates)
-	if !ok {
+	server := newServerForTests()
+	id := doSaveObject(t, server, unintendedOrigArg)
+	doUpdatePremises(t, server, id, updates)
+	rr := doGetArgumentVersion(server, id, 1)
+	if !assertSuccessfulJSON(t, rr) {
 		return
 	}
-	rr := doGetArgumentVersion(server, id, 1)
-	assertArgumentsMatch(t, unintendedOrigArg, rr)
+	actual := assertParseArgument(t, rr.Body.Bytes())
+	assertArgumentsMatch(t, unintendedOrigArg, actual)
 }
 
 func TestGetMissingVersion(t *testing.T) {
-	server, id, ok := newServerWithData(t, unintendedOrigArg)
-	if !ok {
-		return
-	}
+	server := newServerForTests()
+	id := doSaveObject(t, server, unintendedOrigArg)
 	rr := doGetArgumentVersion(server, id, 100)
 	assert.Equal(t, http.StatusNotFound, rr.Code)
 }

@@ -10,24 +10,30 @@ import (
 )
 
 func TestGetArgument(t *testing.T) {
-	server, id, ok := newServerWithData(t, intendedOrigArg)
-	if !ok {
+	server := newServerForTests()
+	id := doSaveObject(t, server, intendedOrigArg)
+	rr := doGetArgument(server, id)
+	if !assertSuccessfulJSON(t, rr) {
 		return
 	}
-	rr := doGetArgument(server, id)
-	assertArgumentsMatch(t, intendedOrigArg, rr)
+	actual := assertParseArgument(t, rr.Body.Bytes())
+	assertArgumentsMatch(t, intendedOrigArg, actual)
 }
 
 func TestGetLatest(t *testing.T) {
-	server, id, ok := newServerWithData(t, unintendedOrigArg, updates)
-	if !ok {
+	server := newServerForTests()
+	id := doSaveObject(t, server, unintendedOrigArg)
+	doUpdatePremises(t, server, id, updates)
+	rr := doGetArgument(server, id)
+	if !assertSuccessfulJSON(t, rr) {
 		return
 	}
-	rr := doGetArgument(server, id)
+	actual := assertParseArgument(t, rr.Body.Bytes())
+
 	assertArgumentsMatch(t, arguments.Argument{
 		Conclusion: unintendedOrigArg.Conclusion,
 		Premises:   updates,
-	}, rr)
+	}, actual)
 }
 
 func TestGetMissingArgument(t *testing.T) {

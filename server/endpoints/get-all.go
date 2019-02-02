@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+
+	"github.com/wikisophia/api-arguments/server/arguments"
 )
 
 func (s *Server) getAllArguments() http.HandlerFunc {
@@ -27,8 +29,15 @@ func (s *Server) getAllArguments() http.HandlerFunc {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		if err = json.NewEncoder(w).Encode(args); err != nil {
+		if err = json.NewEncoder(w).Encode(GetAllResponse{
+			Arguments: args,
+		}); err != nil {
 			log.Printf("ERROR: Failed encoding response to GET /arguments for conclusion \"%s\": %v", conclusion, err)
 		}
 	}
+}
+
+// GetAllResponse is the contract class for the GET /arguments?conclusion=foo endpoint
+type GetAllResponse struct {
+	Arguments []arguments.ArgumentWithID `json:"arguments"`
 }
