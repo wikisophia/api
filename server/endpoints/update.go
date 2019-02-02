@@ -45,8 +45,9 @@ func (s *Server) updateArgument() httprouter.Handle {
 			return
 		}
 
-		w.WriteHeader(http.StatusNoContent)
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.Header().Set("Location", "/arguments/"+strconv.FormatInt(id, 10)+"/version/"+strconv.Itoa(int(version)))
+		w.WriteHeader(http.StatusNoContent)
 	}
 }
 
@@ -79,6 +80,6 @@ func writeArgument(w http.ResponseWriter, arg arguments.Argument, id string) {
 		http.Error(w, "failed json.marshal on argument "+id, http.StatusInternalServerError)
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.Write(data)
 }

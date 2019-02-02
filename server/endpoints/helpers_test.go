@@ -12,68 +12,61 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/wikisophia/api-arguments/server/endpoints"
-
 	"github.com/stretchr/testify/assert"
-
 	"github.com/wikisophia/api-arguments/server/arguments"
 	"github.com/wikisophia/api-arguments/server/config"
+	"github.com/wikisophia/api-arguments/server/endpoints"
 )
 
-var intendedOrigArg = arguments.Argument{
-	Conclusion: "Socrates is mortal",
-	Premises: []string{
-		"Socrates is a man",
-		"All men are mortal",
-	},
+// This file has a bunch of helper methods used throughout the test code
+// in this package.
+
+// newServerForTests returns a Server that stores arguments in memory.
+func newServerForTests() *endpoints.Server {
+	cfg := config.Defaults()
+	cfg.Storage.Type = config.StorageTypeMemory
+	return endpoints.NewServer(cfg)
 }
 
-var unintendedOrigArg = arguments.Argument{
-	Conclusion: "Socrates is mortal",
-	Premises: []string{
-		"Socrates is a human",
-		"All men are mortal",
-	},
+func readFile(t *testing.T, unixPath string) []byte {
+	fileBytes, err := ioutil.ReadFile(filepath.FromSlash(unixPath))
+	assert.NoError(t, err)
+	return fileBytes
 }
 
-var updates = []string{
-	"Socrates is a man",
-	"All men are mortal",
-}
-
-func TestGetCollection(t *testing.T) {
-	rr := doRequest(newServerForTests(), httptest.NewRequest("GET", "/arguments", nil))
-	assert.Equal(t, http.StatusBadRequest, rr.Code)
-}
-
-func TestPostWithID(t *testing.T) {
-	req := httptest.NewRequest("POST", "/arguments/1", nil)
-	rr := doRequest(newServerForTests(), req)
-	assert.Equal(t, http.StatusMethodNotAllowed, rr.Code)
-}
-
-func TestPostVersion(t *testing.T) {
-	req := httptest.NewRequest("POST", "/arguments/1/version/1", nil)
-	rr := doRequest(newServerForTests(), req)
-	assert.Equal(t, http.StatusMethodNotAllowed, rr.Code)
-}
-
-func assertSuccessfulJSON(t *testing.T, rr *httptest.ResponseRecorder) bool {
-	assert.Equal(t, http.StatusOK, rr.Code)
-	assert.Equal(t, "application/json", rr.Header().Get("Content-Type"))
-	return !t.Failed()
-}
-
-func assertParseArgument(t *testing.T, data []byte) arguments.Argument {
+func parseArgument(t *testing.T, data []byte) arguments.Argument {
 	var argument arguments.Argument
 	assert.NoError(t, json.Unmarshal(data, &argument))
 	return argument
 }
 
-func assertParseAllArguments(t *testing.T, data []byte) endpoints.GetAllResponse {
+func parseGetAllResponse(t *testing.T, data []byte) endpoints.GetAllResponse {
 	var getAll endpoints.GetAllResponse
 	assert.NoError(t, json.Unmarshal(data, &getAll))
 	return getAll
+}
+
+func parseArgumentID(t *testing.T, location string) int64 {
+	assert.NotEmpty(t, location)
+	capture := regexp.MustCompile(`/arguments/(.*)`)
+	matches := capture.FindStringSubmatch(location)
+	assert.Len(t, matches, 2)
+	idString := matches[1]
+	id, err := strconv.Atoi(idString)
+	assert.NoError(t, err)
+	return int64(id)
+}
+
+func parseFile(t *testing.T, unixPath string, into interface{}) {
+	fileBytes, err := ioutil.ReadFile(filepath.FromSlash(unixPath))
+	assert.NoError(t, err)
+	assert.NoError(t, json.Unmarshal(fileBytes, into))
+}
+
+func assertSuccessfulJSON(t *testing.T, rr *httptest.ResponseRecorder) bool {
+	assert.Equal(t, http.StatusOK, rr.Code)
+	assert.Equal(t, "application/json; charset=utf-8", rr.Header().Get("Content-Type"))
+	return !t.Failed()
 }
 
 func assertArgumentsMatch(t *testing.T, expected arguments.Argument, actual arguments.Argument) {
@@ -112,21 +105,17 @@ func doSaveObject(t *testing.T, server *endpoints.Server, argument arguments.Arg
 	return id
 }
 
-func doUpdatePremises(t *testing.T, server *endpoints.Server, id int64, updates ...[]string) {
-	for _, update := range updates {
-		arg := arguments.Argument{
-			Premises: update,
-		}
-		updatePayload, err := json.Marshal(arg)
-		if !assert.NoError(t, err) {
-			return
-		}
-		rr := doPatchArgument(server, id, string(updatePayload))
-
-		// Firefox parses empty response to AJAX calls as XML and throws an error.
-		// The 204 response makes it works as expected.
-		assert.Equal(t, http.StatusNoContent, rr.Code)
+func doValidUpdate(t *testing.T, server *endpoints.Server, id int64, update []string) *httptest.ResponseRecorder {
+	wrapper := arguments.Argument{
+		Premises: update,
 	}
+	updatePayload, err := json.Marshal(wrapper)
+	assert.NoError(t, err)
+	rr := doPatchArgument(server, id, string(updatePayload))
+
+	assert.Equal(t, http.StatusNoContent, rr.Code)
+	assert.Equal(t, "application/json; charset=utf-8", rr.Header().Get("Content-Type"))
+	return rr
 }
 
 func doGetArgument(server *endpoints.Server, id int64) *httptest.ResponseRecorder {
@@ -156,30 +145,4 @@ func doRequest(server *endpoints.Server, req *http.Request) *httptest.ResponseRe
 	rr := httptest.NewRecorder()
 	server.Handle(rr, req)
 	return rr
-}
-
-func parseArgumentID(t *testing.T, location string) int64 {
-	assert.NotEmpty(t, location)
-	capture := regexp.MustCompile(`/arguments/(.*)`)
-	matches := capture.FindStringSubmatch(location)
-	assert.Len(t, matches, 2)
-	idString := matches[1]
-	id, err := strconv.Atoi(idString)
-	assert.NoError(t, err)
-	return int64(id)
-}
-
-func parseFile(t *testing.T, unixPath string, into interface{}) bool {
-	fileBytes, err := ioutil.ReadFile(filepath.FromSlash(unixPath))
-	if !assert.NoError(t, err) {
-		return false
-	}
-
-	return assert.NoError(t, json.Unmarshal(fileBytes, into))
-}
-
-func newServerForTests() *endpoints.Server {
-	cfg := config.Defaults()
-	cfg.Storage.Type = config.StorageTypeMemory
-	return endpoints.NewServer(cfg)
 }
