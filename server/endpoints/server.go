@@ -39,6 +39,7 @@ func NewServer(cfg config.Configuration) *Server {
 	server.router.HandlerFunc("GET", "/arguments", server.getAllArguments())
 	server.router.GET("/arguments/:id", server.getLiveArgument())
 	server.router.PATCH("/arguments/:id", server.updateArgument())
+	server.router.DELETE("/arguments/:id", server.deleteArgument())
 	server.router.GET("/arguments/:id/version/:version", server.getArgumentVersion())
 
 	// TODO: Suggestions should go into another service
