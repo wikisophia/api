@@ -11,6 +11,7 @@ func TestSaveGetRoundtrip(t *testing.T) {
 	expected := parseArgument(t, readFile(t, "../samples/save-request.json"))
 	server := newServerForTests()
 	id := doSaveObject(t, server, expected)
+	expected.ID = id
 	rr := doGetArgument(server, id)
 	assertSuccessfulJSON(t, rr)
 	actual := parseArgument(t, rr.Body.Bytes())

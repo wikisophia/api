@@ -13,6 +13,7 @@ func TestGetVersion(t *testing.T) {
 
 	server := newServerForTests()
 	id := doSaveObject(t, server, expected)
+	expected.ID = id
 	doValidUpdate(t, server, id, []string{"some", "new", "version"})
 	rr := doGetArgumentVersion(server, id, 1)
 	assertSuccessfulJSON(t, rr)

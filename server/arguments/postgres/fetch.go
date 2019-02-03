@@ -91,14 +91,14 @@ func (store *dbStore) FetchLive(ctx context.Context, id int64) (arguments.Argume
 	return store.FetchVersion(ctx, id, liveVersion)
 }
 
-func (store *dbStore) FetchAll(ctx context.Context, conclusion string) ([]arguments.ArgumentWithID, error) {
+func (store *dbStore) FetchAll(ctx context.Context, conclusion string) ([]arguments.Argument, error) {
 	rows, err := store.fetchAllStatement.QueryContext(ctx, conclusion)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed fetchAll query")
 	}
 	defer tryClose(rows)
 
-	args := make(map[int64]*arguments.ArgumentWithID, 10)
+	args := make(map[int64]*arguments.Argument, 10)
 	var id int64
 	var isDefault bool
 	var premise string
@@ -111,16 +111,14 @@ func (store *dbStore) FetchAll(ctx context.Context, conclusion string) ([]argume
 		} else {
 			premises := make([]string, 0, 10)
 			premises = append(premises, premise)
-			args[id] = &arguments.ArgumentWithID{
-				Argument: arguments.Argument{
-					Conclusion: conclusion,
-					Premises:   premises,
-				},
-				ID: id,
+			args[id] = &arguments.Argument{
+				Conclusion: conclusion,
+				Premises:   premises,
+				ID:         id,
 			}
 		}
 	}
-	toReturn := make([]arguments.ArgumentWithID, 0, len(args))
+	toReturn := make([]arguments.Argument, 0, len(args))
 	for _, val := range args {
 		toReturn = append(toReturn, *val)
 	}

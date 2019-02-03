@@ -39,5 +39,5 @@ func (s *Server) getAllArguments() http.HandlerFunc {
 
 // GetAllResponse is the contract class for the GET /arguments?conclusion=foo endpoint
 type GetAllResponse struct {
-	Arguments []arguments.ArgumentWithID `json:"arguments"`
+	Arguments []arguments.Argument `json:"arguments"`
 }

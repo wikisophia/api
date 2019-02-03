@@ -8,6 +8,7 @@ import (
 
 // Argument is the core data type for the API.
 type Argument struct {
+	ID         int64    `json:"id"`
 	Conclusion string   `json:"conclusion"`
 	Premises   []string `json:"premises"`
 }
@@ -27,7 +28,7 @@ type Store interface {
 	Delete(ctx context.Context, id int64) error
 	// FetchAll pulls all the available arguments for a conclusion.
 	// If none exist, error will be nil and the array empty.
-	FetchAll(ctx context.Context, conclusion string) ([]ArgumentWithID, error)
+	FetchAll(ctx context.Context, conclusion string) ([]Argument, error)
 	// FetchVersion pulls a particular version of an argument from the database.
 	// If the query completed successfully, but the argument didn't exist, the error
 	// will be a NotFoundError.
