@@ -178,7 +178,7 @@ func (suite *StoreTests) TestBasicFetchAll() {
 // TestVersionedFetchAll makes sure the Store returns the argument's live version only.
 func (suite *StoreTests) TestVersionedFetchAll() {
 	store := suite.StoreFactory()
-	arg1ID := suite.saveWithUpdates(store, originalArguments, updatedPremises)
+	id := suite.saveWithUpdates(store, originalArguments, updatedPremises)
 	allArgs, err := store.FetchAll(context.Background(), originalArguments.Conclusion)
 	if !assert.NoError(suite.T(), err) {
 		return
@@ -188,7 +188,7 @@ func (suite *StoreTests) TestVersionedFetchAll() {
 	}
 	assert.Equal(suite.T(), originalArguments.Conclusion, allArgs[0].Conclusion)
 	assert.ElementsMatch(suite.T(), updatedPremises, allArgs[0].Premises)
-	assert.Equal(suite.T(), arg1ID, allArgs[0].ID)
+	assert.Equal(suite.T(), id, allArgs[0].ID)
 }
 
 func (suite *StoreTests) saveWithUpdates(store arguments.Store, arg arguments.Argument, premiseUpdates ...[]string) int64 {
@@ -196,7 +196,6 @@ func (suite *StoreTests) saveWithUpdates(store arguments.Store, arg arguments.Ar
 	if !assert.NoError(suite.T(), err) {
 		return -1
 	}
-
 	for i := 0; i < len(premiseUpdates); i++ {
 		_, err = store.UpdatePremises(context.Background(), id, premiseUpdates[i])
 		if !assert.NoError(suite.T(), err) {

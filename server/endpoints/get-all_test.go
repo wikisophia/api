@@ -7,11 +7,11 @@ import (
 func TestGetAll(t *testing.T) {
 	expected := parseGetAllResponse(t, readFile(t, "../samples/get-all-response.json"))
 	server := newServerForTests()
-	id := doSaveObject(t, server, expected.Arguments[0].Argument)
+	id := doSaveObject(t, server, expected.Arguments[0])
 	expected.Arguments[0].ID = id
 
 	for i := 1; i < len(expected.Arguments); i++ {
-		id := doSaveObject(t, server, expected.Arguments[i].Argument)
+		id := doSaveObject(t, server, expected.Arguments[i])
 		expected.Arguments[i].ID = id
 	}
 

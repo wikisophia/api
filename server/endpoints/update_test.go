@@ -22,6 +22,7 @@ func TestPatchLive(t *testing.T) {
 	assertSuccessfulJSON(t, rr)
 	actual := parseArgument(t, rr.Body.Bytes())
 	assertArgumentsMatch(t, arguments.Argument{
+		ID:         id,
 		Conclusion: original.Conclusion,
 		Premises:   update.Premises,
 	}, actual)

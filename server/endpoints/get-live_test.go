@@ -14,6 +14,7 @@ func TestGetLatest(t *testing.T) {
 	mistaken.Premises = []string{"wrong", "stuff"}
 	server := newServerForTests()
 	id := doSaveObject(t, server, mistaken)
+	expected.ID = id
 	doValidUpdate(t, server, id, expected.Premises)
 	rr := doGetArgument(server, id)
 	assertSuccessfulJSON(t, rr)

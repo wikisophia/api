@@ -70,21 +70,22 @@ func assertSuccessfulJSON(t *testing.T, rr *httptest.ResponseRecorder) bool {
 }
 
 func assertArgumentsMatch(t *testing.T, expected arguments.Argument, actual arguments.Argument) {
+	assert.Equal(t, expected.ID, actual.ID)
 	assert.Equal(t, expected.Conclusion, actual.Conclusion)
 	assert.ElementsMatch(t, expected.Premises, actual.Premises)
 }
 
-func assertArgumentSetsMatch(t *testing.T, expected []arguments.ArgumentWithID, actual []arguments.ArgumentWithID) {
+func assertArgumentSetsMatch(t *testing.T, expected []arguments.Argument, actual []arguments.Argument) {
 	expectedMap := argumentListToMap(t, expected)
 	actualMap := argumentListToMap(t, actual)
 	assert.Equal(t, expectedMap, actualMap)
 }
 
-func argumentListToMap(t *testing.T, list []arguments.ArgumentWithID) map[int64]arguments.Argument {
+func argumentListToMap(t *testing.T, list []arguments.Argument) map[int64]arguments.Argument {
 	theMap := make(map[int64]arguments.Argument)
 	for i := 0; i < len(list); i++ {
 		assert.NotContains(t, theMap, list[i].ID, "duplicate ID: %d", list[i].ID)
-		theMap[list[i].ID] = list[i].Argument
+		theMap[list[i].ID] = list[i]
 	}
 	return theMap
 }

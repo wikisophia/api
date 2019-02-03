@@ -67,25 +67,23 @@ func (s *inMemoryStore) FetchLive(ctx context.Context, id int64) (arguments.Argu
 	return versions[len(versions)-1], nil
 }
 
-func (s *inMemoryStore) FetchAll(ctx context.Context, conclusion string) ([]arguments.ArgumentWithID, error) {
-	args := make([]arguments.ArgumentWithID, 0, 20)
+func (s *inMemoryStore) FetchAll(ctx context.Context, conclusion string) ([]arguments.Argument, error) {
+	args := make([]arguments.Argument, 0, 20)
 	for i := 1; i < len(s.arguments); i++ {
 		if s.arguments[i][0].Conclusion == conclusion {
-			args = append(args, arguments.ArgumentWithID{
-				Argument: s.arguments[i][len(s.arguments[i])-1],
-				ID:       int64(i),
-			})
+			args = append(args, s.arguments[i][len(s.arguments[i])-1])
 		}
 	}
 	return args, nil
 }
 
 func (s *inMemoryStore) Save(ctx context.Context, argument arguments.Argument) (id int64, err error) {
+	argument.ID = int64(len(s.arguments))
 	s.arguments = append(s.arguments, []arguments.Argument{
 		argument, // Add this twice because the 0th index will be ignored by Fetches
 		argument,
 	})
-	return int64(len(s.arguments) - 1), nil
+	return argument.ID, nil
 }
 
 func (s *inMemoryStore) UpdatePremises(ctx context.Context, argumentID int64, premises []string) (version int16, err error) {
@@ -96,6 +94,7 @@ func (s *inMemoryStore) UpdatePremises(ctx context.Context, argumentID int64, pr
 	}
 	conclusion := s.arguments[argumentID][0].Conclusion
 	s.arguments[argumentID] = append(s.arguments[argumentID], arguments.Argument{
+		ID:         argumentID,
 		Conclusion: conclusion,
 		Premises:   premises,
 	})
