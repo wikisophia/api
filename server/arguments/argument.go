@@ -13,14 +13,6 @@ type Argument struct {
 	Premises   []string `json:"premises"`
 }
 
-// ArgumentWithID bundles together an Argument with its ID.
-// This is returned from Store.Fetch() calls which don't
-// require the ID as an input parameter.
-type ArgumentWithID struct {
-	Argument
-	ID int64 `json:"id"`
-}
-
 // A Store manages Arguments inside the database.
 type Store interface {
 	// Delete deletes an argument (and all its versions) from the site.
