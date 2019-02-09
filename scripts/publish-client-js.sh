@@ -28,7 +28,7 @@ fi
 # If not, quit early.
 PACKAGE_VERSION="$(cat ./package.json | grep version | sed 's/[version": ,]*//' | sed 's/["\, ]*$//')"
 if [[ ! ${PACKAGE_VERSION} = ${TRAVIS_VERSION} ]]; then
-  echo "Git tag \"${TRAVIS_VERSION}\" does not match package.json version \"${PACKAGE_VERSION}\". client-js will not be published"
+  echo "Git tag \"${TRAVIS_TAG}\ uses version \"${TRAVIS_VERSION}\", which does not match package.json version \"${PACKAGE_VERSION}\". client-js will not be published"
   exit 1
 fi
 
