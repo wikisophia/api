@@ -11,6 +11,7 @@ env:
     - DEP_VERSION="0.5.0"
     - WKSPH_ARGS_STORAGE_POSTGRES_DBNAME="wikisophia_test"
     - WKSPH_ARGS_STORAGE_POSTGRES_USER="postgres"
+    - secure: "iOftp50MCeYHTO2gXco/JDNwc4VWteCapfHFCL3wnUMB9+8+o+AK/hGDAyvh22uD8mgJu62EwD+2uUFxMjBGt0e7TfiJbEb3Xehc0IqcBkEIe9BgsNnDc/5epChHHsEbqDVuGMl8pwIwzLziJ31Wh2zFxhuXTpC8Yn8/NCJJDJqC0aayZsfiC64FYJUlkFvBjCN0+BwPGSRxmMrONk20IWS2BJ/Fl0PvJKhfjsjctLD9GBxdQr4IpyWEfa/AjcszVRpUxehHB9sgloMkjwtqc7HJSblp65agPmnjTGd/9diNAapVtwAOntljtz9oczkAeD0C8Dr6VH3Ce/XdAK91uOmYI+6Ffw1iQqOUbGrEyhYaXBAyEJdNaBh1m6QRWQ2z2AwSpBDpdDrZZkDZfTnFpCxhFJdJQkxxOYCHv2wPGEcDY2MEUf4Tnry+AhRLaOSjGjgDZHOKMZ/SWgZRE2p7tZl6xuL6mLfOaZxQ8oISKMN72mtQ7Fb8wIP1luVvUbsD+iyv42oTurQhTzKnhaFDKOhXNFdc0bwtL9gaKELzX2txYRyjfkxh78b34pQgxGeljBIU+GLPWdVGceKhFhGw7xkLyF/5Q4rokpp/jAVVHurVraDs3IbQrVVRo/n9/bA/9St4DYF6XaNSPKI60552yeXMtKaJjpRQHe8sHKPVpBQ="
 before_script:
   - go get -u github.com/golang/lint/golint
   - psql -c 'create database wikisophia_test;' -U postgres
@@ -21,3 +22,9 @@ install:
   - cd server && dep ensure && cd ..
 script:
   - ./scripts/test-all.sh
+deploy:
+  provider: script
+  script: bash scripts/publish-client.sh
+  on:
+    tags: true
+    branch: master

@@ -1,7 +1,7 @@
 {
   "name": "@wikisophia/api-arguments-client",
   "version": "0.1.0",
-  "main": "dist/umd.min.js",
+  "main": "prod/cjs.js",
   "description": "Javascript client for interacting with the Wikisophia Arguments API",
   "scripts": {
     "build": "rollup -c",
@@ -24,7 +24,8 @@
     "rollup-plugin-uglify": "^6.0.2"
   },
   "files": [
-    "dist"
+    "dev",
+    "prod"
   ],
   "repository": "https://github.com/wikisophia/api-arguments/client-js",
   "license": "GPL-3.0",
