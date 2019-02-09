@@ -1,7 +1,11 @@
 language: go
+# Whitelist master so PRs only run one set of tests.
+# Other whitelists make tagged pushes build, so tagged pushes cause releases.
+# For more info see: https://docs.travis-ci.com/user/customizing-the-build/#safelisting-or-blocklisting-branches
 branches:
-  only: 
+  only:
     - master
+    - /^client-js-\d+\.\d+\.\d+$/
 go:
   - '1.11.4'
 services:
