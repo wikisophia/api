@@ -1,6 +1,6 @@
 # Arguments API Javascript Client
 
-A javascript client library for the Arguments API.
+A javascript client library for the Wikisophia Arguments API.
 
 # Usage
 
@@ -14,20 +14,21 @@ const arguments = newArgumentsClient({
 
 arguments.save({
     premises: [
-        "Things which weigh the same are made of the same material.",
-        "She weighs the same as a duck.",
         "Wood floats in water.",
         "Ducks float in water.",
-        "Things which are the same weight will either both sink or both float in water.",
+        "Objects which are the same weight will either both sink or both float in water.",
+        "Objects with the same weight are made of the same material.",
+        "She weighs the same as a duck.",
     ],
     conclusion: "She's made of wood.",
 });
 ```
 
-The [fetch](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) function is a global on most
-modern browsers. In Node.js and older browsers, you may need to
+This library works from both the client and server, provided you can send it a
+[fetch](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) function.
+In environments that don't support this natively, you may need to
 [Polyfill](https://developer.mozilla.org/en-US/docs/Glossary/Polyfill) it.
 
-See also:
+See:
 - [Node.js fetch polyfill](https://github.com/bitinn/node-fetch)
 - [Browser fetch polyfill](https://github.com/github/fetch)
