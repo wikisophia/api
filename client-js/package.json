@@ -1,6 +1,5 @@
 {
   "name": "@wikisophia/api-arguments-client",
-  "private": true,
   "version": "0.1.0",
   "main": "prod/cjs.js",
   "description": "Javascript client for interacting with the Wikisophia Arguments API",
