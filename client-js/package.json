@@ -1,6 +1,5 @@
 {
   "name": "@wikisophia/api-arguments-client",
-  "private": true,
   "version": "0.1.0",
   "main": "prod/cjs.js",
   "description": "Javascript client for interacting with the Wikisophia Arguments API",
@@ -28,10 +27,13 @@
     "dev",
     "prod"
   ],
-  "repository": "https://github.com/wikisophia/api-arguments/client-js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wikisophia/api-arguments.git"
+  },
   "license": "GPL-3.0",
   "bugs": {
     "url": "https://github.com/wikisophia/api-arguments/issues"
   },
-  "homepage": "https://github.com/wikisophia/api-arguments/client-js"
+  "homepage": "https://github.com/wikisophia/api-arguments/tree/master/client-js"
 }
