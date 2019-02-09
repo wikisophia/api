@@ -6,8 +6,9 @@ trap 'CMD=${last_command} RET=$?; if [[ $RET -ne 0 ]]; then echo "\"${CMD}\" com
 SCRIPTPATH="$( cd "$(dirname "$0")" ; pwd -P )"
 
 cd $SCRIPTPATH/../client-js
-rm ~/.npmrc
+rm -f ~/.npmrc
 touch ~/.npmrc
 echo "@wikisophia:registry=https://registry.npmjs.org/" >> ~/.npmrc
 echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" >> ~/.npmrc
+npm run build
 npm publish

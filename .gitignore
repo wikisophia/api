@@ -3,8 +3,9 @@ config.env
 npm-debug.log
 
 /client-js/coverage
+/client-js/dev
 /client-js/node_modules
-/client-js/dist
+/client-js/prod
 
 /server/vendor/
 /server/server

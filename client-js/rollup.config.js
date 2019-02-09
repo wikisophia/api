@@ -1,7 +1,7 @@
 import { uglify } from 'rollup-plugin-uglify';
 import babel from 'rollup-plugin-babel';
 
-const formats = ['iife', 'umd'];
+const formats = ['iife', 'cjs', 'umd'];
 const configs = [];
 
 
@@ -13,7 +13,7 @@ formats.forEach(format => {
     input: ["src/client.js"],
     output: [
       {
-        file: `${__dirname}/dist/${format}.min.js`,
+        file: `${__dirname}/prod/${format}.js`,
         format: format,
         name: 'wksphArguments'
       }
@@ -26,7 +26,7 @@ formats.forEach(format => {
     input: ["src/client.js"],
     output: [
       {
-        file: `${__dirname}/dist/${format}.dev.js`,
+        file: `${__dirname}/dev/${format}.js`,
         format: format,
         name: 'wksphArguments',
         sourcemap: true
