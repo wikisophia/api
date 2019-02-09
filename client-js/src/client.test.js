@@ -191,6 +191,17 @@ describe('update()', () => {
     return expect(client.update(1, updateRequest.premises)).rejects.toThrow('Something went wrong');
   });
 
+  test('rejects if the server returns a 404', () => {
+    const fetch = jest.fn();
+    fetch.mockReturnValueOnce(Promise.resolve({
+      status: 404,
+      body: "Argument with id=1 doesn't exist.",
+    }));
+
+    const client = newClient({ url, fetch });
+    return expect(client.update(1, updateRequest.premises)).rejects.toThrow("Argument with id=1 doesn't exist.");
+  });
+
   test('rejects updates with duplicate premises', () => {
     const fetch = jest.fn();
     const client = newClient({ url, fetch });
