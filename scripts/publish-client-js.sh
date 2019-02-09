@@ -26,13 +26,13 @@ fi
 
 # Make sure the git tag matches the version in client-js/package.json.
 # If not, quit early.
+PACKAGE_NAME="$(cat ./package.json | grep name | sed 's/[name": ,]*//' | sed 's/["\, ]*$//')"
 PACKAGE_VERSION="$(cat ./package.json | grep version | sed 's/[version": ,]*//' | sed 's/["\, ]*$//')"
 if [[ ! ${PACKAGE_VERSION} = ${TRAVIS_VERSION} ]]; then
-  echo "Git tag \"${TRAVIS_TAG}\ uses version \"${TRAVIS_VERSION}\", which does not match package.json version \"${PACKAGE_VERSION}\". client-js will not be published"
+  echo "Git tag \"${TRAVIS_TAG}\" uses version \"${TRAVIS_VERSION}\", which does not match package.json version \"${PACKAGE_VERSION}\". \"${PACKAGE_NAME}\" will not be published"
   exit 1
 fi
 
-PACKAGE_NAME="$(cat ./package.json | grep name | sed 's/[name": ,]*//' | sed 's/["\, ]*$//')"
 echo "Publishing version ${PACKAGE_VERSION} of \"${PACKAGE_NAME}\" to https://registry.npmjs.org/"
 rm -f ~/.npmrc
 echo "@wikisophia:registry=https://registry.npmjs.org/" >> ~/.npmrc
