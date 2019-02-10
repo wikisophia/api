@@ -16,30 +16,32 @@ func NewStore(db *sql.DB) arguments.Store {
 		log.Fatalf("A database connection is required to make a Store.")
 	}
 	return &dbStore{
-		db:                        db,
-		deleteStatement:           mustPrepareQuery(db, deleteQuery),
-		fetchAllStatement:         mustPrepareQuery(db, fetchAllQuery),
-		fetchStatement:            mustPrepareQuery(db, fetchQuery),
-		fetchLiveVersionStatement: mustPrepareQuery(db, fetchLiveVersionQuery),
-		saveArgumentStatement:     mustPrepareQuery(db, saveArgumentQuery),
-		saveClaimStatement:        mustPrepareQuery(db, saveClaimQuery),
-		savePremiseStatement:      mustPrepareQuery(db, savePremiseQuery),
-		updateStatement:           mustPrepareQuery(db, updateQuery),
+		db:                           db,
+		deleteStatement:              mustPrepareQuery(db, deleteQuery),
+		fetchAllStatement:            mustPrepareQuery(db, fetchAllQuery),
+		fetchStatement:               mustPrepareQuery(db, fetchQuery),
+		fetchLiveVersionStatement:    mustPrepareQuery(db, fetchLiveVersionQuery),
+		saveArgumentStatement:        mustPrepareQuery(db, saveArgumentQuery),
+		saveArgumentVersionStatement: mustPrepareQuery(db, saveArgumentVersionQuery),
+		saveClaimStatement:           mustPrepareQuery(db, saveClaimQuery),
+		savePremiseStatement:         mustPrepareQuery(db, savePremiseQuery),
+		updateStatement:              mustPrepareQuery(db, updateQuery),
 	}
 }
 
 // The dbStore expects that {projectRoot}/postgres/scripts/init.sql
 // has already been run on your database so that the expected schema exists.
 type dbStore struct {
-	db                        *sql.DB
-	deleteStatement           *sql.Stmt
-	fetchAllStatement         *sql.Stmt
-	fetchStatement            *sql.Stmt
-	fetchLiveVersionStatement *sql.Stmt
-	saveArgumentStatement     *sql.Stmt
-	saveClaimStatement        *sql.Stmt
-	savePremiseStatement      *sql.Stmt
-	updateStatement           *sql.Stmt
+	db                           *sql.DB
+	deleteStatement              *sql.Stmt
+	fetchAllStatement            *sql.Stmt
+	fetchStatement               *sql.Stmt
+	fetchLiveVersionStatement    *sql.Stmt
+	saveClaimStatement           *sql.Stmt
+	saveArgumentStatement        *sql.Stmt
+	saveArgumentVersionStatement *sql.Stmt
+	savePremiseStatement         *sql.Stmt
+	updateStatement              *sql.Stmt
 }
 
 type closeErrors []error
@@ -66,6 +68,7 @@ func (store *dbStore) Close() error {
 	errs = mayAppendError(store.fetchStatement.Close, errs)
 	errs = mayAppendError(store.fetchLiveVersionStatement.Close, errs)
 	errs = mayAppendError(store.saveArgumentStatement.Close, errs)
+	errs = mayAppendError(store.saveArgumentVersionStatement.Close, errs)
 	errs = mayAppendError(store.saveClaimStatement.Close, errs)
 	errs = mayAppendError(store.savePremiseStatement.Close, errs)
 	errs = mayAppendError(store.updateStatement.Close, errs)

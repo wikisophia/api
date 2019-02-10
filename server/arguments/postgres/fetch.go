@@ -12,26 +12,33 @@ import (
 
 const fetchQuery = `
 SELECT claims.claim, 'premise' as type
-	FROM claims INNER JOIN premises ON claims.id = premises.claim_id
-	WHERE premises.argument_id = $1 AND premises.argument_version = $2
+FROM claims
+	INNER JOIN argument_premises ON claims.id = argument_premises.premise_id
+	INNER JOIN argument_versions ON argument_premises.argument_version_id = argument_versions.id
+	INNER JOIN arguments ON arguments.id = argument_versions.argument_id
+WHERE arguments.id = $1
+	AND arguments.deleted = false
+	AND argument_versions.argument_version = $2;
 UNION
 SELECT claims.claim, 'conclusion' as type
-	FROM claims INNER JOIN arguments ON claims.id = arguments.conclusion_id
-	WHERE arguments.id = $1 AND arguments.deleted = false;
+FROM claims
+	INNER JOIN argument_versions ON claims.id = argument_versions.conclusion_id
+	INNER JOIN arguments ON arguments.id = argument_versions.argument_id
+WHERE arguments.id = $1
+	AND arguments.deleted = false
+	AND argument_versions.argument_version = $2;
 `
 
 const fetchAllQuery = `
-WITH these_arguments AS (
-	SELECT arguments.id, arguments.live_version, arguments.isDefault
-		FROM arguments INNER JOIN claims ON arguments.conclusion_id = claims.id
-		WHERE claims.claim = $1
-), these_premises AS (
-	SELECT these_arguments.id, these_arguments.isDefault, premises.claim_id
-		FROM these_arguments INNER JOIN premises ON these_arguments.live_version = premises.argument_version
-		WHERE these_arguments.id = premises.argument_id
-)
-SELECT these_premises.id, these_premises.isDefault, claims.claim
-	FROM these_premises INNER JOIN claims ON these_premises.claim_id = claims.id;
+SELECT arguments.id, premises.claim
+	FROM arguments
+		INNER JOIN argument_versions ON arguments.id = argument_versions.argument_id
+		INNER JOIN argument_premises ON argument_versions.id = argument_premises.argument_version_id
+		INNER JOIN claims conclusions ON argument_versions.conclusion_id = conclusions.id
+		INNER JOIN claims premises ON argument_premises.premise_id = premises.id
+	WHERE conclusions.claim = $1
+		AND arguments.deleted = FALSE
+		AND arguments.live_version = argument_versions.argument_version;
 `
 
 const fetchLiveVersionQuery = `SELECT live_version FROM arguments WHERE id = $1;`
