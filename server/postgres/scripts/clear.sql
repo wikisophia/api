@@ -14,10 +14,18 @@
   * CREATE DATABASE {config.postgres.dbname} WITH OWNER {config.postgres.user}  ;
   */
 
-DROP INDEX IF EXISTS one_max_default_argument;
-DROP TABLE IF EXISTS premises;
+DROP TABLE IF EXISTS argument_premises;
+DROP TABLE IF EXISTS argument_versions;
 DROP TABLE IF EXISTS arguments;
 DROP TABLE IF EXISTS claims;
+
+CREATE OR REPLACE FUNCTION update_last_modified()
+RETURNS TRIGGER AS $$
+BEGIN
+   NEW.last_modified = NOW(); 
+   RETURN NEW;
+END;
+$$ language 'plpgsql';
 
 CREATE TABLE IF NOT EXISTS claims (
   id bigserial PRIMARY KEY,
@@ -27,49 +35,51 @@ CREATE TABLE IF NOT EXISTS claims (
 COMMENT ON TABLE claims IS 'Claims are used as both premises and conclusions of arguments.';
 COMMENT ON COLUMN claims.claim IS 'This is the claim itself. For example, "Socrates is mortal".';
 COMMENT ON COLUMN claims.created_at IS 'The time when this claim was added.';
-
--- Make the table insert-only
 REVOKE ALL ON TABLE claims FROM PUBLIC;
 GRANT INSERT ON TABLE claims TO app_wikisophia;
 
-
 CREATE TABLE IF NOT EXISTS arguments (
   id bigserial PRIMARY KEY,
-  conclusion_id bigint NOT NULL REFERENCES claims(id),
-  latest_version smallint NOT NULL,
-  live_version smallint NOT NULL CONSTRAINT live_less_max CHECK (live_version <= latest_version),
-  isDefault boolean NOT NULL DEFAULT false,
-  deleted boolean NOT NULL DEFAULT false,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  live_version smallint NOT NULL DEFAULT 1,
+  deleted boolean NOT NULL DEFAULT FALSE,
+  created_on TIMESTAMPZ NOT NULL DEFAULT NOW(),
+  last_modified TIMESTAMPZ NOT NULL DEFAULT NOW()
 );
-COMMENT ON TABLE arguments IS 'There may be several arguments for the same conclusion. This table stores them all.';
-COMMENT ON COLUMN arguments.conclusion_id IS 'The ID of the claim used as this argument''s conclusion.';
-COMMENT ON COLUMN arguments.latest_version IS 'This tracks the number of revisions which have been made to this argument.';
-COMMENT ON COLUMN arguments.live_version IS 'This tracks the version of the argument which is live on the site. In normal cases, this equals latest_version. It exists to support quick reverts to old versions.';
-COMMENT ON COLUMN arguments.deleted IS 'If an argument was deleted, this is set to true. This allows deleted arguments to be restored easily.';
-COMMENT ON COLUMN claims.created_at IS 'The time when this argument was first added.';
-
--- Make sure each conclusion has at most one default argument
-CREATE UNIQUE INDEX one_max_default_argument ON arguments (conclusion_id) WHERE (isDefault = true);
-
--- Make the table insert- and alter-able.
+CREATE TRIGGER update_arguments_last_modified BEFORE UPDATE ON arguments FOR EACH ROW EXECUTE PROCEDURE update_last_modified();
+COMMENT ON TABLE arguments IS 'This stores all the arguments on wikisophia.';
+COMMENT ON COLUMN live_version IS 'The version of the argument which is live. This refers to an argument_version in the argument_versions table.';
+COMMENT ON COLUMN deleted IS 'True if this argument has been deleted, and false otherwise.';
+COMMENT ON COLUMN created_on IS 'Timestamp of when the first version of this argument was created.';
+COMMENT ON COLUMN last_modified IS 'Timestamp of when this argument was last modified/deleted/restored.';
 REVOKE ALL ON TABLE arguments FROM PUBLIC;
 GRANT INSERT, UPDATE ON TABLE arguments TO app_wikisophia;
 
-
-CREATE TABLE IF NOT EXISTS premises (
+CREATE TABLE argument_versions (
   id bigserial PRIMARY KEY,
   argument_id bigint NOT NULL REFERENCES arguments(id),
-  argument_version smallint NOT NULL,
-  claim_id bigint NOT NULL REFERENCES claims(id),
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  argument_version bigint NOT NULL,
+  conclusion_id bigint NOT NULL REFERENCES claims(id)
+  created_on TIMESTAMPZ NOT NULL DEFAULT NOW(),
+  UNIQUE(argument_id, argument_version)
 );
-COMMENT ON TABLE premises IS 'This determines which claims are used as premises in a given argument.';
-COMMENT ON COLUMN premises.argument_id IS 'The ID of the argument which this premise belongs to.';
-COMMENT ON COLUMN premises.argument_version IS 'The version of the argument which this premise belongs to. This should be between 1 and arguments.latest_version, inclusive.';
-COMMENT ON COLUMN premises.claim_id IS 'The ID of the claim used as this premise.';
-COMMENT ON COLUMN claims.created_at IS 'The time when this premise was added.';
+REVOKE ALL ON TABLE argument_versions FROM PUBLIC;
+GRANT INSERT ON TABLE argument_versions TO app_wikisophia;
+COMMENT ON TABLE argument_versions IS 'This tracks edits to an argument over time.';
+COMMENT ON COLUMN arguments.argument_id IS 'The argument''s ID.';
+COMMENT ON COLUMN arguments.argument_version IS 'The argument''s version.';
+COMMENT ON COLUMN arguments.conclusion_id IS 'The argument''s conclusion.';
+COMMENT ON COLUMN arguments.created_on IS 'Timestamp of when this version was created.';
 
--- Make the table insert-only.
-REVOKE ALL ON TABLE premises FROM PUBLIC;
-GRANT INSERT ON TABLE premises TO app_wikisophia;
+CREATE TABLE argument_premises (
+  id bigserial PRIMARY KEY,
+  argument_version_id bigint NOT NULL REFERENCES argument_versions(id),
+  premise_id bigint NOT NULL REFERENCES claims(id),
+  created_on TIMESTAMPZ NOT NULL DEFAULT NOW(),
+  UNIQUE(argument_version, premise_id)
+);
+REVOKE ALL ON TABLE argument_premises FROM PUBLIC;
+GRANT INSERT ON TABLE argument_premises TO app_wikisophia;
+COMMENT ON TABLE argument_premises IS 'This stores the premises used in each argument_version.';
+COMMENT ON COLUMN argument_premises.argument_version_id IS 'The argument/version which includes this premise.';
+COMMENT ON COLUMN argument_premises.premise_id IS 'The premise used in this version of the argument.';
+COMMENT ON COLUMN argument_premises.created_on IS 'Timestamp of when this premise/version was created.';
