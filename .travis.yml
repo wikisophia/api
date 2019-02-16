@@ -9,8 +9,8 @@ branches:
     - /^client-js-\d+\.\d+\.\d+$/
 go:
   - '1.11.4'
-services:
-  - postgresql
+addons:
+  postgresql: "10.6"
 env:
   global:
     - DEP_VERSION="0.5.0"
