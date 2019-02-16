@@ -9,14 +9,18 @@ branches:
     - /^client-js-\d+\.\d+\.\d+$/
 go:
   - '1.11.4'
-services:
-  - postgresql
 addons:
-  postgresql: "10.6"
+  postgresql: "10"
+  apt:
+    packages:
+    - postgresql-10
+    - postgresql-client-10
 env:
   global:
     - DEP_VERSION="0.5.0"
+    - PGPORT=5433
     - WKSPH_ARGS_STORAGE_POSTGRES_DBNAME="wikisophia_test"
+    - WKSPH_ARGS_STORAGE_POSTGRES_PORT="5433"
     - WKSPH_ARGS_STORAGE_POSTGRES_USER="postgres"
 before_script:
   - go get -u github.com/golang/lint/golint
