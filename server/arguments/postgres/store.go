@@ -21,11 +21,12 @@ func NewStore(db *sql.DB) arguments.Store {
 		fetchAllStatement:            mustPrepareQuery(db, fetchAllQuery),
 		fetchStatement:               mustPrepareQuery(db, fetchQuery),
 		fetchLiveVersionStatement:    mustPrepareQuery(db, fetchLiveVersionQuery),
+		newArgumentVersionStatement:  mustPrepareQuery(db, newArgumentVersionQuery),
 		saveArgumentStatement:        mustPrepareQuery(db, saveArgumentQuery),
 		saveArgumentVersionStatement: mustPrepareQuery(db, saveArgumentVersionQuery),
 		saveClaimStatement:           mustPrepareQuery(db, saveClaimQuery),
 		savePremiseStatement:         mustPrepareQuery(db, savePremiseQuery),
-		updateStatement:              mustPrepareQuery(db, updateQuery),
+		updateLiveVersionStatement:   mustPrepareQuery(db, updateLiveVersionQuery),
 	}
 }
 
@@ -37,11 +38,12 @@ type dbStore struct {
 	fetchAllStatement            *sql.Stmt
 	fetchStatement               *sql.Stmt
 	fetchLiveVersionStatement    *sql.Stmt
+	newArgumentVersionStatement  *sql.Stmt
 	saveClaimStatement           *sql.Stmt
 	saveArgumentStatement        *sql.Stmt
 	saveArgumentVersionStatement *sql.Stmt
 	savePremiseStatement         *sql.Stmt
-	updateStatement              *sql.Stmt
+	updateLiveVersionStatement   *sql.Stmt
 }
 
 type closeErrors []error
@@ -52,7 +54,7 @@ func (errs closeErrors) Error() string {
 	}
 
 	sb := strings.Builder{}
-	sb.WriteString("error(s) occurred while closing the Store:\n")
+	sb.WriteString("error(s) occurred while shutting down the postgres.dbStore:\n")
 	for i := 0; i < len(errs); i++ {
 		sb.WriteString("  ")
 		sb.WriteString(errs[i].Error())
@@ -67,11 +69,12 @@ func (store *dbStore) Close() error {
 	errs = mayAppendError(store.fetchAllStatement.Close, errs)
 	errs = mayAppendError(store.fetchStatement.Close, errs)
 	errs = mayAppendError(store.fetchLiveVersionStatement.Close, errs)
+	errs = mayAppendError(store.newArgumentVersionStatement.Close, errs)
 	errs = mayAppendError(store.saveArgumentStatement.Close, errs)
 	errs = mayAppendError(store.saveArgumentVersionStatement.Close, errs)
 	errs = mayAppendError(store.saveClaimStatement.Close, errs)
 	errs = mayAppendError(store.savePremiseStatement.Close, errs)
-	errs = mayAppendError(store.updateStatement.Close, errs)
+	errs = mayAppendError(store.updateLiveVersionStatement.Close, errs)
 	if len(errs) == 0 {
 		return nil
 	}
@@ -88,7 +91,7 @@ func mayAppendError(f func() error, errs []error) []error {
 func mustPrepareQuery(db *sql.DB, query string) *sql.Stmt {
 	statement, err := db.Prepare(query)
 	if err != nil {
-		log.Fatalf("Failed to prepare statement with query %s. Error was %v", saveArgumentQuery, err)
+		log.Fatalf("Failed to prepare statement with query %s. Error was %v", query, err)
 	}
 	return statement
 }

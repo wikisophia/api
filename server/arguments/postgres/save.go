@@ -88,7 +88,7 @@ func (store *dbStore) saveArgument(ctx context.Context, tx *sql.Tx) (int64, erro
 }
 
 func (store *dbStore) saveArgumentVersion(ctx context.Context, tx *sql.Tx, argumentID int64, versionID int16, conclusionID int64) (int64, error) {
-	row := tx.StmtContext(ctx, store.saveArgumentStatement).QueryRowContext(ctx, conclusionID)
+	row := tx.StmtContext(ctx, store.saveArgumentVersionStatement).QueryRowContext(ctx, argumentID, conclusionID)
 	var id int64
 	if err := row.Scan(&id); err != nil {
 		return -1, errors.Wrap(err, "failed to scan argument ID")

@@ -18,7 +18,7 @@ FROM claims
 	INNER JOIN arguments ON arguments.id = argument_versions.argument_id
 WHERE arguments.id = $1
 	AND arguments.deleted = false
-	AND argument_versions.argument_version = $2;
+	AND argument_versions.argument_version = $2
 UNION
 SELECT claims.claim, 'conclusion' as type
 FROM claims
@@ -107,10 +107,9 @@ func (store *dbStore) FetchAll(ctx context.Context, conclusion string) ([]argume
 
 	args := make(map[int64]*arguments.Argument, 10)
 	var id int64
-	var isDefault bool
 	var premise string
 	for rows.Next() {
-		if err := rows.Scan(&id, &isDefault, &premise); err != nil {
+		if err := rows.Scan(&id, &premise); err != nil {
 			return nil, errors.Wrap(err, "fetch result scan failed")
 		}
 		if val, ok := args[id]; ok {
