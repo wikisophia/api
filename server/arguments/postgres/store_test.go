@@ -1,6 +1,7 @@
 package postgres_test
 
 import (
+	"database/sql"
 	"flag"
 	"os"
 	"path/filepath"
@@ -30,26 +31,30 @@ func TestArgumentStorageIntegration(t *testing.T) {
 		return
 	}
 
-	// These tests will be slow... so do as much as we can up front to save time
+	db := postgres.NewDB(config.MustParse().Storage.Postgres)
 	sqlScripts, err := purse.New(filepath.Join("..", "..", "postgres", "scripts"))
 	if !assert.NoError(t, err) {
 		return
 	}
-	contents, ok := sqlScripts.Get("clear.sql")
-	if !assert.True(t, ok) {
+
+	// Start with a clean slate.
+	if !runOnce(t, sqlScripts, "destroy.sql", db) {
 		return
 	}
-
-	db := postgres.NewDB(config.MustParse().Storage.Postgres)
-	if _, err = db.Query(contents); !assert.NoError(t, err) {
+	if !runOnce(t, sqlScripts, "create.sql", db) {
 		return
 	}
 
 	store := argumentsInPostgres.NewStore(db)
+
 	// Run all the same tests from the StoreTests suite.
+	empty, ok := sqlScripts.Get("empty.sql")
+	if !assert.True(t, ok) {
+		return
+	}
 	suite.Run(t, &argumentstest.StoreTests{
 		StoreFactory: func() arguments.Store {
-			if _, err := db.Query(contents); !assert.NoError(t, err) {
+			if _, err := db.Query(empty); !assert.NoError(t, err) {
 				t.FailNow()
 			}
 			return store
@@ -58,4 +63,15 @@ func TestArgumentStorageIntegration(t *testing.T) {
 
 	store.Close()
 	db.Close()
+}
+
+func runOnce(t *testing.T, p purse.Purse, file string, db *sql.DB) bool {
+	destroy, ok := p.Get(file)
+	if !assert.True(t, ok) {
+		return false
+	}
+	if _, err := db.Query(destroy); !assert.NoError(t, err) {
+		return false
+	}
+	return true
 }

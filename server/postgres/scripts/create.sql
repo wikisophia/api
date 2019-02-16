@@ -1,26 +1,21 @@
 /**
- * This file initializes the database with all the needed tables.
+ * This script initializes the database with all the tables
+ * the app expects.
  *
- * This is run during integration tests to clean the database between tests,
- * so it must be safe to run more than once.
+ * This should be run by the default postgres user. It will create a user
+ * with the same values as the app config.
  *
- * It may also be run to bootstrap the database on a new deploy.
+ * This gets run once at the start of the integration tests which use the database.
+ * It's also intended for initializing a database for a new dev environment.
+ *
+ * Changes here must be kept in sync with destroy.sql and empty.sql.
+ *
+ * Note: this script expects the following to exist already:
+ *   A user named "app_wikisophia" to exist already.
+ *   A database named {config.postgres.dbname} WITH OWNER app_wikisophia
  */
 
- /*
-  * These commands are run to bootstrap the database. They aren't part of this script
-  *
-  * CREATE USER {config.postgres.user} WITH PASSWORD {config.postgres.password};
-  * CREATE DATABASE {config.postgres.dbname} WITH OWNER {config.postgres.user}  ;
-  */
-
-DROP TABLE IF EXISTS argument_premises;
-DROP TABLE IF EXISTS argument_versions;
-DROP TRIGGER IF EXISTS update_arguments_last_modified ON arguments;
-DROP TABLE IF EXISTS arguments;
-DROP TABLE IF EXISTS claims;
-
-CREATE OR REPLACE FUNCTION update_last_modified()
+CREATE FUNCTION update_last_modified()
 RETURNS TRIGGER AS $$
 BEGIN
    NEW.last_modified = NOW(); 

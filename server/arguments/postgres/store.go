@@ -4,18 +4,16 @@ import (
 	"database/sql"
 	"log"
 	"strings"
-
-	"github.com/wikisophia/api-arguments/server/arguments"
 )
 
 // NewStore returns a Store which is used to save and load Arguments.
 // The db should point to a Postgres database.
 // The returned Store.Close() function will *not* close this connection, since we did not open it.
-func NewStore(db *sql.DB) arguments.Store {
+func NewStore(db *sql.DB) *Store {
 	if db == nil {
 		log.Fatalf("A database connection is required to make a Store.")
 	}
-	return &dbStore{
+	return &Store{
 		db:                           db,
 		deleteStatement:              mustPrepareQuery(db, deleteQuery),
 		fetchAllStatement:            mustPrepareQuery(db, fetchAllQuery),
@@ -30,9 +28,9 @@ func NewStore(db *sql.DB) arguments.Store {
 	}
 }
 
-// The dbStore expects that {projectRoot}/postgres/scripts/init.sql
+// The Store expects that {projectRoot}/postgres/scripts/create.sql
 // has already been run on your database so that the expected schema exists.
-type dbStore struct {
+type Store struct {
 	db                           *sql.DB
 	deleteStatement              *sql.Stmt
 	fetchAllStatement            *sql.Stmt
@@ -54,7 +52,7 @@ func (errs closeErrors) Error() string {
 	}
 
 	sb := strings.Builder{}
-	sb.WriteString("error(s) occurred while shutting down the postgres.dbStore:\n")
+	sb.WriteString("error(s) occurred while shutting down the postgres.Store:\n")
 	for i := 0; i < len(errs); i++ {
 		sb.WriteString("  ")
 		sb.WriteString(errs[i].Error())
@@ -63,7 +61,10 @@ func (errs closeErrors) Error() string {
 	return sb.String()
 }
 
-func (store *dbStore) Close() error {
+// Close closes all the prepared statements used to make queries.
+// It does not shut down the database connection which was passed
+// into NewStore.
+func (store *Store) Close() error {
 	var errs []error
 	errs = mayAppendError(store.deleteStatement.Close, errs)
 	errs = mayAppendError(store.fetchAllStatement.Close, errs)

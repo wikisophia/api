@@ -43,7 +43,8 @@ SELECT arguments.id, premises.claim
 
 const fetchLiveVersionQuery = `SELECT live_version FROM arguments WHERE id = $1;`
 
-func (store *dbStore) FetchVersion(ctx context.Context, id int64, version int16) (arguments.Argument, error) {
+// FetchVersion fetches a specific version of an argument.
+func (store *Store) FetchVersion(ctx context.Context, id int64, version int16) (arguments.Argument, error) {
 	rows, err := store.fetchStatement.QueryContext(ctx, id, version)
 	if err != nil {
 		return arguments.Argument{}, errors.Wrap(err, "argument fetch query failed")
@@ -83,7 +84,10 @@ func (store *dbStore) FetchVersion(ctx context.Context, id int64, version int16)
 	}, nil
 }
 
-func (store *dbStore) FetchLive(ctx context.Context, id int64) (arguments.Argument, error) {
+// FetchLive fetches the "active" version of an argument.
+// This is usually the newest one, but it may not be if an
+// update has been reverted.
+func (store *Store) FetchLive(ctx context.Context, id int64) (arguments.Argument, error) {
 	row := store.fetchLiveVersionStatement.QueryRowContext(ctx, id)
 	var liveVersion int16
 	if err := row.Scan(&liveVersion); err != nil {
@@ -98,7 +102,8 @@ func (store *dbStore) FetchLive(ctx context.Context, id int64) (arguments.Argume
 	return store.FetchVersion(ctx, id, liveVersion)
 }
 
-func (store *dbStore) FetchAll(ctx context.Context, conclusion string) ([]arguments.Argument, error) {
+// FetchAll returns all the "live" arguments with a given conclusion.
+func (store *Store) FetchAll(ctx context.Context, conclusion string) ([]arguments.Argument, error) {
 	rows, err := store.fetchAllStatement.QueryContext(ctx, conclusion)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed fetchAll query")
