@@ -1,4 +1,5 @@
 language: go
+dist: xenial
 # Whitelist master so PRs only run one set of tests.
 # Other whitelists make tagged pushes build, so tagged pushes cause releases.
 # For more info see: https://docs.travis-ci.com/user/customizing-the-build/#safelisting-or-blocklisting-branches
@@ -8,21 +9,21 @@ branches:
     - /^client-js-\d+\.\d+\.\d+$/
 go:
   - '1.11.4'
-services:
-  - postgresql
+addons:
+  postgresql: "10"
 env:
   global:
     - DEP_VERSION="0.5.0"
     - WKSPH_ARGS_STORAGE_POSTGRES_DBNAME="wikisophia_test"
     - WKSPH_ARGS_STORAGE_POSTGRES_USER="postgres"
-before_script:
-  - go get -u github.com/golang/lint/golint
-  - psql -c 'create database wikisophia_test;' -U postgres
-  - psql -c 'create user app_wikisophia;' -U postgres
 install:
   - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
   - cd client-js && npm install && cd ..
   - cd server && dep ensure && cd ..
+before_script:
+  - go get -u github.com/golang/lint/golint
+  - psql -c 'create database wikisophia_test;' -U postgres
+  - psql -c 'create user app_wikisophia;' -U postgres
 script:
   - ./scripts/test-all.sh
 deploy:

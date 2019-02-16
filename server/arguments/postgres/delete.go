@@ -9,7 +9,8 @@ import (
 
 const deleteQuery = `UPDATE arguments SET deleted = true WHERE id = $1 RETURNING id;`
 
-func (store *dbStore) Delete(ctx context.Context, id int64) error {
+// Delete soft deletes an argument by ID.
+func (store *Store) Delete(ctx context.Context, id int64) error {
 	rows, err := store.deleteStatement.QueryContext(ctx, id)
 	if err != nil {
 		return err

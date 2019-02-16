@@ -22,19 +22,26 @@ SELECT id FROM claims WHERE claim = $1;
 `
 
 const saveArgumentQuery = `
-INSERT INTO arguments (conclusion_id, latest_version, live_version)
-	VALUES ($1, 1, 1)
-	RETURNING id;
+INSERT INTO arguments DEFAULT VALUES RETURNING id;
+`
+
+const saveArgumentVersionQuery = `
+INSERT INTO argument_versions
+	(argument_id, argument_version, conclusion_id) VALUES
+	($1, 1, $2)
+RETURNING id;
 `
 
 const savePremiseQuery = `
-INSERT INTO premises (argument_id, argument_version, claim_id)
-	VALUES ($1, $2, $3);
+INSERT INTO argument_premises
+	(argument_version_id, premise_id) VALUES
+	($1, $2);
 `
 
 const saveArgumentErrorMsg = "failed to save argument"
 
-func (store *dbStore) Save(ctx context.Context, argument arguments.Argument) (int64, error) {
+// Save stores an argument and returns its ID.
+func (store *Store) Save(ctx context.Context, argument arguments.Argument) (int64, error) {
 	transaction, err := store.db.BeginTx(ctx, nil)
 	if err != nil {
 		return -1, errors.Wrap(err, saveArgumentErrorMsg)
@@ -43,11 +50,16 @@ func (store *dbStore) Save(ctx context.Context, argument arguments.Argument) (in
 	if didRollback := rollbackIfErr(transaction, err); didRollback {
 		return -1, errors.Wrap(err, saveArgumentErrorMsg)
 	}
-	argumentID, err := store.saveArgument(ctx, transaction, conclusionID)
+	argumentID, err := store.saveArgument(ctx, transaction)
 	if didRollback := rollbackIfErr(transaction, err); didRollback {
 		return -1, errors.Wrap(err, saveArgumentErrorMsg)
 	}
-	err = store.savePremises(ctx, transaction, argumentID, 1, argument.Premises)
+	argumentVersionID, err := store.saveArgumentVersion(ctx, transaction, argumentID, 1, conclusionID)
+	if didRollback := rollbackIfErr(transaction, err); didRollback {
+		return -1, errors.Wrap(err, saveArgumentErrorMsg)
+	}
+
+	err = store.savePremises(ctx, transaction, argumentVersionID, argument.Premises)
 	if didRollback := rollbackIfErr(transaction, err); didRollback {
 		return -1, errors.Wrap(err, saveArgumentErrorMsg)
 	}
@@ -58,7 +70,7 @@ func (store *dbStore) Save(ctx context.Context, argument arguments.Argument) (in
 	return argumentID, nil
 }
 
-func (store *dbStore) saveClaim(ctx context.Context, tx *sql.Tx, claim string) (int64, error) {
+func (store *Store) saveClaim(ctx context.Context, tx *sql.Tx, claim string) (int64, error) {
 	row := tx.StmtContext(ctx, store.saveClaimStatement).QueryRowContext(ctx, claim)
 	var id int64
 	if err := row.Scan(&id); err != nil {
@@ -67,8 +79,8 @@ func (store *dbStore) saveClaim(ctx context.Context, tx *sql.Tx, claim string) (
 	return id, nil
 }
 
-func (store *dbStore) saveArgument(ctx context.Context, tx *sql.Tx, conclusionID int64) (int64, error) {
-	row := tx.StmtContext(ctx, store.saveArgumentStatement).QueryRowContext(ctx, conclusionID)
+func (store *Store) saveArgument(ctx context.Context, tx *sql.Tx) (int64, error) {
+	row := tx.StmtContext(ctx, store.saveArgumentStatement).QueryRowContext(ctx)
 	var id int64
 	if err := row.Scan(&id); err != nil {
 		return -1, errors.Wrap(err, "failed to scan argument ID")
@@ -76,14 +88,23 @@ func (store *dbStore) saveArgument(ctx context.Context, tx *sql.Tx, conclusionID
 	return id, nil
 }
 
-func (store *dbStore) savePremises(ctx context.Context, tx *sql.Tx, argumentID int64, argumentVersion int16, premises []string) error {
+func (store *Store) saveArgumentVersion(ctx context.Context, tx *sql.Tx, argumentID int64, versionID int16, conclusionID int64) (int64, error) {
+	row := tx.StmtContext(ctx, store.saveArgumentVersionStatement).QueryRowContext(ctx, argumentID, conclusionID)
+	var id int64
+	if err := row.Scan(&id); err != nil {
+		return -1, errors.Wrap(err, "failed to scan argument ID")
+	}
+	return id, nil
+}
+
+func (store *Store) savePremises(ctx context.Context, tx *sql.Tx, argumentVersionID int64, premises []string) error {
 	for i := 0; i < len(premises); i++ {
 		claimID, err := store.saveClaim(ctx, tx, premises[i])
 		if err != nil {
 			return errors.Wrapf(err, `failed to save premise as claim "%s"`, premises[i])
 		}
 
-		rows, err := tx.StmtContext(ctx, store.savePremiseStatement).QueryContext(ctx, argumentID, argumentVersion, claimID)
+		rows, err := tx.StmtContext(ctx, store.savePremiseStatement).QueryContext(ctx, argumentVersionID, claimID)
 		if err != nil {
 			return errors.Wrapf(err, `failed to save premise "%s"`, premises[i])
 		}
