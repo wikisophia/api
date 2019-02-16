@@ -11,25 +11,19 @@ go:
   - '1.11.4'
 addons:
   postgresql: "10"
-  apt:
-    packages:
-    - postgresql-10
-    - postgresql-client-10
 env:
   global:
     - DEP_VERSION="0.5.0"
-    - PGPORT=5433
     - WKSPH_ARGS_STORAGE_POSTGRES_DBNAME="wikisophia_test"
-    - WKSPH_ARGS_STORAGE_POSTGRES_PORT="5433"
     - WKSPH_ARGS_STORAGE_POSTGRES_USER="postgres"
-before_script:
-  - go get -u github.com/golang/lint/golint
-  - psql -c 'create database wikisophia_test;' -U postgres
-  - psql -c 'create user app_wikisophia;' -U postgres
 install:
   - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
   - cd client-js && npm install && cd ..
   - cd server && dep ensure && cd ..
+before_script:
+  - go get -u github.com/golang/lint/golint
+  - psql -c 'create database wikisophia_test;' -U postgres
+  - psql -c 'create user app_wikisophia;' -U postgres
 script:
   - ./scripts/test-all.sh
 deploy:
