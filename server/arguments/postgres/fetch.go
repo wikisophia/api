@@ -79,6 +79,7 @@ func (store *Store) FetchVersion(ctx context.Context, id int64, version int16) (
 		}
 	}
 	return arguments.Argument{
+		ID:         id,
 		Conclusion: conclusion,
 		Premises:   premises,
 	}, nil

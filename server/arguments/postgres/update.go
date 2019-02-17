@@ -12,7 +12,7 @@ import (
 
 var newArgumentVersionQuery = `
 INSERT INTO argument_versions (argument_id, argument_version, conclusion_id)
-	SELECT argument_id, argument_version + 1, conclusion_id
+	SELECT argument_id, argument_version + 1, $2
 		FROM argument_versions
 		WHERE argument_id = $1
 		ORDER BY argument_version DESC
@@ -28,42 +28,46 @@ UPDATE arguments
 
 const updateArgumentErrorMsg = "failed to update argument %d"
 
-// UpdatePremises saves a new version of an argument with different premises.
-func (store *Store) UpdatePremises(ctx context.Context, id int64, premises []string) (version int16, err error) {
+// Update saves a new version of an argument.
+func (store *Store) Update(ctx context.Context, argument arguments.Argument) (version int16, err error) {
 	transaction, err := store.db.BeginTx(ctx, nil)
-	if err != nil {
-		return -1, errors.Wrap(err, updateArgumentErrorMsg)
-	}
-	argumentVersionID, argumentVersion, err := store.newArgumentVersion(ctx, transaction, id)
 	if didRollback := rollbackIfErr(transaction, err); didRollback {
 		return -1, err
 	}
-	err = store.savePremises(ctx, transaction, argumentVersionID, premises)
+	conclusionID, err := store.saveClaim(ctx, transaction, argument.Conclusion)
 	if didRollback := rollbackIfErr(transaction, err); didRollback {
-		return -1, errors.Wrapf(err, updateArgumentErrorMsg, id)
+		return -1, err
 	}
-	err = store.updateLiveVersion(ctx, transaction, argumentVersion, id)
+	argumentVersionID, argumentVersion, err := store.newArgumentVersion(ctx, transaction, argument.ID, conclusionID)
 	if didRollback := rollbackIfErr(transaction, err); didRollback {
-		return -1, errors.Wrapf(err, updateArgumentErrorMsg, id)
+		return -1, err
+	}
+	err = store.savePremises(ctx, transaction, argumentVersionID, argument.Premises)
+	if didRollback := rollbackIfErr(transaction, err); didRollback {
+		return -1, errors.Wrapf(err, updateArgumentErrorMsg, argument.ID)
+	}
+	err = store.updateLiveVersion(ctx, transaction, argumentVersion, argument.ID)
+	if didRollback := rollbackIfErr(transaction, err); didRollback {
+		return -1, errors.Wrapf(err, updateArgumentErrorMsg, argument.ID)
 	}
 	err = transaction.Commit()
 	if err != nil {
-		return -1, errors.Wrapf(err, updateArgumentErrorMsg, id)
+		return -1, errors.Wrapf(err, updateArgumentErrorMsg, argument.ID)
 	}
 	return argumentVersion, nil
 }
 
-func (store *Store) newArgumentVersion(ctx context.Context, transaction *sql.Tx, id int64) (int64, int16, error) {
-	row := transaction.StmtContext(ctx, store.newArgumentVersionStatement).QueryRowContext(ctx, id)
+func (store *Store) newArgumentVersion(ctx context.Context, transaction *sql.Tx, argumentID int64, conclusionID int64) (int64, int16, error) {
+	row := transaction.StmtContext(ctx, store.newArgumentVersionStatement).QueryRowContext(ctx, argumentID, conclusionID)
 	var argumentVersionID int64
 	var argumentVersion int16
 	if err := row.Scan(&argumentVersionID, &argumentVersion); err != nil {
 		if err == sql.ErrNoRows {
 			return -1, -1, &arguments.NotFoundError{
-				Message: "argument " + strconv.FormatInt(id, 10) + " does not exist",
+				Message: "argument " + strconv.FormatInt(argumentID, 10) + " does not exist",
 			}
 		}
-		return -1, -1, errors.Wrapf(err, `couldn't create new argument version for id=%d`, id)
+		return -1, -1, errors.Wrapf(err, `couldn't create new argument version for id=%d`, argumentID)
 	}
 	return argumentVersionID, argumentVersion, nil
 }

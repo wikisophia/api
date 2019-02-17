@@ -16,31 +16,31 @@ import (
 func (s *Server) updateArgument() httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 		id, goodID := parseIntParam(params.ByName("id"))
-		if !goodID {
+		if !goodID || id < 1 {
 			http.Error(w, fmt.Sprintf("argument %s does not exist", params.ByName("id")), http.StatusNotFound)
 			return
 		}
 
 		bodyBytes, err := ioutil.ReadAll(r.Body)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("error reading request body: %s", string(bodyBytes)), http.StatusNotFound)
+			http.Error(w, fmt.Sprintf("error reading request body: %v", err), http.StatusInternalServerError)
 			return
 		}
 		var arg arguments.Argument
 		if err := json.Unmarshal(bodyBytes, &arg); err != nil {
-			http.Error(w, fmt.Sprintf("error unmarshalling request body: %s", string(bodyBytes)), http.StatusBadRequest)
+			http.Error(w, "request body parse failure. Check the JSON syntax in your request body.", http.StatusBadRequest)
 			return
 		}
-		if arg.Conclusion != "" {
-			http.Error(w, "Argument conclusions cannot be changed. Submit a new argument instead.", http.StatusBadRequest)
-			return
+		if arg.ID != 0 {
+			http.Error(w, "request.id should not be defined. The ID is taken from the URL path.", http.StatusBadRequest)
 		}
-		if err := arguments.ValidatePremises(arg.Premises); err != nil {
+		arg.ID = id
+		if err := arguments.ValidateArgument(arg); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
-		version, err := s.argumentStore.UpdatePremises(context.Background(), id, arg.Premises)
+		version, err := s.argumentStore.Update(context.Background(), arg)
 		if writeStoreError(w, err) {
 			return
 		}

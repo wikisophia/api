@@ -2,11 +2,9 @@ package endpoints_test
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -28,18 +26,6 @@ func newServerForTests() *endpoints.Server {
 	return endpoints.NewServer(cfg)
 }
 
-func readFile(t *testing.T, unixPath string) []byte {
-	fileBytes, err := ioutil.ReadFile(filepath.FromSlash(unixPath))
-	assert.NoError(t, err)
-	return fileBytes
-}
-
-func parseArgument(t *testing.T, data []byte) arguments.Argument {
-	var argument arguments.Argument
-	assert.NoError(t, json.Unmarshal(data, &argument))
-	return argument
-}
-
 func parseGetAllResponse(t *testing.T, data []byte) endpoints.GetAllResponse {
 	var getAll endpoints.GetAllResponse
 	assert.NoError(t, json.Unmarshal(data, &getAll))
@@ -57,22 +43,10 @@ func parseArgumentID(t *testing.T, location string) int64 {
 	return int64(id)
 }
 
-func parseFile(t *testing.T, unixPath string, into interface{}) {
-	fileBytes, err := ioutil.ReadFile(filepath.FromSlash(unixPath))
-	assert.NoError(t, err)
-	assert.NoError(t, json.Unmarshal(fileBytes, into))
-}
-
 func assertSuccessfulJSON(t *testing.T, rr *httptest.ResponseRecorder) bool {
 	assert.Equal(t, http.StatusOK, rr.Code)
 	assert.Equal(t, "application/json; charset=utf-8", rr.Header().Get("Content-Type"))
 	return !t.Failed()
-}
-
-func assertArgumentsMatch(t *testing.T, expected arguments.Argument, actual arguments.Argument) {
-	assert.Equal(t, expected.ID, actual.ID)
-	assert.Equal(t, expected.Conclusion, actual.Conclusion)
-	assert.ElementsMatch(t, expected.Premises, actual.Premises)
 }
 
 func assertArgumentSetsMatch(t *testing.T, expected []arguments.Argument, actual []arguments.Argument) {
@@ -106,11 +80,10 @@ func doSaveObject(t *testing.T, server *endpoints.Server, argument arguments.Arg
 	return id
 }
 
-func doValidUpdate(t *testing.T, server *endpoints.Server, id int64, update []string) *httptest.ResponseRecorder {
-	wrapper := arguments.Argument{
-		Premises: update,
-	}
-	updatePayload, err := json.Marshal(wrapper)
+func doValidUpdate(t *testing.T, server *endpoints.Server, update arguments.Argument) *httptest.ResponseRecorder {
+	id := update.ID
+	update.ID = 0
+	updatePayload, err := json.Marshal(update)
 	assert.NoError(t, err)
 	rr := doPatchArgument(server, id, string(updatePayload))
 

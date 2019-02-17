@@ -1,3 +1,4 @@
 {
-  "premises": ["foo", "bar"]
+  "premises": ["fub","nub"],
+  "conclusion": "scrub"
 }

@@ -166,7 +166,7 @@ describe('update()', () => {
       },
     }));
     const client = newClient({ url, fetch });
-    return client.update(1, updateRequest.premises).then((resolved) => {
+    return client.update(1, updateRequest).then((resolved) => {
       expect(fetch.mock.calls.length).toBe(1);
       expect(fetch.mock.calls[0][0]).toBe(`${url}/argument/1`);
       expect(fetch.mock.calls[0][1]).toEqual({
@@ -188,7 +188,7 @@ describe('update()', () => {
     }));
 
     const client = newClient({ url, fetch });
-    return expect(client.update(1, updateRequest.premises)).rejects.toThrow('Something went wrong');
+    return expect(client.update(1, updateRequest)).rejects.toThrow('Something went wrong');
   });
 
   test('rejects if the server returns a 404', () => {
@@ -199,19 +199,24 @@ describe('update()', () => {
     }));
 
     const client = newClient({ url, fetch });
-    return expect(client.update(1, updateRequest.premises)).rejects.toThrow("Argument with id=1 doesn't exist.");
+    return expect(client.update(1, updateRequest)).rejects.toThrow("Argument with id=1 doesn't exist.");
   });
 
   test('rejects updates with duplicate premises', () => {
     const fetch = jest.fn();
     const client = newClient({ url, fetch });
-    const update = Array(updateRequest.premises.length).fill(updateRequest.premises[0]);
+    const update = Object.assign({}, updateRequest, {
+      premises: Array(updateRequest.premises.length).fill(updateRequest.premises[0]),
+    });
     return expect(client.update(1, update)).rejects.toThrow(`Arguments shouldn't use the same premise more than once. Yours repeats: ${updateRequest.premises[0]}`);
   });
 
   test('rejects updates with too few premises', () => {
     const fetch = jest.fn();
     const client = newClient({ url, fetch });
-    return expect(client.update(1, ['only one'])).rejects.toThrow('An argument must have at least two premises.');
+    const update = Object.assign({}, updateRequest, {
+      premises: ['only one'],
+    });
+    return expect(client.update(1, update)).rejects.toThrow('An argument must have at least two premises.');
   });
 });

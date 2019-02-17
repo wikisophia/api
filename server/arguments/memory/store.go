@@ -86,19 +86,14 @@ func (s *inMemoryStore) Save(ctx context.Context, argument arguments.Argument) (
 	return argument.ID, nil
 }
 
-func (s *inMemoryStore) UpdatePremises(ctx context.Context, argumentID int64, premises []string) (version int16, err error) {
-	if !s.argumentExists(argumentID) {
+func (s *inMemoryStore) Update(ctx context.Context, argument arguments.Argument) (version int16, err error) {
+	if !s.argumentExists(argument.ID) {
 		return -1, &arguments.NotFoundError{
-			Message: fmt.Sprintf("argument with id %d does not exist", argumentID),
+			Message: fmt.Sprintf("argument with id %d does not exist", argument.ID),
 		}
 	}
-	conclusion := s.arguments[argumentID][0].Conclusion
-	s.arguments[argumentID] = append(s.arguments[argumentID], arguments.Argument{
-		ID:         argumentID,
-		Conclusion: conclusion,
-		Premises:   premises,
-	})
-	return int16(len(s.arguments[argumentID]) - 1), nil
+	s.arguments[argument.ID] = append(s.arguments[argument.ID], argument)
+	return int16(len(s.arguments[argument.ID]) - 1), nil
 }
 
 func (s *inMemoryStore) argumentExists(id int64) bool {

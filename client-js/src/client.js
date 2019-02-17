@@ -144,10 +144,10 @@ export default function newClient({ url, fetch }) {
      * Update the premises of the argument using its ID.
      *
      * @param {int} id The ID of the argument you want to update.
-     * @param {string[]} premises The new premises which this argument should have.
+     * @param {Argument} argument The new argument which should have this ID.
      */
-    update(id, premises) {
-      const err = validatePremises(premises);
+    update(id, argument) {
+      const err = validateArgument(argument);
       if (err) {
         return Promise.reject(new Error(err));
       }
@@ -155,9 +155,7 @@ export default function newClient({ url, fetch }) {
       return fetch(`${url}/argument/${id}`, {
         method: 'PATCH',
         mode: 'cors',
-        body: {
-          premises,
-        },
+        body: argument,
       }).then(handleServerErrors)
         .then((response) => {
           if (response.status === 404) {
@@ -183,7 +181,7 @@ export default function newClient({ url, fetch }) {
  */
 
 /**
- * @typedef {Object} Arguments
+ * @typedef {Object} Argument
  *
  * @property {string} conclusion The argument's conclusion.
  * @property {string[]} premises The argument's premises.

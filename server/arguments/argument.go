@@ -30,13 +30,14 @@ type Store interface {
 	// will be a NotFoundError.
 	FetchLive(ctx context.Context, id int64) (Argument, error)
 	// Save stores an argument in the database, and returns that argument's ID.
+	// The ID on the incoming argument will be ignored.
 	Save(ctx context.Context, argument Argument) (id int64, err error)
-	// Update makes a new version of the argument with the given ID. It returns the argument version.
-	// If the query completed successfully, but the original argument didn't exist, the error
-	// will be a NotFoundError.
-	UpdatePremises(ctx context.Context, argumentID int64, premises []string) (version int16, err error)
-	// Close closes the store, freeing up its resources. Once called, the other functions
-	// on the Store will fail.
+	// Update makes a new version of the argument. It returns the argument version.
+	// If the returned error is a NotFoundError, then no argument with this ID exists,
+	// and Save() should be used instead.
+	Update(ctx context.Context, argument Argument) (version int16, err error)
+	// Close closes the store, freeing up its resources.
+	// Once called, the other functions on the Store will fail.
 	Close() error
 }
 
@@ -57,20 +58,14 @@ func ValidateArgument(argument Argument) error {
 	if argument.Conclusion == "" {
 		return errors.New("arguments must have a conclusion")
 	}
-	return ValidatePremises(argument.Premises)
-}
-
-// ValidatePremises returns nil if the given premises would make a valid set for
-// a given argument (e.g. non-nil, at least 2, etc). It returns an error if
-// an argument with these premises would be malformed.
-func ValidatePremises(premises []string) error {
-	if len(premises) < 2 {
+	if len(argument.Premises) < 2 {
 		return errors.New("arguments must have at least 2 premises")
 	}
-	for i, premise := range premises {
+	for i, premise := range argument.Premises {
 		if premise == "" {
 			return fmt.Errorf("argument premise[%d] is empty, but must not be", i)
 		}
 	}
+
 	return nil
 }
