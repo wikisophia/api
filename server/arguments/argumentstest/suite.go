@@ -15,55 +15,46 @@ type StoreTests struct {
 	StoreFactory func() arguments.Store
 }
 
-var originalArguments = arguments.Argument{
-	Conclusion: "Socrates is mortal",
-	Premises: []string{
-		"Socrates is a human",
-		"All men are mortal",
-	},
-}
-
-var updatedPremises = []string{
-	"Socrates is a man",
-	"All men are mortal",
-}
-
 // TestSaveIsLive makes sure that an argument is "live" immediately after being saved.
 func (suite *StoreTests) TestSaveIsLive() {
+	original := ParseSample(suite.T(), "../../samples/save-request.json")
 	store := suite.StoreFactory()
-	id, err := store.Save(context.Background(), originalArguments)
+	id, err := store.Save(context.Background(), original)
 	if !assert.NoError(suite.T(), err) {
 		return
 	}
-
+	original.ID = id
 	fetched, err := store.FetchLive(context.Background(), id)
 	if !assert.NoError(suite.T(), err) {
 		return
 	}
-	assert.Equal(suite.T(), originalArguments.Conclusion, fetched.Conclusion)
-	assert.ElementsMatch(suite.T(), originalArguments.Premises, fetched.Premises)
+	AssertArgumentsMatch(suite.T(), original, fetched)
 }
 
 // TestUpdatedIsLive makes sure that a newly updated argument uses the latest premises.
 func (suite *StoreTests) TestUpdatedIsLive() {
+	original := ParseSample(suite.T(), "../../samples/save-request.json")
+	updated := ParseSample(suite.T(), "../../samples/update-request.json")
+
 	store := suite.StoreFactory()
-	id := suite.saveWithUpdates(store, originalArguments, updatedPremises)
+	id := suite.saveWithUpdates(store, original, updated)
 	if id == -1 {
 		return
 	}
-
+	updated.ID = id
 	fetched, err := store.FetchLive(context.Background(), id)
 	if !assert.NoError(suite.T(), err) {
 		return
 	}
-	assert.Equal(suite.T(), originalArguments.Conclusion, fetched.Conclusion)
-	assert.ElementsMatch(suite.T(), updatedPremises, fetched.Premises)
+	AssertArgumentsMatch(suite.T(), updated, fetched)
 }
 
 // TestUpdateUnknownReturnsError makes sure that we can't update arguments which don't exist.
 func (suite *StoreTests) TestUpdateUnknownReturnsError() {
 	store := suite.StoreFactory()
-	_, err := store.UpdatePremises(context.Background(), 1, []string{"Socrates is a man", "All men are mortal"})
+	unknown := ParseSample(suite.T(), "../../samples/save-request.json")
+	unknown.ID = 1
+	_, err := store.Update(context.Background(), unknown)
 	if !assert.Error(suite.T(), err) {
 		return
 	}
@@ -76,17 +67,19 @@ func (suite *StoreTests) TestUpdateUnknownReturnsError() {
 // TestOriginalIsAvailable makes sure that old versions of updated arguments can still be fetched.
 func (suite *StoreTests) TestOriginalIsAvailable() {
 	store := suite.StoreFactory()
-	id := suite.saveWithUpdates(store, originalArguments, updatedPremises)
+	original := ParseSample(suite.T(), "../../samples/save-request.json")
+	updated := ParseSample(suite.T(), "../../samples/update-request.json")
+
+	id := suite.saveWithUpdates(store, original, updated)
 	if id == -1 {
 		return
 	}
-
+	original.ID = id
 	fetched, err := store.FetchVersion(context.Background(), id, 1)
 	if !assert.NoError(suite.T(), err) {
 		return
 	}
-	assert.Equal(suite.T(), originalArguments.Conclusion, fetched.Conclusion)
-	assert.ElementsMatch(suite.T(), originalArguments.Premises, fetched.Premises)
+	AssertArgumentsMatch(suite.T(), original, fetched)
 }
 
 // TestDeletedUnknownReturnsNotFound makes sure the backend returns a NotFoundError
@@ -102,8 +95,10 @@ func (suite *StoreTests) TestDeletedUnknownReturnsNotFound() {
 // TestDeletedIsUnavailable makes sure the backend doesn't return arguments that have been deleted.
 func (suite *StoreTests) TestDeletedIsUnavailable() {
 	store := suite.StoreFactory()
+	original := ParseSample(suite.T(), "../../samples/save-request.json")
+	updated := ParseSample(suite.T(), "../../samples/update-request.json")
 
-	id := suite.saveWithUpdates(store, originalArguments, updatedPremises)
+	id := suite.saveWithUpdates(store, original, updated)
 	if id == -1 {
 		return
 	}
@@ -138,18 +133,22 @@ func (suite *StoreTests) TestFetchUnknownReturnsError() {
 // TestBasicFetchAll makes sure the Store returns all the arguments for a conclusion.
 func (suite *StoreTests) TestBasicFetchAll() {
 	store := suite.StoreFactory()
-	arg1ID := suite.saveWithUpdates(store, originalArguments)
+	original := ParseSample(suite.T(), "../../samples/save-request.json")
+	updated := ParseSample(suite.T(), "../../samples/update-request.json")
+
+	original.ID = suite.saveWithUpdates(store, original)
 	otherArg := arguments.Argument{
-		Conclusion: originalArguments.Conclusion,
-		Premises:   updatedPremises,
+		Conclusion: original.Conclusion,
+		Premises:   updated.Premises,
 	}
+	otherArg.ID = suite.saveWithUpdates(store, otherArg)
+
 	suite.saveWithUpdates(store, arguments.Argument{
 		Conclusion: "some other conclusion",
 		Premises:   []string{"premise1", "premise2"},
 	})
-	arg2ID := suite.saveWithUpdates(store, otherArg)
 
-	allArgs, err := store.FetchAll(context.Background(), originalArguments.Conclusion)
+	allArgs, err := store.FetchAll(context.Background(), original.Conclusion)
 
 	if !assert.NoError(suite.T(), err) {
 		return
@@ -161,43 +160,44 @@ func (suite *StoreTests) TestBasicFetchAll() {
 	// Fixes #1: Arguments might be returned in any order
 	fetchedFirst := allArgs[0]
 	fetchedSecond := allArgs[1]
-	if fetchedFirst.ID != arg1ID {
+	if fetchedFirst.ID != original.ID {
 		tmp := fetchedFirst
 		fetchedFirst = fetchedSecond
 		fetchedSecond = tmp
 	}
 
-	assert.Equal(suite.T(), originalArguments.Conclusion, fetchedFirst.Conclusion)
-	assert.ElementsMatch(suite.T(), originalArguments.Premises, fetchedFirst.Premises)
-	assert.Equal(suite.T(), arg1ID, fetchedFirst.ID)
-	assert.Equal(suite.T(), originalArguments.Conclusion, fetchedSecond.Conclusion)
-	assert.ElementsMatch(suite.T(), updatedPremises, fetchedSecond.Premises)
-	assert.Equal(suite.T(), arg2ID, fetchedSecond.ID)
+	AssertArgumentsMatch(suite.T(), original, fetchedFirst)
+	AssertArgumentsMatch(suite.T(), otherArg, fetchedSecond)
 }
 
 // TestVersionedFetchAll makes sure the Store returns the argument's live version only.
 func (suite *StoreTests) TestVersionedFetchAll() {
 	store := suite.StoreFactory()
-	id := suite.saveWithUpdates(store, originalArguments, updatedPremises)
-	allArgs, err := store.FetchAll(context.Background(), originalArguments.Conclusion)
+	original := ParseSample(suite.T(), "../../samples/save-request.json")
+	updated := ParseSample(suite.T(), "../../samples/update-request.json")
+	updated.Conclusion = original.Conclusion
+
+	id := suite.saveWithUpdates(store, original, updated)
+	updated.ID = id
+	allArgs, err := store.FetchAll(context.Background(), original.Conclusion)
 	if !assert.NoError(suite.T(), err) {
 		return
 	}
 	if !assert.Len(suite.T(), allArgs, 1) {
 		return
 	}
-	assert.Equal(suite.T(), originalArguments.Conclusion, allArgs[0].Conclusion)
-	assert.ElementsMatch(suite.T(), updatedPremises, allArgs[0].Premises)
-	assert.Equal(suite.T(), id, allArgs[0].ID)
+	AssertArgumentsMatch(suite.T(), updated, allArgs[0])
 }
 
-func (suite *StoreTests) saveWithUpdates(store arguments.Store, arg arguments.Argument, premiseUpdates ...[]string) int64 {
+func (suite *StoreTests) saveWithUpdates(store arguments.Store, arg arguments.Argument, updates ...arguments.Argument) int64 {
 	id, err := store.Save(context.Background(), arg)
 	if !assert.NoError(suite.T(), err) {
 		return -1
 	}
-	for i := 0; i < len(premiseUpdates); i++ {
-		_, err = store.UpdatePremises(context.Background(), id, premiseUpdates[i])
+	for i := 0; i < len(updates); i++ {
+		update := updates[i]
+		update.ID = id
+		_, err = store.Update(context.Background(), update)
 		if !assert.NoError(suite.T(), err) {
 			return -1
 		}

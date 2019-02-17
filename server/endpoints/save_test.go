@@ -5,17 +5,18 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/wikisophia/api-arguments/server/arguments/argumentstest"
 )
 
 func TestSaveGetRoundtrip(t *testing.T) {
-	expected := parseArgument(t, readFile(t, "../samples/save-request.json"))
+	expected := argumentstest.ParseSample(t, "../samples/save-request.json")
 	server := newServerForTests()
 	id := doSaveObject(t, server, expected)
 	expected.ID = id
 	rr := doGetArgument(server, id)
 	assertSuccessfulJSON(t, rr)
-	actual := parseArgument(t, rr.Body.Bytes())
-	assertArgumentsMatch(t, expected, actual)
+	actual := argumentstest.ParseJSON(t, rr.Body.Bytes())
+	argumentstest.AssertArgumentsMatch(t, expected, actual)
 }
 
 func TestSaveNoConclusion(t *testing.T) {

@@ -2,10 +2,12 @@ package endpoints_test
 
 import (
 	"testing"
+
+	"github.com/wikisophia/api-arguments/server/arguments/argumentstest"
 )
 
 func TestGetAll(t *testing.T) {
-	expected := parseGetAllResponse(t, readFile(t, "../samples/get-all-response.json"))
+	expected := parseGetAllResponse(t, argumentstest.ReadFile(t, "../samples/get-all-response.json"))
 	server := newServerForTests()
 	id := doSaveObject(t, server, expected.Arguments[0])
 	expected.Arguments[0].ID = id

@@ -6,23 +6,27 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/wikisophia/api-arguments/server/arguments/argumentstest"
 )
 
 func TestGetVersion(t *testing.T) {
-	expected := parseArgument(t, readFile(t, "../samples/save-request.json"))
+	expected := argumentstest.ParseSample(t, "../samples/save-request.json")
+	mistaken := expected
+	mistaken.Premises = []string{"some", "bad", "version"}
 
 	server := newServerForTests()
-	id := doSaveObject(t, server, expected)
+	id := doSaveObject(t, server, mistaken)
+	mistaken.ID = id
 	expected.ID = id
-	doValidUpdate(t, server, id, []string{"some", "new", "version"})
+	doValidUpdate(t, server, expected)
 	rr := doGetArgumentVersion(server, id, 1)
 	assertSuccessfulJSON(t, rr)
-	actual := parseArgument(t, rr.Body.Bytes())
-	assertArgumentsMatch(t, expected, actual)
+	actual := argumentstest.ParseJSON(t, rr.Body.Bytes())
+	argumentstest.AssertArgumentsMatch(t, mistaken, actual)
 }
 
 func TestGetMissingVersion(t *testing.T) {
-	arg := parseArgument(t, readFile(t, "../samples/save-request.json"))
+	arg := argumentstest.ParseSample(t, "../samples/save-request.json")
 	server := newServerForTests()
 	id := doSaveObject(t, server, arg)
 	rr := doGetArgumentVersion(server, id, 100)

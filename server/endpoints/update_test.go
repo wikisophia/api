@@ -8,39 +8,37 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/wikisophia/api-arguments/server/arguments"
+	"github.com/wikisophia/api-arguments/server/arguments/argumentstest"
 )
 
 func TestPatchLive(t *testing.T) {
-	original := parseArgument(t, readFile(t, "../samples/save-request.json"))
-	update := parseArgument(t, readFile(t, "../samples/update-request.json"))
+	original := argumentstest.ParseSample(t, "../samples/save-request.json")
+	update := argumentstest.ParseSample(t, "../samples/update-request.json")
 
 	server := newServerForTests()
 	id := doSaveObject(t, server, original)
-	doValidUpdate(t, server, id, update.Premises)
+	update.ID = id
+	doValidUpdate(t, server, update)
 	rr := doGetArgument(server, id)
 	assertSuccessfulJSON(t, rr)
-	actual := parseArgument(t, rr.Body.Bytes())
-	assertArgumentsMatch(t, arguments.Argument{
-		ID:         id,
-		Conclusion: original.Conclusion,
-		Premises:   update.Premises,
-	}, actual)
+	actual := argumentstest.ParseJSON(t, rr.Body.Bytes())
+	argumentstest.AssertArgumentsMatch(t, update, actual)
 }
 
 func TestUpdateLocation(t *testing.T) {
-	original := parseArgument(t, readFile(t, "../samples/save-request.json"))
-	update := parseArgument(t, readFile(t, "../samples/update-request.json"))
+	original := argumentstest.ParseSample(t, "../samples/save-request.json")
+	update := argumentstest.ParseSample(t, "../samples/update-request.json")
 
 	server := newServerForTests()
 	id := doSaveObject(t, server, original)
-	rr := doValidUpdate(t, server, id, update.Premises)
+	update.ID = id
+	rr := doValidUpdate(t, server, update)
 	assert.Equal(t, "/arguments/1/version/2", rr.Header().Get("Location"))
 }
 
 func TestPatchUnknown(t *testing.T) {
 	server := newServerForTests()
-	payload := `{"premises":["Socrates is a man", "All men are mortal"]}`
+	payload := string(argumentstest.ReadFile(t, "../samples/update-request.json"))
 	rr := doRequest(server, httptest.NewRequest("PATCH", "/arguments/1", strings.NewReader(payload)))
 	assert.Equal(t, http.StatusNotFound, rr.Code, "body: %s", rr.Body.String())
 	assert.Equal(t, "text/plain; charset=utf-8", rr.Header().Get("Content-Type"))
@@ -48,10 +46,6 @@ func TestPatchUnknown(t *testing.T) {
 
 func TestMalformedPatch(t *testing.T) {
 	assertPatchRejected(t, "not json")
-}
-
-func TestPatchConclusion(t *testing.T) {
-	assertPatchRejected(t, `{"conclusion":"Socrates is mortal","premises":["Socrates is a man", "All men are mortal"]}`)
 }
 
 func TestPatchOnePremise(t *testing.T) {
@@ -64,7 +58,7 @@ func TestPatchEmpty(t *testing.T) {
 
 func assertPatchRejected(t *testing.T, payload string) {
 	t.Helper()
-	original := parseArgument(t, readFile(t, "../samples/save-request.json"))
+	original := argumentstest.ParseSample(t, "../samples/save-request.json")
 
 	server := newServerForTests()
 	id := doSaveObject(t, server, original)

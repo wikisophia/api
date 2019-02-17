@@ -6,10 +6,11 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/wikisophia/api-arguments/server/arguments/argumentstest"
 )
 
 func TestGetDeleted(t *testing.T) {
-	saved := parseArgument(t, readFile(t, "../samples/save-request.json"))
+	saved := argumentstest.ParseSample(t, "../samples/save-request.json")
 	server := newServerForTests()
 	id := doSaveObject(t, server, saved)
 
