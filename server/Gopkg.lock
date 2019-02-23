@@ -72,6 +72,14 @@
   revision = "ffdc059bfe9ce6a4e144ba849dbedead332c6053"
   version = "v1.3.0"
 
+[[projects]]
+  branch = "master"
+  digest = "1:7018a5a58e70aa4f14651e0d6422ac5417a13c56d4176d1234831a7923159361"
+  name = "github.com/wikisophia/go-environment-configs"
+  packages = ["."]
+  pruneopts = ""
+  revision = "58432a6545649fe66998a6be95d9e0deabdb9ffa"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
@@ -83,6 +91,7 @@
     "github.com/smotes/purse",
     "github.com/stretchr/testify/assert",
     "github.com/stretchr/testify/suite",
+    "github.com/wikisophia/go-environment-configs",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1
