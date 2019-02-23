@@ -6,6 +6,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/wikisophia/go-environment-configs"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/wikisophia/api-arguments/server/config"
 )
@@ -66,11 +68,11 @@ func TestEnvironmentOverrides(t *testing.T) {
 
 // TestLegalDefaults makes sure all the default values make a valid config object.
 func TestLegalDefaults(t *testing.T) {
-	_, errs := config.Parse()
-	assert.Len(t, errs, 0)
+	_, err := config.Parse()
+	assert.NoError(t, err)
 }
 
-// TestInvalidEnvironment makes sure
+// TestInvalidEnvironment makes sure errors show up on invalid environment variables.
 func TestInvalidEnvironment(t *testing.T) {
 	assertInvalid(t, "WKSPH_ARGS_SERVER_READ_HEADER_TIMEOUT_MILLIS", "foo")
 	assertInvalid(t, "WKSPH_ARGS_STORAGE_POSTGRES_PORT", "foo")
@@ -91,7 +93,7 @@ func assertStringParses(t *testing.T, env string, value string, getter func(cfg 
 	t.Helper()
 	defer setEnv(t, env, value)()
 	cfg, errs := config.Parse()
-	if !assert.Len(t, errs, 0) {
+	if !assert.NoError(t, error(errs), "error was: \"%v\"", errs) {
 		return
 	}
 	assert.Equal(t, value, getter(cfg))
@@ -101,7 +103,7 @@ func assertStringSliceParses(t *testing.T, env string, value []string, getter fu
 	t.Helper()
 	defer setEnv(t, env, strings.Join(value, ","))()
 	cfg, errs := config.Parse()
-	if !assert.Len(t, errs, 0) {
+	if !assert.NoError(t, errs) {
 		return
 	}
 	assert.Equal(t, value, getter(cfg))
@@ -111,7 +113,7 @@ func assertIntParses(t *testing.T, env string, value int, getter func(cfg config
 	t.Helper()
 	defer setEnv(t, env, strconv.Itoa(value))()
 	cfg, errs := config.Parse()
-	if !assert.Len(t, errs, 0) {
+	if !assert.NoError(t, errs) {
 		return
 	}
 	assert.EqualValues(t, getter(cfg), value)
@@ -120,11 +122,13 @@ func assertIntParses(t *testing.T, env string, value int, getter func(cfg config
 func assertInvalid(t *testing.T, env string, value string) {
 	t.Helper()
 	defer setEnv(t, env, value)()
-	_, errs := config.Parse()
-	if !assert.Len(t, errs, 1) {
+	_, err := config.Parse()
+	if !assert.Error(t, err) {
 		return
 	}
-	assert.True(t, strings.HasPrefix(errs[0].Error(), env), "error message \"%v\" must start with environment variable: \"%s\"", errs[0], env)
+	if casted, ok := err.(*configs.TraversalError); assert.True(t, ok) {
+		assert.False(t, casted.IsValid(env))
+	}
 }
 
 // setEnv acts as a wrapper around os.Setenv, returning a function that resets the environment
