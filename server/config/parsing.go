@@ -24,7 +24,7 @@ func Parse() (Configuration, error) {
 	cfg := Defaults()
 	errs := configs.Visit(&cfg, configs.Loader("WKSPH_ARGS"))
 	log.SetOutput(os.Stdout)
-	// configs.Visit(&cfg, configs.Logger("WKSPH_ARGS"))
+	configs.Visit(&cfg, configs.Logger("WKSPH_ARGS"))
 	log.SetOutput(os.Stderr)
 
 	errs = requirePositive(cfg.Server.ReadHeaderTimeoutMillis, "WKSPH_ARGS_SERVER_READ_HEADER_TIMEOUT_MILLIS", errs)
@@ -38,7 +38,7 @@ func Parse() (Configuration, error) {
 func Defaults() Configuration {
 	return Configuration{
 		Server: &Server{
-			Addr:                    "localhost:8001",
+			Addr: "localhost:8001",
 			ReadHeaderTimeoutMillis: 5000,
 			CorsAllowedOrigins:      []string{"*"},
 		},
