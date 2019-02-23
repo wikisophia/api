@@ -38,7 +38,7 @@ func Parse() (Configuration, error) {
 func Defaults() Configuration {
 	return Configuration{
 		Server: &Server{
-			Addr: "localhost:8001",
+			Addr:                    "localhost:8001",
 			ReadHeaderTimeoutMillis: 5000,
 			CorsAllowedOrigins:      []string{"*"},
 		},
