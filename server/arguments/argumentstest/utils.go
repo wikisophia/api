@@ -10,14 +10,6 @@ import (
 	"github.com/wikisophia/api-arguments/server/arguments"
 )
 
-// AssertArgumentsMatch fails if the arguments aren't equivalent.
-// Similar to assert.Equal, but ignores Premise order.
-func AssertArgumentsMatch(t *testing.T, expected arguments.Argument, actual arguments.Argument) {
-	assert.Equal(t, expected.ID, actual.ID)
-	assert.Equal(t, expected.Conclusion, actual.Conclusion)
-	assert.ElementsMatch(t, expected.Premises, actual.Premises)
-}
-
 // ParseSample parses the JSON from the file at unixPath and returns
 // it as an Argument.
 func ParseSample(t *testing.T, unixPath string) arguments.Argument {

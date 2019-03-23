@@ -22,7 +22,7 @@ func TestGetVersion(t *testing.T) {
 	rr := doGetArgumentVersion(server, id, 1)
 	assertSuccessfulJSON(t, rr)
 	actual := argumentstest.ParseJSON(t, rr.Body.Bytes())
-	argumentstest.AssertArgumentsMatch(t, mistaken, actual)
+	assert.Equal(t, mistaken, actual)
 }
 
 func TestGetMissingVersion(t *testing.T) {
