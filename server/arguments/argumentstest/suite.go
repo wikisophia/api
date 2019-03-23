@@ -28,7 +28,7 @@ func (suite *StoreTests) TestSaveIsLive() {
 	if !assert.NoError(suite.T(), err) {
 		return
 	}
-	AssertArgumentsMatch(suite.T(), original, fetched)
+	assert.Equal(suite.T(), original, fetched)
 }
 
 // TestUpdatedIsLive makes sure that a newly updated argument uses the latest premises.
@@ -46,7 +46,7 @@ func (suite *StoreTests) TestUpdatedIsLive() {
 	if !assert.NoError(suite.T(), err) {
 		return
 	}
-	AssertArgumentsMatch(suite.T(), updated, fetched)
+	assert.Equal(suite.T(), updated, fetched)
 }
 
 // TestUpdateUnknownReturnsError makes sure that we can't update arguments which don't exist.
@@ -79,7 +79,7 @@ func (suite *StoreTests) TestOriginalIsAvailable() {
 	if !assert.NoError(suite.T(), err) {
 		return
 	}
-	AssertArgumentsMatch(suite.T(), original, fetched)
+	assert.Equal(suite.T(), original, fetched)
 }
 
 // TestDeletedUnknownReturnsNotFound makes sure the backend returns a NotFoundError
@@ -166,8 +166,8 @@ func (suite *StoreTests) TestBasicFetchAll() {
 		fetchedSecond = tmp
 	}
 
-	AssertArgumentsMatch(suite.T(), original, fetchedFirst)
-	AssertArgumentsMatch(suite.T(), otherArg, fetchedSecond)
+	assert.Equal(suite.T(), original, fetchedFirst)
+	assert.Equal(suite.T(), otherArg, fetchedSecond)
 }
 
 // TestVersionedFetchAll makes sure the Store returns the argument's live version only.
@@ -186,7 +186,7 @@ func (suite *StoreTests) TestVersionedFetchAll() {
 	if !assert.Len(suite.T(), allArgs, 1) {
 		return
 	}
-	AssertArgumentsMatch(suite.T(), updated, allArgs[0])
+	assert.Equal(suite.T(), updated, allArgs[0])
 }
 
 func (suite *StoreTests) saveWithUpdates(store arguments.Store, arg arguments.Argument, updates ...arguments.Argument) int64 {

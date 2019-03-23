@@ -16,7 +16,7 @@ func TestSaveGetRoundtrip(t *testing.T) {
 	rr := doGetArgument(server, id)
 	assertSuccessfulJSON(t, rr)
 	actual := argumentstest.ParseJSON(t, rr.Body.Bytes())
-	argumentstest.AssertArgumentsMatch(t, expected, actual)
+	assert.Equal(t, expected, actual)
 }
 
 func TestSaveNoConclusion(t *testing.T) {

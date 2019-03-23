@@ -11,22 +11,23 @@ import (
 )
 
 const fetchQuery = `
-SELECT claims.claim, 'premise' as type
+(SELECT claims.claim, argument_premises.id AS o
 FROM claims
 	INNER JOIN argument_premises ON claims.id = argument_premises.premise_id
 	INNER JOIN argument_versions ON argument_premises.argument_version_id = argument_versions.id
 	INNER JOIN arguments ON arguments.id = argument_versions.argument_id
 WHERE arguments.id = $1
 	AND arguments.deleted = false
-	AND argument_versions.argument_version = $2
-UNION
-SELECT claims.claim, 'conclusion' as type
+	AND argument_versions.argument_version = $2)
+UNION ALL
+(SELECT claims.claim, -1 AS o
 FROM claims
 	INNER JOIN argument_versions ON claims.id = argument_versions.conclusion_id
 	INNER JOIN arguments ON arguments.id = argument_versions.argument_id
 WHERE arguments.id = $1
 	AND arguments.deleted = false
-	AND argument_versions.argument_version = $2;
+	AND argument_versions.argument_version = $2)
+ORDER BY o;
 `
 
 const fetchAllQuery = `
@@ -52,25 +53,19 @@ func (store *Store) FetchVersion(ctx context.Context, id int64, version int16) (
 	defer tryClose(rows)
 
 	var claim string
-	var rowType string
+	var dummy int64
 
 	var conclusion string
 	var premises []string
 
 	for rows.Next() {
-		if err := rows.Scan(&claim, &rowType); err != nil {
+		if err := rows.Scan(&claim, &dummy); err != nil {
 			return arguments.Argument{}, errors.Wrap(err, "fetch result scan failed")
 		}
-		switch rowType {
-		case "premise":
-			premises = append(premises, claim)
-		case "conclusion":
-			if conclusion != "" {
-				return arguments.Argument{}, errors.Errorf("fetch returned two conclusions for version %d of argument %d, which suggests corrupt data", version, id)
-			}
+		if conclusion == "" {
 			conclusion = claim
-		default:
-			return arguments.Argument{}, errors.Errorf("fetch version %d for argument %d returned unknown error type: %s", version, id, rowType)
+		} else {
+			premises = append(premises, claim)
 		}
 	}
 	if conclusion == "" {
