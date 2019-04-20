@@ -33,28 +33,6 @@ func Parse() (Configuration, error) {
 	return cfg, errs
 }
 
-// Defaults returns a Configuration with all the default options.
-// This ignores environment variable values.
-func Defaults() Configuration {
-	return Configuration{
-		Server: &Server{
-			Addr:                    "localhost:8001",
-			ReadHeaderTimeoutMillis: 5000,
-			CorsAllowedOrigins:      []string{"*"},
-		},
-		Storage: &Storage{
-			Type: StorageTypeMemory,
-			Postgres: &Postgres{
-				Database: "wikisophia",
-				Host:     "localhost",
-				Port:     5432,
-				User:     "postgres",
-				Password: "",
-			},
-		},
-	}
-}
-
 func requirePositive(value int, prefix string, err error) error {
 	if value <= 0 {
 		return configs.Append(err, prefix, fmt.Errorf("must be positive. Got %d", value))

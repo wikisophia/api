@@ -2,6 +2,28 @@ package config
 
 import "time"
 
+// Defaults returns a Configuration with all the default options.
+// This ignores environment variable values.
+func Defaults() Configuration {
+	return Configuration{
+		Server: &Server{
+			Addr:                    ":8001",
+			ReadHeaderTimeoutMillis: 5000,
+			CorsAllowedOrigins:      []string{"*"},
+		},
+		Storage: &Storage{
+			Type: StorageTypeMemory,
+			Postgres: &Postgres{
+				Database: "wikisophia",
+				Host:     "localhost",
+				Port:     5432,
+				User:     "postgres",
+				Password: "",
+			},
+		},
+	}
+}
+
 // Configuration stores all the application config.
 type Configuration struct {
 	Server  *Server  `environment:"SERVER"`
