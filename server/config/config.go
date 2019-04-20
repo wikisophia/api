@@ -7,7 +7,7 @@ import "time"
 func Defaults() Configuration {
 	return Configuration{
 		Server: &Server{
-			Addr: ":8001",
+			Addr:                    ":8001",
 			ReadHeaderTimeoutMillis: 5000,
 			CorsAllowedOrigins:      []string{"*"},
 		},
