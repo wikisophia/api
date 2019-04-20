@@ -9,5 +9,7 @@ the API Server code as well Client libraries which call it.
 ## Organization
 
 [client-js](./client-js) -- Javascript library for Server commands. This can be used in browsers or Node.
+
 [server](./server) -- The Server code which implements the Arguments API
+
 [scripts](./scripts) -- Scripts to run tests, linting, formatting, etc.
