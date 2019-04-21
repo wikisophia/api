@@ -1,7 +1,7 @@
 {
   "name": "@wikisophia/api-arguments-client",
-  "version": "0.1.0",
-  "main": "prod/cjs.js",
+  "version": "0.2.0",
+  "main": "dev/cjs.js",
   "description": "Javascript client for interacting with the Wikisophia Arguments API",
   "scripts": {
     "build": "rollup -c",
