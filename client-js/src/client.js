@@ -108,9 +108,9 @@ export default function newClient({ url, fetch }) {
       return fetch(`${url}/arguments?conclusion=${conclusion}`, {
         mode: 'cors',
       }).then(handleServerErrors)
-        .then(onNotFound([]))
+        .then(onNotFound({ arguments: [] }))
         .then(parseJSONResponseBody)
-        .then((response) => response.arguments ? response.arguments : response);
+        .then((response) => response.arguments);
     },
 
     /**
