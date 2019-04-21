@@ -6,6 +6,18 @@ import updateRequest from '../../server/samples/update-request.json';
 
 const url = 'http://some-url.com';
 
+function mockSuccess(json) {
+  return Promise.resolve({
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+    },
+    status: 200,
+    json() {
+      return Promise.resolve(json);
+    },
+  });
+}
+
 describe('getOne()', () => {
   test('calls the right API endpoint when fetching the latest version of an argument', () => {
     const fetch = jest.fn();
@@ -214,15 +226,3 @@ describe('update()', () => {
     return expect(client.update(1, update)).rejects.toThrow('An argument must have at least two premises.');
   });
 });
-
-function mockSuccess(json) {
-  return Promise.resolve({
-    headers: {
-      'Content-Type': '	application/json; charset=utf-8'
-    },
-    status: 200,
-    json: function() {
-      return Promise.resolve(json);
-    }
-  });
-}

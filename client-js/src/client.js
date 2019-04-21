@@ -110,7 +110,7 @@ export default function newClient({ url, fetch }) {
       }).then(handleServerErrors)
         .then(onNotFound({ arguments: [] }))
         .then(parseJSONResponseBody)
-        .then((response) => response.arguments);
+        .then(response => response.arguments);
     },
 
     /**
