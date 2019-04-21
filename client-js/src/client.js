@@ -14,9 +14,9 @@ function onNotFound(value) {
   };
 }
 
-function getResponseBody(response) {
-  if (response && response.body) {
-    return response.body;
+function parseJSONResponseBody(response) {
+  if (response && response.json) {
+    return response.json();
   }
   return response;
 }
@@ -90,7 +90,7 @@ export default function newClient({ url, fetch }) {
         mode: 'cors',
       }).then(handleServerErrors)
         .then(onNotFound(null))
-        .then(getResponseBody);
+        .then(parseJSONResponseBody);
     },
 
     /**
@@ -108,13 +108,9 @@ export default function newClient({ url, fetch }) {
       return fetch(`${url}/arguments?conclusion=${conclusion}`, {
         mode: 'cors',
       }).then(handleServerErrors)
-        .then(onNotFound([]))
-        .then((response) => {
-          if (response && response.body) {
-            return response.body.arguments;
-          }
-          return response;
-        });
+        .then(onNotFound({ arguments: [] }))
+        .then(parseJSONResponseBody)
+        .then(response => response.arguments);
     },
 
     /**

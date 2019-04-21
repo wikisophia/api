@@ -6,13 +6,22 @@ import updateRequest from '../../server/samples/update-request.json';
 
 const url = 'http://some-url.com';
 
+function mockSuccess(json) {
+  return Promise.resolve({
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+    },
+    status: 200,
+    json() {
+      return Promise.resolve(json);
+    },
+  });
+}
+
 describe('getOne()', () => {
   test('calls the right API endpoint when fetching the latest version of an argument', () => {
     const fetch = jest.fn();
-    fetch.mockReturnValueOnce(Promise.resolve({
-      status: 200,
-      body: getOneResponse,
-    }));
+    fetch.mockReturnValueOnce(mockSuccess(getOneResponse));
 
     const client = newClient({ url, fetch });
     return client.getOne(1).then((result) => {
@@ -50,10 +59,7 @@ describe('getOne()', () => {
 describe('getAll()', () => {
   test('calls the right API endpoint', () => {
     const fetch = jest.fn();
-    fetch.mockReturnValueOnce(Promise.resolve({
-      status: 200,
-      body: getAllResponse,
-    }));
+    fetch.mockReturnValueOnce(mockSuccess(getAllResponse));
 
     const client = newClient({ url, fetch });
     return client.getAll(getAllResponse.arguments[0].conclusion).catch((result) => {
