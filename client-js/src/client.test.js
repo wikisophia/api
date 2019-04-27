@@ -10,8 +10,8 @@ const url = 'http://some-url.com';
 function mockOneReturn(status, body, headers) {
   const mock = jest.fn();
   mock.mockReturnValueOnce(Promise.resolve(new Response(body, {
-    status: status,
-    headers: headers,
+    status,
+    headers,
   })));
 
   return mock;
@@ -20,7 +20,7 @@ function mockOneReturn(status, body, headers) {
 describe('getOne()', () => {
   test('calls the right API endpoint when fetching the latest version of an argument', () => {
     const fetch = mockOneReturn(200, JSON.stringify(getOneResponse), {
-      'Content-Type': 'application/json; charset=utf-8'
+      'Content-Type': 'application/json; charset=utf-8',
     });
 
     const client = newClient({ url, fetch });
@@ -52,7 +52,7 @@ describe('getOne()', () => {
 describe('getAll()', () => {
   test('calls the right API endpoint', () => {
     const fetch = mockOneReturn(200, JSON.stringify(getAllResponse), {
-      'Content-Type': 'application/json; charset=utf-8'
+      'Content-Type': 'application/json; charset=utf-8',
     });
 
     const client = newClient({ url, fetch });
@@ -88,7 +88,7 @@ describe('getAll()', () => {
 describe('save()', () => {
   test('calls the right API endpoint with the right data', () => {
     const fetch = mockOneReturn(201, '', {
-      'Location': '/arguments/1'
+      Location: '/arguments/1',
     });
     const client = newClient({ url, fetch });
     return client.save(saveRequest).then((resolved) => {
@@ -143,7 +143,7 @@ describe('save()', () => {
 describe('update()', () => {
   test('calls the right API endpoint with the right data', () => {
     const fetch = mockOneReturn(204, '', {
-      'Location': '/arguments/1/version/2'
+      Location: '/arguments/1/version/2',
     });
     const client = newClient({ url, fetch });
     return client.update(1, updateRequest).then((resolved) => {

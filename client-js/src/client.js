@@ -154,13 +154,13 @@ export default function newClient({ url, fetch }) {
       }).then(handleServerErrors)
         .then((response) => {
           if (response.status === 404) {
-            return new Promise(function(resolve, reject) {
-              response.text().then(function (responseBody) {
-                reject(new Error(`The server returned a 404: ${responseBody}.`))
-              }).catch(function (err) {
-                reject(new Error(`The server returned a 404, and an error occurred while reading the response body: ${err.message}.`))
-              })
-            });
+            return new Promise(((resolve, reject) => {
+              response.text().then((responseBody) => {
+                reject(new Error(`The server returned a 404: ${responseBody}.`));
+              }).catch((readErr) => {
+                reject(new Error(`The server returned a 404, and an error occurred while reading the response body: ${readErr.message}.`));
+              });
+            }));
           }
           return response;
         })
