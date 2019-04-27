@@ -113,11 +113,9 @@ describe('save()', () => {
     return client.save(saveRequest).then((resolved) => {
       expect(fetch.mock.calls.length).toBe(1);
       expect(fetch.mock.calls[0][0]).toBe(`${url}/arguments`);
-      expect(fetch.mock.calls[0][1]).toEqual({
-        method: 'POST',
-        mode: 'cors',
-        body: saveRequest,
-      });
+      expect(fetch.mock.calls[0][1].method).toEqual('POST');
+      expect(fetch.mock.calls[0][1].mode).toEqual('cors');
+      expect(JSON.parse(fetch.mock.calls[0][1].body)).toEqual(saveRequest);
       expect(resolved).toEqual({
         location: '/arguments/1',
       });
@@ -175,11 +173,9 @@ describe('update()', () => {
     return client.update(1, updateRequest).then((resolved) => {
       expect(fetch.mock.calls.length).toBe(1);
       expect(fetch.mock.calls[0][0]).toBe(`${url}/argument/1`);
-      expect(fetch.mock.calls[0][1]).toEqual({
-        method: 'PATCH',
-        mode: 'cors',
-        body: updateRequest,
-      });
+      expect(fetch.mock.calls[0][1].method).toEqual('PATCH');
+      expect(fetch.mock.calls[0][1].mode).toEqual('cors');
+      expect(JSON.parse(fetch.mock.calls[0][1].body)).toEqual(updateRequest);
       expect(resolved).toEqual({
         location: '/arguments/1/version/2',
       });

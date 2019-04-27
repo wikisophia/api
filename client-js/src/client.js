@@ -129,7 +129,7 @@ export default function newClient({ url, fetch }) {
       return fetch(`${url}/arguments`, {
         method: 'POST',
         mode: 'cors',
-        body: argument,
+        body: JSON.stringify(argument),
       }).then(handleServerErrors)
         .then(response => ({
           location: response.headers.get('Location'),
@@ -151,7 +151,7 @@ export default function newClient({ url, fetch }) {
       return fetch(`${url}/argument/${id}`, {
         method: 'PATCH',
         mode: 'cors',
-        body: argument,
+        body: JSON.stringify(argument),
       }).then(handleServerErrors)
         .then((response) => {
           if (response.status === 404) {
