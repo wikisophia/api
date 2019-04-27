@@ -1,6 +1,6 @@
 function handleServerErrors(response) {
   if (response.status >= 500 && response.status < 600) {
-    throw new Error(`Server responded with a ${response.status}: ${response.body}`);
+    throw new Error(`The server responded with a ${response.status}: ${response.body}`);
   }
   return response;
 }
@@ -97,7 +97,7 @@ export default function newClient({ url, fetch }) {
      * Get all the arguments with a given conclusion.
      *
      * @param {string} conclusion The conclusion you want to fetch all arguments for.
-     * @return {Promise<Argument[]>} A list of arguments with this conclusion.
+     * @return {Promise<ArgumentList>} A list of arguments with this conclusion.
      *   If none exist, this will be an empty array.
      */
     getAll(conclusion) {
@@ -109,8 +109,7 @@ export default function newClient({ url, fetch }) {
         mode: 'cors',
       }).then(handleServerErrors)
         .then(onNotFound({ arguments: [] }))
-        .then(parseJSONResponseBody)
-        .then(response => response.arguments);
+        .then(parseJSONResponseBody);
     },
 
     /**
@@ -155,7 +154,13 @@ export default function newClient({ url, fetch }) {
       }).then(handleServerErrors)
         .then((response) => {
           if (response.status === 404) {
-            throw new Error(response.body);
+            return new Promise(((resolve, reject) => {
+              response.text().then((responseBody) => {
+                reject(new Error(`The server returned a 404: ${responseBody}.`));
+              }).catch((readErr) => {
+                reject(new Error(`The server returned a 404, and an error occurred while reading the response body: ${readErr.message}.`));
+              });
+            }));
           }
           return response;
         })
@@ -183,6 +188,12 @@ export default function newClient({ url, fetch }) {
  * @property {string[]} premises The argument's premises.
  *   This must have at least 2 elements for the argument to be valid..
  */
+
+/**
+ * @typedef {Object} ArgumentList
+ *
+ * @property {Argument[]} arguments The list of arguments.
+*/
 
 /**
  * @typedef {Object} SaveResponse
