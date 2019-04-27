@@ -2,4 +2,4 @@
 
 # Installation
 
-See [the Install guide](./server/docs/installation.md)
+See [the Install guide](./docs/installation.md)
