@@ -148,7 +148,7 @@ describe('update()', () => {
     const client = newClient({ url, fetch });
     return client.update(1, updateRequest).then((resolved) => {
       expect(fetch.mock.calls.length).toBe(1);
-      expect(fetch.mock.calls[0][0]).toBe(`${url}/argument/1`);
+      expect(fetch.mock.calls[0][0]).toBe(`${url}/arguments/1`);
       expect(fetch.mock.calls[0][1].method).toEqual('PATCH');
       expect(fetch.mock.calls[0][1].mode).toEqual('cors');
       expect(JSON.parse(fetch.mock.calls[0][1].body)).toEqual(updateRequest);

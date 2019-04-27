@@ -147,7 +147,7 @@ export default function newClient({ url, fetch }) {
         return Promise.reject(new Error(err));
       }
 
-      return fetch(`${url}/argument/${id}`, {
+      return fetch(`${url}/arguments/${id}`, {
         method: 'PATCH',
         mode: 'cors',
         body: JSON.stringify(argument),
