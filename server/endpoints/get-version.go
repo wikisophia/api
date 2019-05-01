@@ -6,10 +6,18 @@ import (
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
+	"github.com/wikisophia/api-arguments/server/arguments"
 )
 
+// ArgumentGetterByVersion returns a specific version of an argument.
+type ArgumentGetterByVersion interface {
+	// FetchVersion should return a particular version of an argument.
+	// If the the argument didn't exist, the error should be an arguments.NotFoundError.
+	FetchVersion(ctx context.Context, id int64, version int16) (arguments.Argument, error)
+}
+
 // Implements GET /arguments/:id/version/:version
-func (s *Server) getArgumentVersion() httprouter.Handle {
+func getArgumentByVersionHandler(getter ArgumentGetterByVersion) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 		id, goodID := parseIntParam(params.ByName("id"))
 		versionInt, goodVersion := parseIntParam(params.ByName("version"))
@@ -21,7 +29,7 @@ func (s *Server) getArgumentVersion() httprouter.Handle {
 			http.Error(w, response, http.StatusNotFound)
 			return
 		}
-		arg, err := s.argumentStore.FetchVersion(context.Background(), id, version)
+		arg, err := getter.FetchVersion(context.Background(), id, version)
 		if writeStoreError(w, err) {
 			return
 		}

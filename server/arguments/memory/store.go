@@ -15,21 +15,25 @@ import (
 //
 // TODO #11: This should be threadsafe. It's not a huge deal yet because this
 // is used for tests & development... but might cause some false positives.
-func NewStore() arguments.Store {
+func NewStore() *InMemoryStore {
 	// Populate the arguments value with a "dummy" arg, since versions start at 1.
 	// The implementation is just a bit simpler if we start the real data at index 1 too.
-	return &inMemoryStore{
+	return &InMemoryStore{
 		nextID:    0,
 		arguments: make([][]arguments.Argument, 1),
 	}
 }
 
-type inMemoryStore struct {
+// InMemoryStore saves arguments in program memory.
+// This is mainly intended for testing and easier dev environment setups.
+type InMemoryStore struct {
 	nextID    int64
 	arguments [][]arguments.Argument
 }
 
-func (s *inMemoryStore) Delete(ctx context.Context, id int64) error {
+// Delete deletes an argument (and all its versions) from the site.
+// If the argument didn't exist, the error will be a NotFoundError.
+func (s *InMemoryStore) Delete(ctx context.Context, id int64) error {
 	if id > 0 && id < int64(len(s.arguments)) {
 		s.arguments[id] = nil
 		return nil
@@ -39,7 +43,9 @@ func (s *inMemoryStore) Delete(ctx context.Context, id int64) error {
 	}
 }
 
-func (s *inMemoryStore) FetchVersion(ctx context.Context, id int64, version int16) (arguments.Argument, error) {
+// FetchVersion should return a particular version of an argument.
+// If the the argument didn't exist, the error should be an arguments.NotFoundError.
+func (s *InMemoryStore) FetchVersion(ctx context.Context, id int64, version int16) (arguments.Argument, error) {
 	if !s.argumentExists(id) {
 		return arguments.Argument{}, &arguments.NotFoundError{
 			Message: fmt.Sprintf("argument with id %d does not exist", id),
@@ -54,7 +60,9 @@ func (s *inMemoryStore) FetchVersion(ctx context.Context, id int64, version int1
 	return versions[version], nil
 }
 
-func (s *inMemoryStore) FetchLive(ctx context.Context, id int64) (arguments.Argument, error) {
+// FetchLive should return the latest "active" version of an argument.
+// If no argument with this ID exists, the error should be an arguments.NotFoundError.
+func (s *InMemoryStore) FetchLive(ctx context.Context, id int64) (arguments.Argument, error) {
 	if !s.argumentExists(id) {
 		return arguments.Argument{}, &arguments.NotFoundError{
 			Message: fmt.Sprintf("argument with id %d does not exist", id),
@@ -67,7 +75,9 @@ func (s *inMemoryStore) FetchLive(ctx context.Context, id int64) (arguments.Argu
 	return versions[len(versions)-1], nil
 }
 
-func (s *inMemoryStore) FetchAll(ctx context.Context, conclusion string) ([]arguments.Argument, error) {
+// FetchAll finds all the available arguments for a conclusion.
+// If none exist, error will be nil and the slice empty.
+func (s *InMemoryStore) FetchAll(ctx context.Context, conclusion string) ([]arguments.Argument, error) {
 	args := make([]arguments.Argument, 0, 20)
 	for i := 1; i < len(s.arguments); i++ {
 		if s.arguments[i][0].Conclusion == conclusion {
@@ -77,7 +87,9 @@ func (s *inMemoryStore) FetchAll(ctx context.Context, conclusion string) ([]argu
 	return args, nil
 }
 
-func (s *inMemoryStore) Save(ctx context.Context, argument arguments.Argument) (id int64, err error) {
+// Save stores an argument and returns that argument's ID.
+// The ID on the input argument will be ignored.
+func (s *InMemoryStore) Save(ctx context.Context, argument arguments.Argument) (id int64, err error) {
 	argument.ID = int64(len(s.arguments))
 	s.arguments = append(s.arguments, []arguments.Argument{
 		argument, // Add this twice because the 0th index will be ignored by Fetches
@@ -86,7 +98,9 @@ func (s *inMemoryStore) Save(ctx context.Context, argument arguments.Argument) (
 	return argument.ID, nil
 }
 
-func (s *inMemoryStore) Update(ctx context.Context, argument arguments.Argument) (version int16, err error) {
+// Update makes a new version of the argument. It returns the new argument's version.
+// If no argument with this ID exists, the returned error is an arguments.NotFoundError.
+func (s *InMemoryStore) Update(ctx context.Context, argument arguments.Argument) (version int16, err error) {
 	if !s.argumentExists(argument.ID) {
 		return -1, &arguments.NotFoundError{
 			Message: fmt.Sprintf("argument with id %d does not exist", argument.ID),
@@ -96,12 +110,8 @@ func (s *inMemoryStore) Update(ctx context.Context, argument arguments.Argument)
 	return int16(len(s.arguments[argument.ID]) - 1), nil
 }
 
-func (s *inMemoryStore) argumentExists(id int64) bool {
+func (s *InMemoryStore) argumentExists(id int64) bool {
 	return int64(len(s.arguments)) > id && s.arguments[id] != nil
-}
-
-func (s *inMemoryStore) Close() error {
-	return nil
 }
 
 func findMax(data map[int16]arguments.Argument) (max int16) {

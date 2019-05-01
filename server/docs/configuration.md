@@ -26,5 +26,5 @@ source ./config.env
 Or, to avoid polluting your terminal's environment, run it in a bash subshell:
 
 ```bash
-(source ./config.env && ./api-arguments)
+(source ./config.env && ./server)
 ```

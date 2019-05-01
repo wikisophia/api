@@ -7,7 +7,7 @@ import (
 )
 
 // Implements /suggestions
-func (s *Server) suggestions() httprouter.Handle {
+func suggestionsHandler() httprouter.Handle {
 	var mockSuggestions = []byte(`["Socrates is mortal","Socrates is a man"]`)
 
 	return func(w http.ResponseWriter, r *http.Request, params httprouter.Params) {

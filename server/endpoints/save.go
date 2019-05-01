@@ -10,8 +10,15 @@ import (
 	"github.com/wikisophia/api-arguments/server/arguments"
 )
 
+// ArgumentSaver can save arguments.
+type ArgumentSaver interface {
+	// Save stores an argument and returns that argument's ID.
+	// The ID on the input argument will be ignored.
+	Save(ctx context.Context, argument arguments.Argument) (id int64, err error)
+}
+
 // Implements POST /arguments
-func (s *Server) saveArgument() http.HandlerFunc {
+func saveHandler(saver ArgumentSaver) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		data, err := ioutil.ReadAll(r.Body)
 		if err != nil {
@@ -29,7 +36,7 @@ func (s *Server) saveArgument() http.HandlerFunc {
 			return
 		}
 
-		id, err := s.argumentStore.Save(context.Background(), arg)
+		id, err := saver.Save(context.Background(), arg)
 		if err != nil {
 			http.Error(w, "Failed to save argument: "+err.Error(), http.StatusServiceUnavailable)
 			return
