@@ -8,14 +8,21 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-func (s *Server) deleteArgument() httprouter.Handle {
+// ArgumentDeleter can delete arguments by ID.
+type ArgumentDeleter interface {
+	// Delete deletes an argument (and all its versions) from the site.
+	// If the argument didn't exist, the error will be a NotFoundError.
+	Delete(ctx context.Context, id int64) error
+}
+
+func deleteHandler(deleter ArgumentDeleter) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 		id, goodID := parseIntParam(params.ByName("id"))
 		if !goodID {
 			http.Error(w, fmt.Sprintf("argument %s does not exist", params.ByName("id")), http.StatusNotFound)
 			return
 		}
-		if err := s.argumentStore.Delete(context.Background(), id); writeStoreError(w, err) {
+		if err := deleter.Delete(context.Background(), id); writeStoreError(w, err) {
 			return
 		}
 

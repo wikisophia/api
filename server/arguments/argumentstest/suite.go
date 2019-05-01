@@ -6,13 +6,14 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"github.com/wikisophia/api-arguments/server/arguments"
+	"github.com/wikisophia/api-arguments/server/endpoints"
 )
 
 // StoreTests is a testing suite which makes sure that a Store obeys
 // the interface contract
 type StoreTests struct {
 	suite.Suite
-	StoreFactory func() arguments.Store
+	StoreFactory func() endpoints.Store
 }
 
 // TestSaveIsLive makes sure that an argument is "live" immediately after being saved.
@@ -189,7 +190,7 @@ func (suite *StoreTests) TestVersionedFetchAll() {
 	assert.Equal(suite.T(), updated, allArgs[0])
 }
 
-func (suite *StoreTests) saveWithUpdates(store arguments.Store, arg arguments.Argument, updates ...arguments.Argument) int64 {
+func (suite *StoreTests) saveWithUpdates(store endpoints.Store, arg arguments.Argument, updates ...arguments.Argument) int64 {
 	id, err := store.Save(context.Background(), arg)
 	if !assert.NoError(suite.T(), err) {
 		return -1
