@@ -36,9 +36,6 @@ func getAllArgumentsHandler(getter ArgumentGetterByConclusion) http.HandlerFunc 
 
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(http.StatusOK)
-		log.Printf("returning: %v", GetAllResponse{
-			Arguments: args,
-		})
 		if err = json.NewEncoder(w).Encode(GetAllResponse{
 			Arguments: args,
 		}); err != nil {
