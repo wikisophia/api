@@ -8,6 +8,7 @@ import (
 // Argument is the core data type for the API.
 type Argument struct {
 	ID         int64    `json:"id"`
+	Version    int64    `json:"version"`
 	Conclusion string   `json:"conclusion"`
 	Premises   []string `json:"premises"`
 }

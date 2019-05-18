@@ -32,6 +32,12 @@ func parseGetAllResponse(t *testing.T, data []byte) endpoints.GetAllResponse {
 	return getAll
 }
 
+func parseArgumentResponse(t *testing.T, data []byte) arguments.Argument {
+	var arg arguments.Argument
+	assert.NoError(t, json.Unmarshal(data, &arg))
+	return arg
+}
+
 func parseArgumentID(t *testing.T, location string) int64 {
 	assert.NotEmpty(t, location)
 	capture := regexp.MustCompile(`/arguments/(.*)`)
@@ -86,8 +92,7 @@ func doValidUpdate(t *testing.T, server *endpoints.Server, update arguments.Argu
 	updatePayload, err := json.Marshal(update)
 	assert.NoError(t, err)
 	rr := doPatchArgument(server, id, string(updatePayload))
-
-	assert.Equal(t, http.StatusNoContent, rr.Code)
+	assert.Equal(t, http.StatusOK, rr.Code)
 	assert.Equal(t, "application/json; charset=utf-8", rr.Header().Get("Content-Type"))
 	return rr
 }

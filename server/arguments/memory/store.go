@@ -91,6 +91,7 @@ func (s *InMemoryStore) FetchAll(ctx context.Context, conclusion string) ([]argu
 // The ID on the input argument will be ignored.
 func (s *InMemoryStore) Save(ctx context.Context, argument arguments.Argument) (id int64, err error) {
 	argument.ID = int64(len(s.arguments))
+	argument.Version = 1
 	s.arguments = append(s.arguments, []arguments.Argument{
 		argument, // Add this twice because the 0th index will be ignored by Fetches
 		argument,
@@ -106,8 +107,9 @@ func (s *InMemoryStore) Update(ctx context.Context, argument arguments.Argument)
 			Message: fmt.Sprintf("argument with id %d does not exist", argument.ID),
 		}
 	}
+	argument.Version = int64(len(s.arguments[argument.ID]))
 	s.arguments[argument.ID] = append(s.arguments[argument.ID], argument)
-	return int16(len(s.arguments[argument.ID]) - 1), nil
+	return int16(argument.Version), nil
 }
 
 func (s *InMemoryStore) argumentExists(id int64) bool {

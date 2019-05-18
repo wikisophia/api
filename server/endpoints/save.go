@@ -42,7 +42,8 @@ func saveHandler(saver ArgumentSaver) http.HandlerFunc {
 			return
 		}
 		w.Header().Set("Location", "/arguments/"+strconv.FormatInt(id, 10))
-		w.Header().Set("Content-Type", "text/plain")
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(http.StatusCreated)
+		writeArgument(w, arg, strconv.FormatInt(id, 10))
 	}
 }

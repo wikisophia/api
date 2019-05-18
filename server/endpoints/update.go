@@ -54,7 +54,8 @@ func updateHandler(updater ArgumentUpdater) httprouter.Handle {
 
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.Header().Set("Location", "/arguments/"+strconv.FormatInt(id, 10)+"/version/"+strconv.Itoa(int(version)))
-		w.WriteHeader(http.StatusNoContent)
+		w.WriteHeader(http.StatusOK)
+		writeArgument(w, arg, strconv.FormatInt(id, 10))
 	}
 }
 
