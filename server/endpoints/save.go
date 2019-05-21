@@ -41,7 +41,9 @@ func saveHandler(saver ArgumentSaver) http.HandlerFunc {
 			http.Error(w, "Failed to save argument: "+err.Error(), http.StatusServiceUnavailable)
 			return
 		}
-		w.Header().Set("Location", "/arguments/"+strconv.FormatInt(id, 10))
+		arg.ID = id
+		arg.Version = 1
+		w.Header().Set("Location", "/arguments/"+strconv.FormatInt(id, 10)+"/version/1")
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(http.StatusCreated)
 		writeArgument(w, arg, strconv.FormatInt(id, 10))

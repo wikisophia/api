@@ -40,7 +40,7 @@ func parseArgumentResponse(t *testing.T, data []byte) arguments.Argument {
 
 func parseArgumentID(t *testing.T, location string) int64 {
 	assert.NotEmpty(t, location)
-	capture := regexp.MustCompile(`/arguments/(.*)`)
+	capture := regexp.MustCompile(`/arguments/(.*)/version/.*`)
 	matches := capture.FindStringSubmatch(location)
 	assert.Len(t, matches, 2)
 	idString := matches[1]
@@ -83,6 +83,10 @@ func doSaveObject(t *testing.T, server *endpoints.Server, argument arguments.Arg
 	if !assert.NoError(t, err) {
 		return -1
 	}
+	argument.ID = id
+	argument.Version = 1
+	responseBody := parseArgumentResponse(t, rr.Body.Bytes())
+	assert.Equal(t, argument, responseBody)
 	return id
 }
 
