@@ -25,6 +25,7 @@ func (suite *StoreTests) TestSaveIsLive() {
 		return
 	}
 	original.ID = id
+	original.Version = 1
 	fetched, err := store.FetchLive(context.Background(), id)
 	if !assert.NoError(suite.T(), err) {
 		return
@@ -43,6 +44,7 @@ func (suite *StoreTests) TestUpdatedIsLive() {
 		return
 	}
 	updated.ID = id
+	updated.Version = 2
 	fetched, err := store.FetchLive(context.Background(), id)
 	if !assert.NoError(suite.T(), err) {
 		return
@@ -76,6 +78,7 @@ func (suite *StoreTests) TestOriginalIsAvailable() {
 		return
 	}
 	original.ID = id
+	original.Version = 1
 	fetched, err := store.FetchVersion(context.Background(), id, 1)
 	if !assert.NoError(suite.T(), err) {
 		return
@@ -157,6 +160,8 @@ func (suite *StoreTests) TestBasicFetchAll() {
 	if !assert.Len(suite.T(), allArgs, 2) {
 		return
 	}
+	original.Version = 1
+	otherArg.Version = 1
 
 	// Fixes #1: Arguments might be returned in any order
 	fetchedFirst := allArgs[0]
@@ -179,8 +184,9 @@ func (suite *StoreTests) TestVersionedFetchAll() {
 	updated.Conclusion = original.Conclusion
 
 	id := suite.saveWithUpdates(store, original, updated)
-	updated.ID = id
 	allArgs, err := store.FetchAll(context.Background(), original.Conclusion)
+	updated.ID = id
+	updated.Version = 2
 	if !assert.NoError(suite.T(), err) {
 		return
 	}

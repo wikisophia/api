@@ -13,6 +13,7 @@ func TestSaveGetRoundtrip(t *testing.T) {
 	server := newServerForTests()
 	id := doSaveObject(t, server, expected)
 	expected.ID = id
+	expected.Version = 1
 	rr := doGetArgument(server, id)
 	assertSuccessfulJSON(t, rr)
 	actual := argumentstest.ParseJSON(t, rr.Body.Bytes())

@@ -17,6 +17,7 @@ func TestGetVersion(t *testing.T) {
 	server := newServerForTests()
 	id := doSaveObject(t, server, mistaken)
 	mistaken.ID = id
+	mistaken.Version = 1
 	expected.ID = id
 	doValidUpdate(t, server, expected)
 	rr := doGetArgumentVersion(server, id, 1)

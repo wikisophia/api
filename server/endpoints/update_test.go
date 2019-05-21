@@ -21,6 +21,7 @@ func TestPatchLive(t *testing.T) {
 	update.ID = id
 
 	rr := doValidUpdate(t, server, update)
+	update.Version = 2
 	responseBytes, err := ioutil.ReadAll(rr.Result().Body)
 	assert.NoError(t, err)
 	parsed := parseArgumentResponse(t, responseBytes)
