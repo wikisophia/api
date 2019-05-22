@@ -77,7 +77,7 @@ export default function newClient({ url, fetch }) {
      * @param {int} id The ID of the argument to get.
      * @param [int] version The version to get. If undefined, the latest version will be fetched.
      *
-     * @return {Promise<Argument>} The Argument, if found, or null if not.
+     * @return {Promise<OneArgument>} The Argument, if found, or null if not.
      *   The Promise will reject on network or server errors.
      */
     getOne(id, version) {
@@ -97,7 +97,7 @@ export default function newClient({ url, fetch }) {
      * Get all the arguments with a given conclusion.
      *
      * @param {string} conclusion The conclusion you want to fetch all arguments for.
-     * @return {Promise<ArgumentList>} A list of arguments with this conclusion.
+     * @return {Promise<SomeArguments>} A list of arguments with this conclusion.
      *   If none exist, this will be an empty array.
      */
     getAll(conclusion) {
@@ -140,6 +140,8 @@ export default function newClient({ url, fetch }) {
      *
      * @param {int} id The ID of the argument you want to update.
      * @param {Argument} argument The new argument which should have this ID.
+     * @return {Promise<SaveResponse>} A Promise with info describing where to
+     *   find the new argument.
      */
     update(id, argument) {
       const err = validateArgument(argument);
@@ -186,17 +188,34 @@ export default function newClient({ url, fetch }) {
  *
  * @property {string} conclusion The argument's conclusion.
  * @property {string[]} premises The argument's premises.
- *   This must have at least 2 elements for the argument to be valid..
+ *   This must have at least 2 elements for the argument to be valid.
  */
 
 /**
- * @typedef {Object} ArgumentList
+ * @typedef {Object} ArgumentResponse
  *
- * @property {Argument[]} arguments The list of arguments.
+ * @property {int} id The argument's ID.
+ * @property {int} version The argument's version.
+ * @property {string} conclusion The argument's conclusion.
+ * @property {string[]} premises The argument's premises.
+ *   This must have at least 2 elements for the argument to be valid.
+ */
+
+/**
+ * @typedef {Object} SomeArguments
+ *
+ * @property {ArgumentResponse[]} arguments The list of arguments.
 */
+
+/**
+ * @typedef {Object} OneArgument
+ *
+ * @property {ArgumentResponse} argument The argument.
+ */
 
 /**
  * @typedef {Object} SaveResponse
  *
  * @property {string} location A URL where the saved argument can be found.
+ * @property {ArgumentResponse} argument The argument after
  */

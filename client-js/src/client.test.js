@@ -1,11 +1,17 @@
 import { Response } from 'node-fetch';
 import newClient from './client';
-import getOneResponse from '../../server/samples/get-one-response.json';
-import getAllResponse from '../../server/samples/get-all-response.json';
+import getOneResponseSample from '../../server/samples/get-one-response.json';
+import getAllResponseSample from '../../server/samples/get-all-response.json';
 import saveRequest from '../../server/samples/save-request.json';
 import updateRequest from '../../server/samples/update-request.json';
 
 const url = 'http://some-url.com';
+const getOneResponse = {
+  argument: getOneResponseSample,
+};
+const getAllResponse = {
+  arguments: getAllResponseSample,
+};
 
 function mockOneReturn(status, body, headers) {
   const mock = jest.fn();
@@ -56,9 +62,10 @@ describe('getAll()', () => {
     });
 
     const client = newClient({ url, fetch });
-    return client.getAll(getAllResponse.arguments[0].conclusion).then((result) => {
+    const { conclusion } = getAllResponseSample.arguments[0];
+    return client.getAll(conclusion).then((result) => {
       expect(fetch.mock.calls.length).toBe(1);
-      expect(fetch.mock.calls[0][0]).toBe(`${url}/arguments?conclusion=${getAllResponse.arguments[0].conclusion}`);
+      expect(fetch.mock.calls[0][0]).toBe(`${url}/arguments?conclusion=${conclusion}`);
       expect(fetch.mock.calls[0][1]).toEqual({ mode: 'cors' });
       expect(result).toEqual(getAllResponse);
     });
