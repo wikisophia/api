@@ -29,7 +29,7 @@ func TestPatchLive(t *testing.T) {
 
 	rr = doGetArgument(server, id)
 	assertSuccessfulJSON(t, rr)
-	actual := argumentstest.ParseJSON(t, rr.Body.Bytes())
+	actual := parseArgumentResponse(t, rr.Body.Bytes())
 	assert.Equal(t, update, actual)
 }
 

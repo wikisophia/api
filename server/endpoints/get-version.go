@@ -33,6 +33,7 @@ func getArgumentByVersionHandler(getter ArgumentGetterByVersion) httprouter.Hand
 		if writeStoreError(w, err) {
 			return
 		}
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		writeArgument(w, arg, params.ByName("id"))
 	}
 }

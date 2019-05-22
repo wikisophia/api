@@ -33,9 +33,9 @@ func parseGetAllResponse(t *testing.T, data []byte) endpoints.GetAllResponse {
 }
 
 func parseArgumentResponse(t *testing.T, data []byte) arguments.Argument {
-	var arg arguments.Argument
-	assert.NoError(t, json.Unmarshal(data, &arg))
-	return arg
+	var getOne endpoints.GetOneResponse
+	assert.NoError(t, json.Unmarshal(data, &getOne))
+	return getOne.Argument
 }
 
 func parseArgumentID(t *testing.T, location string) int64 {

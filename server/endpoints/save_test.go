@@ -16,7 +16,7 @@ func TestSaveGetRoundtrip(t *testing.T) {
 	expected.Version = 1
 	rr := doGetArgument(server, id)
 	assertSuccessfulJSON(t, rr)
-	actual := argumentstest.ParseJSON(t, rr.Body.Bytes())
+	actual := parseArgumentResponse(t, rr.Body.Bytes())
 	assert.Equal(t, expected, actual)
 }
 

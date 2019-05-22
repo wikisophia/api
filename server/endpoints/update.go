@@ -84,11 +84,27 @@ func writeStoreError(w http.ResponseWriter, err error) bool {
 }
 
 func writeArgument(w http.ResponseWriter, arg arguments.Argument, id string) {
-	data, err := json.Marshal(arg)
+	data, err := json.Marshal(GetOneResponse{
+		Argument: arg,
+	})
 	if err != nil {
 		http.Error(w, "failed json.marshal on argument "+id, http.StatusInternalServerError)
 		return
 	}
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.Write(data)
+}
+
+// GetOneResponse is the contract class for JSON responses of a single argument.
+//
+// Examples include:
+//
+//   GET /argument/{id}
+//   GET /argument/{id}/version/{version}
+//   POST /arguments
+//   PATCH /argument?id=1
+//
+// etc.
+//
+type GetOneResponse struct {
+	Argument arguments.Argument `json:"argument"`
 }
