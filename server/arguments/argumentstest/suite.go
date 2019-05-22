@@ -196,6 +196,26 @@ func (suite *StoreTests) TestVersionedFetchAll() {
 	assert.Equal(suite.T(), updated, allArgs[0])
 }
 
+// TestFetchAllChangedConclusion makes sure the store finds live versions
+// which have a different conclusion from when they started.
+func (suite *StoreTests) TestFetchAllChangedConclusion() {
+	store := suite.StoreFactory()
+	original := ParseSample(suite.T(), "../../samples/save-request.json")
+	updated := ParseSample(suite.T(), "../../samples/update-request.json")
+
+	id := suite.saveWithUpdates(store, original, updated)
+	allArgs, err := store.FetchAll(context.Background(), updated.Conclusion)
+	updated.ID = id
+	updated.Version = 2
+	if !assert.NoError(suite.T(), err) {
+		return
+	}
+	if !assert.Len(suite.T(), allArgs, 1) {
+		return
+	}
+	assert.Equal(suite.T(), updated, allArgs[0])
+}
+
 func (suite *StoreTests) saveWithUpdates(store endpoints.Store, arg arguments.Argument, updates ...arguments.Argument) int64 {
 	id, err := store.Save(context.Background(), arg)
 	if !assert.NoError(suite.T(), err) {

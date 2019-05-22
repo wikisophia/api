@@ -80,7 +80,7 @@ func (s *InMemoryStore) FetchLive(ctx context.Context, id int64) (arguments.Argu
 func (s *InMemoryStore) FetchAll(ctx context.Context, conclusion string) ([]arguments.Argument, error) {
 	args := make([]arguments.Argument, 0, 20)
 	for i := 1; i < len(s.arguments); i++ {
-		if s.arguments[i][0].Conclusion == conclusion {
+		if s.arguments[i][len(s.arguments[i])-1].Conclusion == conclusion {
 			args = append(args, s.arguments[i][len(s.arguments[i])-1])
 		}
 	}
