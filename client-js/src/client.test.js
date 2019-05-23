@@ -25,8 +25,8 @@ function mockOneReturn(status, body, headers) {
 
 function saveRequestToResponse(req) {
   return {
-    argument: Object.assign({}, saveRequest, {id: 1, version: 1})
-  }
+    argument: Object.assign({}, req, { id: 1, version: 1 }),
+  };
 }
 
 describe('getOne()', () => {
@@ -113,7 +113,7 @@ describe('save()', () => {
       expect(fetch.mock.calls[0][1].mode).toEqual('cors');
       expect(JSON.parse(fetch.mock.calls[0][1].body)).toEqual(saveRequest);
       expect(resolved).toEqual(Object.assign(saveRequestToResponse(saveRequest), {
-        location: mockLocation
+        location: mockLocation,
       }));
     });
   });
@@ -170,7 +170,7 @@ describe('update()', () => {
       expect(fetch.mock.calls[0][1].mode).toEqual('cors');
       expect(JSON.parse(fetch.mock.calls[0][1].body)).toEqual(updateRequest);
       expect(resolved).toEqual(Object.assign(saveRequestToResponse(saveRequest), {
-        location: mockLocation
+        location: mockLocation,
       }));
     });
   });
@@ -185,9 +185,9 @@ describe('update()', () => {
     const updatePremisesOnly = Object.assign({}, updateRequest, { conclusion: null });
     return expect(client.update(1, updatePremisesOnly)).resolves.toEqual({
       argument: response.argument,
-      location: mockLocation
+      location: mockLocation,
     });
-  })
+  });
 
   test('rejects if the server returns a 500', () => {
     const fetch = mockOneReturn(500, 'Something went wrong');

@@ -131,7 +131,7 @@ export default function newClient({ url, fetch }) {
       }).then(handleServerErrors)
         .then(response => parseJSONResponseBody(response).then(responseBody => ({
           location: response.headers.get('Location'),
-          argument: responseBody.argument
+          argument: responseBody.argument,
         })));
     },
 
@@ -146,7 +146,7 @@ export default function newClient({ url, fetch }) {
      */
     update(id, argument) {
       if (!argument.premises && !argument.conclusion) {
-        return Promise.reject(new Error('Updates must change premises, a conclusion, or both.'))
+        return Promise.reject(new Error('Updates must change premises, a conclusion, or both.'));
       }
       if (argument.premises) {
         const validation = validatePremises(argument.premises);
@@ -173,7 +173,7 @@ export default function newClient({ url, fetch }) {
         })
         .then(response => parseJSONResponseBody(response).then(responseBody => ({
           location: response.headers.get('Location'),
-          argument: responseBody.argument
+          argument: responseBody.argument,
         })));
     },
   };
