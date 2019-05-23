@@ -31,7 +31,7 @@ ORDER BY o;
 `
 
 const fetchAllQuery = `
-SELECT arguments.id, premises.claim
+SELECT arguments.id, arguments.live_version, premises.claim
 	FROM arguments
 		INNER JOIN argument_versions ON arguments.id = argument_versions.argument_id
 		INNER JOIN argument_premises ON argument_versions.id = argument_premises.argument_version_id
@@ -45,7 +45,7 @@ SELECT arguments.id, premises.claim
 const fetchLiveVersionQuery = `SELECT live_version FROM arguments WHERE id = $1;`
 
 // FetchVersion fetches a specific version of an argument.
-func (store *Store) FetchVersion(ctx context.Context, id int64, version int16) (arguments.Argument, error) {
+func (store *Store) FetchVersion(ctx context.Context, id int64, version int) (arguments.Argument, error) {
 	rows, err := store.fetchStatement.QueryContext(ctx, id, version)
 	if err != nil {
 		return arguments.Argument{}, errors.Wrap(err, "argument fetch query failed")
@@ -75,6 +75,7 @@ func (store *Store) FetchVersion(ctx context.Context, id int64, version int16) (
 	}
 	return arguments.Argument{
 		ID:         id,
+		Version:    version,
 		Conclusion: conclusion,
 		Premises:   premises,
 	}, nil
@@ -85,7 +86,7 @@ func (store *Store) FetchVersion(ctx context.Context, id int64, version int16) (
 // update has been reverted.
 func (store *Store) FetchLive(ctx context.Context, id int64) (arguments.Argument, error) {
 	row := store.fetchLiveVersionStatement.QueryRowContext(ctx, id)
-	var liveVersion int16
+	var liveVersion int
 	if err := row.Scan(&liveVersion); err != nil {
 		if err == sql.ErrNoRows {
 			return arguments.Argument{}, &arguments.NotFoundError{
@@ -108,9 +109,10 @@ func (store *Store) FetchAll(ctx context.Context, conclusion string) ([]argument
 
 	args := make(map[int64]*arguments.Argument, 10)
 	var id int64
+	var version int
 	var premise string
 	for rows.Next() {
-		if err := rows.Scan(&id, &premise); err != nil {
+		if err := rows.Scan(&id, &version, &premise); err != nil {
 			return nil, errors.Wrap(err, "fetch result scan failed")
 		}
 		if val, ok := args[id]; ok {
@@ -122,6 +124,7 @@ func (store *Store) FetchAll(ctx context.Context, conclusion string) ([]argument
 				Conclusion: conclusion,
 				Premises:   premises,
 				ID:         id,
+				Version:    version,
 			}
 		}
 	}

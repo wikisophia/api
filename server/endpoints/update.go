@@ -16,7 +16,7 @@ import (
 type ArgumentUpdater interface {
 	// Update makes a new version of the argument. It returns the new argument's version.
 	// If no argument with this ID exists, the returned error is an arguments.NotFoundError.
-	Update(ctx context.Context, argument arguments.Argument) (version int16, err error)
+	Update(ctx context.Context, argument arguments.Argument) (version int, err error)
 }
 
 // Implements PATCH /arguments/:id
@@ -51,10 +51,12 @@ func updateHandler(updater ArgumentUpdater) httprouter.Handle {
 		if writeStoreError(w, err) {
 			return
 		}
+		arg.Version = version
 
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.Header().Set("Location", "/arguments/"+strconv.FormatInt(id, 10)+"/version/"+strconv.Itoa(int(version)))
-		w.WriteHeader(http.StatusNoContent)
+		w.WriteHeader(http.StatusOK)
+		writeArgument(w, arg, strconv.FormatInt(id, 10))
 	}
 }
 
@@ -63,9 +65,9 @@ func parseIntParam(param string) (int64, bool) {
 	return parsed, err == nil
 }
 
-// shrink an int to 16 bits. Return true if it still holds the same value
-func shrinkInt16(value int64) (int16, bool) {
-	shrunk := int16(value)
+// shrink an int to fit into the machine size. Return true if it still holds the same value
+func shrinkInt(value int64) (int, bool) {
+	shrunk := int(value)
 	return shrunk, int64(shrunk) == value
 }
 
@@ -82,11 +84,27 @@ func writeStoreError(w http.ResponseWriter, err error) bool {
 }
 
 func writeArgument(w http.ResponseWriter, arg arguments.Argument, id string) {
-	data, err := json.Marshal(arg)
+	data, err := json.Marshal(GetOneResponse{
+		Argument: arg,
+	})
 	if err != nil {
 		http.Error(w, "failed json.marshal on argument "+id, http.StatusInternalServerError)
 		return
 	}
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.Write(data)
+}
+
+// GetOneResponse is the contract class for JSON responses of a single argument.
+//
+// Examples include:
+//
+//   GET /argument/{id}
+//   GET /argument/{id}/version/{version}
+//   POST /arguments
+//   PATCH /argument?id=1
+//
+// etc.
+//
+type GetOneResponse struct {
+	Argument arguments.Argument `json:"argument"`
 }

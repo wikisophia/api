@@ -25,10 +25,11 @@ func getLiveArgumentHandler(getter ArgumentGetterLiveVersion) httprouter.Handle 
 			return
 		}
 
-		arg, err := getter.FetchLive(context.Background(), int64(id))
+		arg, err := getter.FetchLive(context.Background(), id)
 		if writeStoreError(w, err) {
 			return
 		}
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		writeArgument(w, arg, params.ByName("id"))
 	}
 }

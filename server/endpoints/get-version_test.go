@@ -17,11 +17,12 @@ func TestGetVersion(t *testing.T) {
 	server := newServerForTests()
 	id := doSaveObject(t, server, mistaken)
 	mistaken.ID = id
+	mistaken.Version = 1
 	expected.ID = id
 	doValidUpdate(t, server, expected)
 	rr := doGetArgumentVersion(server, id, 1)
 	assertSuccessfulJSON(t, rr)
-	actual := argumentstest.ParseJSON(t, rr.Body.Bytes())
+	actual := parseArgumentResponse(t, rr.Body.Bytes())
 	assert.Equal(t, mistaken, actual)
 }
 

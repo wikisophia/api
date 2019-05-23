@@ -41,6 +41,7 @@ INSERT INTO argument_premises
 const saveArgumentErrorMsg = "failed to save argument"
 
 // Save stores an argument and returns its ID.
+// If the call succeeds, the Version will be 1.
 func (store *Store) Save(ctx context.Context, argument arguments.Argument) (int64, error) {
 	transaction, err := store.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -88,7 +89,7 @@ func (store *Store) saveArgument(ctx context.Context, tx *sql.Tx) (int64, error)
 	return id, nil
 }
 
-func (store *Store) saveArgumentVersion(ctx context.Context, tx *sql.Tx, argumentID int64, versionID int16, conclusionID int64) (int64, error) {
+func (store *Store) saveArgumentVersion(ctx context.Context, tx *sql.Tx, argumentID int64, versionID int, conclusionID int64) (int64, error) {
 	row := tx.StmtContext(ctx, store.saveArgumentVersionStatement).QueryRowContext(ctx, argumentID, conclusionID)
 	var id int64
 	if err := row.Scan(&id); err != nil {

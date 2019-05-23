@@ -32,9 +32,15 @@ func parseGetAllResponse(t *testing.T, data []byte) endpoints.GetAllResponse {
 	return getAll
 }
 
+func parseArgumentResponse(t *testing.T, data []byte) arguments.Argument {
+	var getOne endpoints.GetOneResponse
+	assert.NoError(t, json.Unmarshal(data, &getOne))
+	return getOne.Argument
+}
+
 func parseArgumentID(t *testing.T, location string) int64 {
 	assert.NotEmpty(t, location)
-	capture := regexp.MustCompile(`/arguments/(.*)`)
+	capture := regexp.MustCompile(`/arguments/(.*)/version/.*`)
 	matches := capture.FindStringSubmatch(location)
 	assert.Len(t, matches, 2)
 	idString := matches[1]
@@ -77,6 +83,10 @@ func doSaveObject(t *testing.T, server *endpoints.Server, argument arguments.Arg
 	if !assert.NoError(t, err) {
 		return -1
 	}
+	argument.ID = id
+	argument.Version = 1
+	responseBody := parseArgumentResponse(t, rr.Body.Bytes())
+	assert.Equal(t, argument, responseBody)
 	return id
 }
 
@@ -86,8 +96,7 @@ func doValidUpdate(t *testing.T, server *endpoints.Server, update arguments.Argu
 	updatePayload, err := json.Marshal(update)
 	assert.NoError(t, err)
 	rr := doPatchArgument(server, id, string(updatePayload))
-
-	assert.Equal(t, http.StatusNoContent, rr.Code)
+	assert.Equal(t, http.StatusOK, rr.Code)
 	assert.Equal(t, "application/json; charset=utf-8", rr.Header().Get("Content-Type"))
 	return rr
 }

@@ -13,7 +13,7 @@ import (
 type ArgumentGetterByVersion interface {
 	// FetchVersion should return a particular version of an argument.
 	// If the the argument didn't exist, the error should be an arguments.NotFoundError.
-	FetchVersion(ctx context.Context, id int64, version int16) (arguments.Argument, error)
+	FetchVersion(ctx context.Context, id int64, version int) (arguments.Argument, error)
 }
 
 // Implements GET /arguments/:id/version/:version
@@ -21,7 +21,7 @@ func getArgumentByVersionHandler(getter ArgumentGetterByVersion) httprouter.Hand
 	return func(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 		id, goodID := parseIntParam(params.ByName("id"))
 		versionInt, goodVersion := parseIntParam(params.ByName("version"))
-		version, accurate := shrinkInt16(versionInt)
+		version, accurate := shrinkInt(versionInt)
 
 		// If the int can't fit into 16 bits, the database schema won't support it anyway.
 		if !goodID || !goodVersion || !accurate {
@@ -33,6 +33,7 @@ func getArgumentByVersionHandler(getter ArgumentGetterByVersion) httprouter.Hand
 		if writeStoreError(w, err) {
 			return
 		}
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		writeArgument(w, arg, params.ByName("id"))
 	}
 }

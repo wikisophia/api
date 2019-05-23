@@ -29,7 +29,7 @@ UPDATE arguments
 const updateArgumentErrorMsg = "failed to update argument %d"
 
 // Update saves a new version of an argument.
-func (store *Store) Update(ctx context.Context, argument arguments.Argument) (version int16, err error) {
+func (store *Store) Update(ctx context.Context, argument arguments.Argument) (version int, err error) {
 	transaction, err := store.db.BeginTx(ctx, nil)
 	if didRollback := rollbackIfErr(transaction, err); didRollback {
 		return -1, err
@@ -57,10 +57,10 @@ func (store *Store) Update(ctx context.Context, argument arguments.Argument) (ve
 	return argumentVersion, nil
 }
 
-func (store *Store) newArgumentVersion(ctx context.Context, transaction *sql.Tx, argumentID int64, conclusionID int64) (int64, int16, error) {
+func (store *Store) newArgumentVersion(ctx context.Context, transaction *sql.Tx, argumentID int64, conclusionID int64) (int64, int, error) {
 	row := transaction.StmtContext(ctx, store.newArgumentVersionStatement).QueryRowContext(ctx, argumentID, conclusionID)
 	var argumentVersionID int64
-	var argumentVersion int16
+	var argumentVersion int
 	if err := row.Scan(&argumentVersionID, &argumentVersion); err != nil {
 		if err == sql.ErrNoRows {
 			return -1, -1, &arguments.NotFoundError{
@@ -72,7 +72,7 @@ func (store *Store) newArgumentVersion(ctx context.Context, transaction *sql.Tx,
 	return argumentVersionID, argumentVersion, nil
 }
 
-func (store *Store) updateLiveVersion(ctx context.Context, transaction *sql.Tx, liveVersion int16, argumentID int64) error {
+func (store *Store) updateLiveVersion(ctx context.Context, transaction *sql.Tx, liveVersion int, argumentID int64) error {
 	rows := transaction.StmtContext(ctx, store.updateLiveVersionStatement).QueryRowContext(ctx, liveVersion, argumentID)
 	// Run Scan() to make sure the Rows get closed.
 	err := rows.Scan()

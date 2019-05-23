@@ -1,6 +1,7 @@
 package endpoints_test
 
 import (
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
@@ -18,10 +19,17 @@ func TestPatchLive(t *testing.T) {
 	server := newServerForTests()
 	id := doSaveObject(t, server, original)
 	update.ID = id
-	doValidUpdate(t, server, update)
-	rr := doGetArgument(server, id)
+
+	rr := doValidUpdate(t, server, update)
+	update.Version = 2
+	responseBytes, err := ioutil.ReadAll(rr.Result().Body)
+	assert.NoError(t, err)
+	parsed := parseArgumentResponse(t, responseBytes)
+	assert.Equal(t, update, parsed)
+
+	rr = doGetArgument(server, id)
 	assertSuccessfulJSON(t, rr)
-	actual := argumentstest.ParseJSON(t, rr.Body.Bytes())
+	actual := parseArgumentResponse(t, rr.Body.Bytes())
 	assert.Equal(t, update, actual)
 }
 
