@@ -23,6 +23,12 @@ function mockOneReturn(status, body, headers) {
   return mock;
 }
 
+function saveRequestToResponse(req) {
+  return {
+    argument: Object.assign({}, saveRequest, {id: 1, version: 1})
+  }
+}
+
 describe('getOne()', () => {
   test('calls the right API endpoint when fetching the latest version of an argument', () => {
     const fetch = mockOneReturn(200, JSON.stringify(getOneResponse), {
@@ -94,8 +100,10 @@ describe('getAll()', () => {
 
 describe('save()', () => {
   test('calls the right API endpoint with the right data', () => {
-    const fetch = mockOneReturn(201, '', {
-      Location: '/arguments/1',
+    const response = saveRequestToResponse(saveRequest);
+    const mockLocation = '/arguments/1/version/1';
+    const fetch = mockOneReturn(201, JSON.stringify(response), {
+      Location: mockLocation,
     });
     const client = newClient({ url, fetch });
     return client.save(saveRequest).then((resolved) => {
@@ -104,9 +112,9 @@ describe('save()', () => {
       expect(fetch.mock.calls[0][1].method).toEqual('POST');
       expect(fetch.mock.calls[0][1].mode).toEqual('cors');
       expect(JSON.parse(fetch.mock.calls[0][1].body)).toEqual(saveRequest);
-      expect(resolved).toEqual({
-        location: '/arguments/1',
-      });
+      expect(resolved).toEqual(Object.assign(saveRequestToResponse(saveRequest), {
+        location: mockLocation
+      }));
     });
   });
 
@@ -149,8 +157,10 @@ describe('save()', () => {
 
 describe('update()', () => {
   test('calls the right API endpoint with the right data', () => {
-    const fetch = mockOneReturn(204, '', {
-      Location: '/arguments/1/version/2',
+    const response = saveRequestToResponse(saveRequest);
+    const mockLocation = '/arguments/1/version/2';
+    const fetch = mockOneReturn(200, JSON.stringify(response), {
+      Location: mockLocation,
     });
     const client = newClient({ url, fetch });
     return client.update(1, updateRequest).then((resolved) => {
@@ -159,11 +169,25 @@ describe('update()', () => {
       expect(fetch.mock.calls[0][1].method).toEqual('PATCH');
       expect(fetch.mock.calls[0][1].mode).toEqual('cors');
       expect(JSON.parse(fetch.mock.calls[0][1].body)).toEqual(updateRequest);
-      expect(resolved).toEqual({
-        location: '/arguments/1/version/2',
-      });
+      expect(resolved).toEqual(Object.assign(saveRequestToResponse(saveRequest), {
+        location: mockLocation
+      }));
     });
   });
+
+  test('allows updates of conclusions only', () => {
+    const response = saveRequestToResponse(saveRequest);
+    const mockLocation = '/arguments/1/version/2';
+    const fetch = mockOneReturn(200, JSON.stringify(response), {
+      Location: mockLocation,
+    });
+    const client = newClient({ url, fetch });
+    const updatePremisesOnly = Object.assign({}, updateRequest, { conclusion: null });
+    return expect(client.update(1, updatePremisesOnly)).resolves.toEqual({
+      argument: response.argument,
+      location: mockLocation
+    });
+  })
 
   test('rejects if the server returns a 500', () => {
     const fetch = mockOneReturn(500, 'Something went wrong');
@@ -197,5 +221,14 @@ describe('update()', () => {
     const call = client.update(1, update);
     expect(fetch.mock.calls.length).toBe(0);
     return expect(call).rejects.toThrow('An argument must have at least two premises.');
+  });
+
+  test('rejects empty updates', () => {
+    const fetch = jest.fn();
+    const client = newClient({ url, fetch });
+    const update = {};
+    const call = client.update(1, update);
+    expect(fetch.mock.calls.length).toBe(0);
+    return expect(call).rejects.toThrow('Updates must change premises, a conclusion, or both.');
   });
 });

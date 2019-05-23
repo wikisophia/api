@@ -116,8 +116,7 @@ export default function newClient({ url, fetch }) {
      * Save a new argument.
      *
      * @param {Argument} argument The argument to be saved
-     * @return {Promise<SaveResponse>} A Promise with info describing where to
-     *   find the new argument.
+     * @return {Promise<SaveResponse>} A Promise with info describing the new argument.
      */
     save(argument) {
       const err = validateArgument(argument);
@@ -130,25 +129,31 @@ export default function newClient({ url, fetch }) {
         mode: 'cors',
         body: JSON.stringify(argument),
       }).then(handleServerErrors)
-        .then(response => ({
+        .then(response => parseJSONResponseBody(response).then(responseBody => ({
           location: response.headers.get('Location'),
-        }));
+          argument: responseBody.argument
+        })));
     },
 
     /**
-     * Update the premises of the argument using its ID.
+     * Update the argument using its ID.
      *
      * @param {int} id The ID of the argument you want to update.
-     * @param {Argument} argument The new argument which should have this ID.
-     * @return {Promise<SaveResponse>} A Promise with info describing where to
-     *   find the new argument.
+     * @param {ArgumentUpdate} argument Updates to the premises, conclusion, or both
+     *   of the argument at this ID. If either property is undefined, it will update the
+     *   existing argument with a JSON Merge Patch.
+     * @return {Promise<SaveResponse>} A Promise with info describing the updated argument.
      */
     update(id, argument) {
-      const err = validateArgument(argument);
-      if (err) {
-        return Promise.reject(new Error(err));
+      if (!argument.premises && !argument.conclusion) {
+        return Promise.reject(new Error('Updates must change premises, a conclusion, or both.'))
       }
-
+      if (argument.premises) {
+        const validation = validatePremises(argument.premises);
+        if (validation) {
+          return Promise.reject(new Error(validation));
+        }
+      }
       return fetch(`${url}/arguments/${id}`, {
         method: 'PATCH',
         mode: 'cors',
@@ -166,9 +171,10 @@ export default function newClient({ url, fetch }) {
           }
           return response;
         })
-        .then(response => ({
+        .then(response => parseJSONResponseBody(response).then(responseBody => ({
           location: response.headers.get('Location'),
-        }));
+          argument: responseBody.argument
+        })));
     },
   };
 }
@@ -189,6 +195,14 @@ export default function newClient({ url, fetch }) {
  * @property {string} conclusion The argument's conclusion.
  * @property {string[]} premises The argument's premises.
  *   This must have at least 2 elements for the argument to be valid.
+ */
+
+/**
+ * @typedef {Object} ArgumentUpdate
+ *
+ * @property [string] conclusion The argument's conclusion.
+ * @property [Array<string>] premises The argument's premises.
+ *   If defined, it must have at least 2 elements.
  */
 
 /**
