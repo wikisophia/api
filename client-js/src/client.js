@@ -96,16 +96,16 @@ export default function newClient({ url, fetch }) {
     /**
      * Get all the arguments with a given conclusion.
      *
-     * @param {string} conclusion The conclusion you want to fetch all arguments for.
+     * @param {SomeProperties} options Options which filter what comes back.
      * @return {Promise<SomeArguments>} A list of arguments with this conclusion.
      *   If none exist, this will be an empty array.
      */
-    getAll(conclusion) {
-      if (!conclusion) {
-        return Promise.reject(new Error("Can't get arguments with an empty conclusion."));
-      }
+    getSome(options) {
+      const queryString = Object.keys(options).reduce(function(valueSoFar, thisKey) {
+        return `${valueSoFar}${thisKey}=${encodeURIComponent(options[thisKey])}&`
+      }, '?');
 
-      return fetch(`${url}/arguments?conclusion=${conclusion}`, {
+      return fetch(`${url}/arguments${queryString.substring(0, queryString.length - 1)}`, {
         mode: 'cors',
       }).then(handleServerErrors)
         .then(onNotFound({ arguments: [] }))
@@ -216,10 +216,18 @@ export default function newClient({ url, fetch }) {
  */
 
 /**
+ * @typedef {Object} SomeProperties
+ *
+ * @property [string] conclusion The conclusion that returned arguments must support.
+ * @property [int] count The maximum number of objects which should appear in the response.
+ * @property [int] offset The number of objects which the server should skip before it starts to return objects.
+ */
+
+/**
  * @typedef {Object} SomeArguments
  *
  * @property {ArgumentResponse[]} arguments The list of arguments.
-*/
+ */
 
 /**
  * @typedef {Object} OneArgument

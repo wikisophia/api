@@ -61,7 +61,7 @@ describe('getOne()', () => {
   });
 });
 
-describe('getAll()', () => {
+describe('getSome()', () => {
   test('calls the right API endpoint', () => {
     const fetch = mockOneReturn(200, JSON.stringify(getAllResponse), {
       'Content-Type': 'application/json; charset=utf-8',
@@ -69,32 +69,37 @@ describe('getAll()', () => {
 
     const client = newClient({ url, fetch });
     const { conclusion } = getAllResponseSample.arguments[0];
-    return client.getAll(conclusion).then((result) => {
+    return client.getSome({ conclusion, count: 1, offset: 3 }).then((result) => {
       expect(fetch.mock.calls.length).toBe(1);
-      expect(fetch.mock.calls[0][0]).toBe(`${url}/arguments?conclusion=${conclusion}`);
+      expect(fetch.mock.calls[0][0]).toBe(`${url}/arguments?conclusion=${conclusion}&count=1&offset=3`);
       expect(fetch.mock.calls[0][1]).toEqual({ mode: 'cors' });
       expect(result).toEqual(getAllResponse);
+    });
+  });
+
+  test('sends no query params if given no options', () => {
+    const fetch = mockOneReturn(200, JSON.stringify(getAllResponse), {
+      'Content-Type': 'application/json; charset=utf-8',
+    });
+
+    const client = newClient({ url, fetch });
+    const { conclusion } = getAllResponseSample.arguments[0];
+    return client.getSome({}).then((result) => {
+      expect(fetch.mock.calls.length).toBe(1);
+      expect(fetch.mock.calls[0][0]).toBe(`${url}/arguments`);
     });
   });
 
   test('resolves to an empty array when the server responds with a 404', () => {
     const fetch = mockOneReturn(404, '');
     const client = newClient({ url, fetch });
-    return expect(client.getAll('nothing ventured, nothing earned')).resolves.toEqual({ arguments: [] });
+    return expect(client.getSome({})).resolves.toEqual({ arguments: [] });
   });
 
   test('rejects if the server returns a 500', () => {
     const fetch = mockOneReturn(500, 'server failure');
     const client = newClient({ url, fetch });
-    return expect(client.getAll("don't mess with texas")).rejects.toThrow('The server responded with a 500: server failure');
-  });
-
-  test('rejects if called with an empty conclusion', () => {
-    const fetch = jest.fn();
-    const client = newClient({ url, fetch });
-    const gotten = client.getAll();
-    expect(fetch.mock.calls.length).toBe(0);
-    return expect(gotten).rejects.toThrow("Can't get arguments with an empty conclusion.");
+    return expect(client.getSome({})).rejects.toThrow('The server responded with a 500: server failure');
   });
 });
 
