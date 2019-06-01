@@ -63,7 +63,7 @@ function validateArgument(argument) {
 /**
  * Make a new client.
  *
- * @param {ClientArguments} cfg arguments to configure the client
+ * @param {ClientOptions} cfg options to configure the client
  *
  * @see https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API
  * @see https://www.npmjs.com/package/node-fetch
@@ -180,7 +180,7 @@ export default function newClient({ url, fetch }) {
 }
 
 /**
- * @typedef {Object} ClientArguments
+ * @typedef {Object} ClientOptions
  *
  * @property {string} url The URL to the server hosting the Arguments API.
  *   For example, "https://arguments.wikisophia.net".
@@ -239,5 +239,5 @@ export default function newClient({ url, fetch }) {
  * @typedef {Object} SaveResponse
  *
  * @property {string} location A URL where the saved argument can be found.
- * @property {ArgumentResponse} argument The argument after
+ * @property {ArgumentResponse} argument The argument after having been saved.
  */
