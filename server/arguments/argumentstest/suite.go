@@ -222,6 +222,57 @@ func (suite *StoreTests) TestFetchAllChangedConclusion() {
 	assert.Equal(suite.T(), updated, allArgs[0])
 }
 
+// TestFetchOne makes sure the Store limits how many objects it returns properly.
+func (suite *StoreTests) TestFetchOne() {
+	store := suite.StoreFactory()
+	original := ParseSample(suite.T(), "../../samples/save-request.json")
+
+	suite.saveWithUpdates(store, original)
+	suite.saveWithUpdates(store, original)
+
+	allArgs, err := store.FetchSome(context.Background(), arguments.FetchSomeOptions{
+		Count: 1,
+	})
+	if !assert.NoError(suite.T(), err) {
+		return
+	}
+	assert.Len(suite.T(), allArgs, 1)
+}
+
+// TestFetchWithOffset makes sure the Store skips elements properly when given an offset.
+func (suite *StoreTests) TestFetchWithOffset() {
+	store := suite.StoreFactory()
+
+	first := ParseSample(suite.T(), "../../samples/save-request.json")
+	suite.saveWithUpdates(store, first)
+	second := arguments.Argument{
+		Conclusion: "some second conclusion",
+		Premises:   first.Premises,
+	}
+	suite.saveWithUpdates(store, second)
+	third := arguments.Argument{
+		Conclusion: "some third conclusion",
+		Premises:   first.Premises,
+	}
+	suite.saveWithUpdates(store, third)
+
+	fetchAndAssert := func(offset int, conclusion string) {
+		allArgs, err := store.FetchSome(context.Background(), arguments.FetchSomeOptions{
+			Count:  1,
+			Offset: offset,
+		})
+		if !assert.NoError(suite.T(), err) {
+			return
+		}
+		assert.Len(suite.T(), allArgs, 1)
+		assert.Equal(suite.T(), conclusion, allArgs[0].Conclusion)
+	}
+
+	fetchAndAssert(0, first.Conclusion)
+	fetchAndAssert(1, second.Conclusion)
+	fetchAndAssert(2, third.Conclusion)
+}
+
 func (suite *StoreTests) saveWithUpdates(store endpoints.Store, arg arguments.Argument, updates ...arguments.Argument) int64 {
 	id, err := store.Save(context.Background(), arg)
 	if !assert.NoError(suite.T(), err) {

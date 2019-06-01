@@ -111,9 +111,32 @@ func doDeleteArgument(server *endpoints.Server, id int64) *httptest.ResponseReco
 	return doRequest(server, req)
 }
 
-func doGetAllArguments(server *endpoints.Server, conclusion string) *httptest.ResponseRecorder {
-	req := httptest.NewRequest("GET", "/arguments?conclusion="+url.QueryEscape(conclusion), nil)
+func doFetchSomeArguments(server *endpoints.Server, options arguments.FetchSomeOptions) *httptest.ResponseRecorder {
+	path := "/arguments"
+	queryParamSeparator := newQueryParamSeparatorGenerator()
+
+	if options.Conclusion != "" {
+		path += queryParamSeparator() + "conclusion=" + url.QueryEscape(options.Conclusion)
+	}
+	if options.Count > 0 {
+		path += queryParamSeparator() + "count=" + strconv.Itoa(options.Count)
+	}
+	if options.Offset > 0 {
+		path += queryParamSeparator() + "offset=" + strconv.Itoa(options.Offset)
+	}
+	req := httptest.NewRequest("GET", path, nil)
 	return doRequest(server, req)
+}
+
+func newQueryParamSeparatorGenerator() func() string {
+	hasQueryParam := false
+	return func() string {
+		if hasQueryParam {
+			return "&"
+		}
+		hasQueryParam = true
+		return "?"
+	}
 }
 
 func doGetArgumentVersion(server *endpoints.Server, id int64, version int) *httptest.ResponseRecorder {

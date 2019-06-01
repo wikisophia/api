@@ -26,9 +26,12 @@ type FetchSomeOptions struct {
 	Conclusion string
 	// Count limits the number of fetched objects.
 	Count int
-	// Offset changes which arguments start being returned. For example, a Fetch with
-	// Count=1 and Offset=1 will return the same argument as the _second_ object returned
-	// by Count=2 and Offset=0
+	// Offset changes which arguments start being returned.
+	//
+	// An offset of 0 will return arguments starting with the first one.
+	// An offset of 1 will skip the first argument, and return arguments starting with the second.
+	//
+	// When combined with Count, this can be used to paginate the results.
 	Offset int
 }
 

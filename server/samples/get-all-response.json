@@ -2,6 +2,7 @@
   "arguments": [
     {
       "id": 1,
+      "version": 1,
       "conclusion": "bing",
       "premises": [
         "foo",
@@ -10,10 +11,20 @@
     },
     {
       "id": 2,
+      "version": 1,
       "conclusion": "bing",
       "premises": [
         "bang",
         "boom"
+      ]
+    },
+    {
+      "id": 2,
+      "version": 3,
+      "conclusion": "bong",
+      "premises": [
+        "bip",
+        "boop"
       ]
     }
   ]

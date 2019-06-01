@@ -91,33 +91,37 @@ func (store *Store) FetchLive(ctx context.Context, id int64) (arguments.Argument
 // FetchSome returns all the "live" arguments matching the given options.
 // If none exist, error will be nil and the slice empty.
 func (store *Store) FetchSome(ctx context.Context, options arguments.FetchSomeOptions) ([]arguments.Argument, error) {
-	fetchAllQuery := `SELECT arguments.id, arguments.live_version, conclusions.claim, premises.claim
+	selectArgumentsQuery := `SELECT arguments.id, arguments.live_version, argument_versions.id AS argument_version_id, claims.claim AS conclusion
 	FROM arguments
 		INNER JOIN argument_versions ON arguments.id = argument_versions.argument_id
-		INNER JOIN argument_premises ON argument_versions.id = argument_premises.argument_version_id
-		INNER JOIN claims conclusions ON argument_versions.conclusion_id = conclusions.id
-		INNER JOIN claims premises ON argument_premises.premise_id = premises.id
+		INNER JOIN claims ON argument_versions.conclusion_id = claims.id
 	WHERE arguments.deleted = FALSE
 		AND arguments.live_version = argument_versions.argument_version`
 
 	var params []interface{}
-	paramIndex := 1
+	nextParamPlaceholder := newParamPlaceholderGenerator()
 	if options.Conclusion != "" {
-		fetchAllQuery += " AND conclusions.claim = $" + strconv.Itoa(paramIndex)
+		selectArgumentsQuery += "\n\t\t AND claims.claim = " + nextParamPlaceholder()
 		params = append(params, options.Conclusion)
-		paramIndex++
 	}
-	fetchAllQuery += " ORDER BY arguments.id ASC"
+	selectArgumentsQuery += "\n\t ORDER BY arguments.id"
 	if options.Count != 0 {
-		fetchAllQuery += " LIMIT $" + strconv.Itoa(paramIndex)
+		selectArgumentsQuery += "\n\t LIMIT " + nextParamPlaceholder()
 		params = append(params, options.Count)
-		paramIndex++
 	}
 	if options.Offset != 0 {
-		fetchAllQuery += " OFFSET $" + strconv.Itoa(paramIndex)
+		selectArgumentsQuery += "\n\t OFFSET " + nextParamPlaceholder()
 		params = append(params, options.Offset)
-		paramIndex++
 	}
+
+	fetchAllQuery := `WITH chosen_arguments AS (`
+	fetchAllQuery += selectArgumentsQuery
+	fetchAllQuery += ") \n"
+	fetchAllQuery += `SELECT chosen_arguments.id, chosen_arguments.live_version, chosen_arguments.conclusion, claims.claim AS premise
+	FROM chosen_arguments
+		INNER JOIN argument_premises ON chosen_arguments.argument_version_id = argument_premises.argument_version_id
+		INNER JOIN claims ON claims.id = argument_premises.premise_id;
+	`
 
 	rows, err := store.db.QueryContext(ctx, fetchAllQuery, params...)
 	if err != nil {
@@ -157,5 +161,16 @@ func (store *Store) FetchSome(ctx context.Context, options arguments.FetchSomeOp
 func tryClose(rows *sql.Rows) {
 	if err := rows.Close(); err != nil {
 		log.Printf("ERROR: failed to close rows: %v", err)
+	}
+}
+
+// newParamPlaceholderGenerator returns a function that generates postgres wildcards.
+// each time it's called, it returns a new one ($1, $2, $3, ...)
+func newParamPlaceholderGenerator() func() string {
+	index := 1
+	return func() string {
+		thisParam := "$" + strconv.Itoa(index)
+		index++
+		return thisParam
 	}
 }
