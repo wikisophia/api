@@ -20,6 +20,18 @@ type NotFoundError struct {
 	Args    []interface{}
 }
 
+// FetchSomeOptions has some ways to limit what gets returned when fetching all the arguments.
+type FetchSomeOptions struct {
+	// Conclusion only finds arguments which support a given conclusion
+	Conclusion string
+	// Count limits the number of fetched objects.
+	Count int
+	// Offset changes which arguments start being returned. For example, a Fetch with
+	// Count=1 and Offset=1 will return the same argument as the _second_ object returned
+	// by Count=2 and Offset=0
+	Offset int
+}
+
 func (e *NotFoundError) Error() string {
 	return fmt.Sprintf(e.Message, e.Args...)
 }

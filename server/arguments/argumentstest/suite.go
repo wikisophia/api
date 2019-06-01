@@ -134,8 +134,8 @@ func (suite *StoreTests) TestFetchUnknownReturnsError() {
 	}
 }
 
-// TestBasicFetchAll makes sure the Store returns all the arguments for a conclusion.
-func (suite *StoreTests) TestBasicFetchAll() {
+// TestFetchByConclusion makes sure the Store returns all the arguments for a conclusion.
+func (suite *StoreTests) TestFetchByConclusion() {
 	store := suite.StoreFactory()
 	original := ParseSample(suite.T(), "../../samples/save-request.json")
 	updated := ParseSample(suite.T(), "../../samples/update-request.json")
@@ -152,7 +152,9 @@ func (suite *StoreTests) TestBasicFetchAll() {
 		Premises:   []string{"premise1", "premise2"},
 	})
 
-	allArgs, err := store.FetchAll(context.Background(), original.Conclusion)
+	allArgs, err := store.FetchSome(context.Background(), arguments.FetchSomeOptions{
+		Conclusion: original.Conclusion,
+	})
 
 	if !assert.NoError(suite.T(), err) {
 		return
@@ -184,7 +186,9 @@ func (suite *StoreTests) TestVersionedFetchAll() {
 	updated.Conclusion = original.Conclusion
 
 	id := suite.saveWithUpdates(store, original, updated)
-	allArgs, err := store.FetchAll(context.Background(), original.Conclusion)
+	allArgs, err := store.FetchSome(context.Background(), arguments.FetchSomeOptions{
+		Conclusion: original.Conclusion,
+	})
 	updated.ID = id
 	updated.Version = 2
 	if !assert.NoError(suite.T(), err) {
@@ -204,7 +208,9 @@ func (suite *StoreTests) TestFetchAllChangedConclusion() {
 	updated := ParseSample(suite.T(), "../../samples/update-request.json")
 
 	id := suite.saveWithUpdates(store, original, updated)
-	allArgs, err := store.FetchAll(context.Background(), updated.Conclusion)
+	allArgs, err := store.FetchSome(context.Background(), arguments.FetchSomeOptions{
+		Conclusion: updated.Conclusion,
+	})
 	updated.ID = id
 	updated.Version = 2
 	if !assert.NoError(suite.T(), err) {

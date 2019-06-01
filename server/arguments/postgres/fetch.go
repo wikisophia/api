@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"strconv"
 
 	"github.com/pkg/errors"
 	"github.com/wikisophia/api-arguments/server/arguments"
@@ -28,18 +29,6 @@ WHERE arguments.id = $1
 	AND arguments.deleted = false
 	AND argument_versions.argument_version = $2)
 ORDER BY o;
-`
-
-const fetchAllQuery = `
-SELECT arguments.id, arguments.live_version, premises.claim
-	FROM arguments
-		INNER JOIN argument_versions ON arguments.id = argument_versions.argument_id
-		INNER JOIN argument_premises ON argument_versions.id = argument_premises.argument_version_id
-		INNER JOIN claims conclusions ON argument_versions.conclusion_id = conclusions.id
-		INNER JOIN claims premises ON argument_premises.premise_id = premises.id
-	WHERE conclusions.claim = $1
-		AND arguments.deleted = FALSE
-		AND arguments.live_version = argument_versions.argument_version;
 `
 
 const fetchLiveVersionQuery = `SELECT live_version FROM arguments WHERE id = $1;`
@@ -99,9 +88,38 @@ func (store *Store) FetchLive(ctx context.Context, id int64) (arguments.Argument
 	return store.FetchVersion(ctx, id, liveVersion)
 }
 
-// FetchAll returns all the "live" arguments with a given conclusion.
-func (store *Store) FetchAll(ctx context.Context, conclusion string) ([]arguments.Argument, error) {
-	rows, err := store.fetchAllStatement.QueryContext(ctx, conclusion)
+// FetchSome returns all the "live" arguments matching the given options.
+// If none exist, error will be nil and the slice empty.
+func (store *Store) FetchSome(ctx context.Context, options arguments.FetchSomeOptions) ([]arguments.Argument, error) {
+	fetchAllQuery := `SELECT arguments.id, arguments.live_version, conclusions.claim, premises.claim
+	FROM arguments
+		INNER JOIN argument_versions ON arguments.id = argument_versions.argument_id
+		INNER JOIN argument_premises ON argument_versions.id = argument_premises.argument_version_id
+		INNER JOIN claims conclusions ON argument_versions.conclusion_id = conclusions.id
+		INNER JOIN claims premises ON argument_premises.premise_id = premises.id
+	WHERE arguments.deleted = FALSE
+		AND arguments.live_version = argument_versions.argument_version`
+
+	var params []interface{}
+	paramIndex := 1
+	if options.Conclusion != "" {
+		fetchAllQuery += " AND conclusions.claim = $" + strconv.Itoa(paramIndex)
+		params = append(params, options.Conclusion)
+		paramIndex++
+	}
+	fetchAllQuery += " ORDER BY arguments.id ASC"
+	if options.Count != 0 {
+		fetchAllQuery += " LIMIT $" + strconv.Itoa(paramIndex)
+		params = append(params, options.Count)
+		paramIndex++
+	}
+	if options.Offset != 0 {
+		fetchAllQuery += " OFFSET $" + strconv.Itoa(paramIndex)
+		params = append(params, options.Offset)
+		paramIndex++
+	}
+
+	rows, err := store.db.QueryContext(ctx, fetchAllQuery, params...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed fetchAll query")
 	}
@@ -110,9 +128,10 @@ func (store *Store) FetchAll(ctx context.Context, conclusion string) ([]argument
 	args := make(map[int64]*arguments.Argument, 10)
 	var id int64
 	var version int
+	var conclusion string
 	var premise string
 	for rows.Next() {
-		if err := rows.Scan(&id, &version, &premise); err != nil {
+		if err := rows.Scan(&id, &version, &conclusion, &premise); err != nil {
 			return nil, errors.Wrap(err, "fetch result scan failed")
 		}
 		if val, ok := args[id]; ok {

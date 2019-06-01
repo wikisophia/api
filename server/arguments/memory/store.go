@@ -75,13 +75,21 @@ func (s *InMemoryStore) FetchLive(ctx context.Context, id int64) (arguments.Argu
 	return versions[len(versions)-1], nil
 }
 
-// FetchAll finds all the available arguments for a conclusion.
+// FetchSome returns all the "live" arguments matching the given options.
 // If none exist, error will be nil and the slice empty.
-func (s *InMemoryStore) FetchAll(ctx context.Context, conclusion string) ([]arguments.Argument, error) {
+func (s *InMemoryStore) FetchSome(ctx context.Context, options arguments.FetchSomeOptions) ([]arguments.Argument, error) {
 	args := make([]arguments.Argument, 0, 20)
+	numSkipped := 0
 	for i := 1; i < len(s.arguments); i++ {
-		if s.arguments[i][len(s.arguments[i])-1].Conclusion == conclusion {
-			args = append(args, s.arguments[i][len(s.arguments[i])-1])
+		if options.Conclusion == "" || s.arguments[i][len(s.arguments[i])-1].Conclusion == options.Conclusion {
+			if numSkipped >= options.Offset {
+				args = append(args, s.arguments[i][len(s.arguments[i])-1])
+				if len(args) == options.Count {
+					return args, nil
+				}
+			} else {
+				numSkipped++
+			}
 		}
 	}
 	return args, nil
