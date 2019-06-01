@@ -101,9 +101,7 @@ export default function newClient({ url, fetch }) {
      *   If none exist, this will be an empty array.
      */
     getSome(options) {
-      const queryString = Object.keys(options).reduce(function(valueSoFar, thisKey) {
-        return `${valueSoFar}${thisKey}=${encodeURIComponent(options[thisKey])}&`
-      }, '?');
+      const queryString = Object.keys(options).reduce((valueSoFar, thisKey) => `${valueSoFar}${thisKey}=${encodeURIComponent(options[thisKey])}&`, '?');
 
       return fetch(`${url}/arguments${queryString.substring(0, queryString.length - 1)}`, {
         mode: 'cors',
@@ -220,7 +218,8 @@ export default function newClient({ url, fetch }) {
  *
  * @property [string] conclusion The conclusion that returned arguments must support.
  * @property [int] count The maximum number of objects which should appear in the response.
- * @property [int] offset The number of objects which the server should skip before it starts to return objects.
+ * @property [int] offset The number of objects which the server should skip
+ *   before it starts returning objects.
  */
 
 /**

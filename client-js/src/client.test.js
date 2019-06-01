@@ -83,8 +83,7 @@ describe('getSome()', () => {
     });
 
     const client = newClient({ url, fetch });
-    const { conclusion } = getAllResponseSample.arguments[0];
-    return client.getSome({}).then((result) => {
+    return client.getSome({}).then(() => {
       expect(fetch.mock.calls.length).toBe(1);
       expect(fetch.mock.calls[0][0]).toBe(`${url}/arguments`);
     });
