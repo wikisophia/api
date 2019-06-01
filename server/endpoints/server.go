@@ -42,7 +42,7 @@ func NewServer(cfg config.Server, store Store) *Server {
 // Store has all the functions needed by the server for persistent storage
 type Store interface {
 	ArgumentDeleter
-	ArgumentGetterByConclusion
+	ArgumentsGetter
 	ArgumentGetterByVersion
 	ArgumentGetterLiveVersion
 	ArgumentSaver

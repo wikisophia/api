@@ -8,11 +8,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGetCollection(t *testing.T) {
-	rr := doRequest(newServerForTests(), httptest.NewRequest("GET", "/arguments", nil))
-	assert.Equal(t, http.StatusBadRequest, rr.Code)
-}
-
 func TestPostWithID(t *testing.T) {
 	req := httptest.NewRequest("POST", "/arguments/1", nil)
 	rr := doRequest(newServerForTests(), req)

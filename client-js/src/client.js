@@ -63,7 +63,7 @@ function validateArgument(argument) {
 /**
  * Make a new client.
  *
- * @param {ClientArguments} cfg arguments to configure the client
+ * @param {ClientOptions} cfg options to configure the client
  *
  * @see https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API
  * @see https://www.npmjs.com/package/node-fetch
@@ -96,16 +96,14 @@ export default function newClient({ url, fetch }) {
     /**
      * Get all the arguments with a given conclusion.
      *
-     * @param {string} conclusion The conclusion you want to fetch all arguments for.
+     * @param {SomeProperties} options Options which filter what comes back.
      * @return {Promise<SomeArguments>} A list of arguments with this conclusion.
      *   If none exist, this will be an empty array.
      */
-    getAll(conclusion) {
-      if (!conclusion) {
-        return Promise.reject(new Error("Can't get arguments with an empty conclusion."));
-      }
+    getSome(options) {
+      const queryString = Object.keys(options).reduce((valueSoFar, thisKey) => `${valueSoFar}${thisKey}=${encodeURIComponent(options[thisKey])}&`, '?');
 
-      return fetch(`${url}/arguments?conclusion=${conclusion}`, {
+      return fetch(`${url}/arguments${queryString.substring(0, queryString.length - 1)}`, {
         mode: 'cors',
       }).then(handleServerErrors)
         .then(onNotFound({ arguments: [] }))
@@ -180,7 +178,7 @@ export default function newClient({ url, fetch }) {
 }
 
 /**
- * @typedef {Object} ClientArguments
+ * @typedef {Object} ClientOptions
  *
  * @property {string} url The URL to the server hosting the Arguments API.
  *   For example, "https://arguments.wikisophia.net".
@@ -216,10 +214,19 @@ export default function newClient({ url, fetch }) {
  */
 
 /**
+ * @typedef {Object} SomeProperties
+ *
+ * @property [string] conclusion The conclusion that returned arguments must support.
+ * @property [int] count The maximum number of objects which should appear in the response.
+ * @property [int] offset The number of objects which the server should skip
+ *   before it starts returning objects.
+ */
+
+/**
  * @typedef {Object} SomeArguments
  *
  * @property {ArgumentResponse[]} arguments The list of arguments.
-*/
+ */
 
 /**
  * @typedef {Object} OneArgument
@@ -231,5 +238,5 @@ export default function newClient({ url, fetch }) {
  * @typedef {Object} SaveResponse
  *
  * @property {string} location A URL where the saved argument can be found.
- * @property {ArgumentResponse} argument The argument after
+ * @property {ArgumentResponse} argument The argument after having been saved.
  */
