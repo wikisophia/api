@@ -19,7 +19,7 @@ type ArgumentGetterLiveVersion interface {
 // Implements GET /arguments/:id
 func getLiveArgumentHandler(getter ArgumentGetterLiveVersion) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
-		id, goodID := parseIntParam(params.ByName("id"))
+		id, goodID := parseInt64Param(params.ByName("id"))
 		if !goodID {
 			http.Error(w, fmt.Sprintf("argument %s does not exist", params.ByName("id")), http.StatusNotFound)
 			return

@@ -1,7 +1,8 @@
 module.exports = {
-    extends: "airbnb-base",
+    extends: 'airbnb-base',
     rules: {
-        "space-before-function-paren": 'off'
+        'space-before-function-paren': 'off',
+        'no-use-before-define': 'off'
     },
     overrides: {
         files: [

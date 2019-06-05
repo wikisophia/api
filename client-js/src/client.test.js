@@ -69,9 +69,11 @@ describe('getSome()', () => {
 
     const client = newClient({ url, fetch });
     const { conclusion } = getAllResponseSample.arguments[0];
-    return client.getSome({ conclusion, count: 1, offset: 3 }).then((result) => {
+    return client.getSome({
+      conclusion, count: 1, offset: 3, exclude: [1, 2],
+    }).then((result) => {
       expect(fetch.mock.calls.length).toBe(1);
-      expect(fetch.mock.calls[0][0]).toBe(`${url}/arguments?conclusion=${conclusion}&count=1&offset=3`);
+      expect(fetch.mock.calls[0][0]).toBe(`${url}/arguments?conclusion=${conclusion}&count=1&offset=3&exclude=1%2C2`);
       expect(fetch.mock.calls[0][1]).toEqual({ mode: 'cors' });
       expect(result).toEqual(getAllResponse);
     });

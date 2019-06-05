@@ -44,6 +44,18 @@ func TestGetWithOffsets(t *testing.T) {
 	}, []arguments.Argument{expected.Arguments[1]})
 }
 
+func TestGetWithExclusions(t *testing.T) {
+	expected := parseGetAllResponse(t, argumentstest.ReadFile(t, "../samples/get-all-response.json"))
+	server := newServerForTests()
+	addAllArguments(t, server, expected.Arguments)
+	assertFetchSome(t, server, arguments.FetchSomeOptions{
+		Exclude: []int64{expected.Arguments[0].ID},
+	}, expected.Arguments[1:])
+	assertFetchSome(t, server, arguments.FetchSomeOptions{
+		Exclude: []int64{expected.Arguments[1].ID},
+	}, append(append([]arguments.Argument{}, expected.Arguments[0]), expected.Arguments[2:]...))
+}
+
 func addAllArguments(t *testing.T, server *endpoints.Server, args []arguments.Argument) {
 	for i := 0; i < len(args); i++ {
 		id := doSaveObject(t, server, args[i])

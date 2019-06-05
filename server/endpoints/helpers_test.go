@@ -124,8 +124,19 @@ func doFetchSomeArguments(server *endpoints.Server, options arguments.FetchSomeO
 	if options.Offset > 0 {
 		path += queryParamSeparator() + "offset=" + strconv.Itoa(options.Offset)
 	}
+	if len(options.Exclude) > 0 {
+		path += queryParamSeparator() + "exclude=" + strings.Join(stringify(options.Exclude), "%2C")
+	}
 	req := httptest.NewRequest("GET", path, nil)
 	return doRequest(server, req)
+}
+
+func stringify(ints []int64) []string {
+	s := make([]string, 0, len(ints))
+	for i := 0; i < len(ints); i++ {
+		s = append(s, strconv.FormatInt(ints[i], 10))
+	}
+	return s
 }
 
 func newQueryParamSeparatorGenerator() func() string {

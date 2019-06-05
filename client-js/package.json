@@ -1,6 +1,6 @@
 {
   "name": "@wikisophia/api-arguments-client",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "main": "dev/cjs.js",
   "description": "Javascript client for interacting with the Wikisophia Arguments API",
   "scripts": {

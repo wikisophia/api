@@ -1,65 +1,3 @@
-function handleServerErrors(response) {
-  if (response.status >= 500 && response.status < 600) {
-    throw new Error(`The server responded with a ${response.status}: ${response.body}`);
-  }
-  return response;
-}
-
-function onNotFound(value) {
-  return function responseOrValue(response) {
-    if (response.status === 404) {
-      return value;
-    }
-    return response;
-  };
-}
-
-function parseJSONResponseBody(response) {
-  if (response && response.json) {
-    return response.json();
-  }
-  return response;
-}
-
-/**
- * Make sure the premises would be valid.
- * If valid, return null. If not, return an error message explaining what's wrong with it.
- *
- * @param {string[]} premises The premises to validate
- * @return {string|null} Null if the premises is valid, or a string error message otherwise.
- */
-function validatePremises(premises) {
-  if (premises.length < 2) {
-    return 'An argument must have at least two premises.';
-  }
-
-  // Sets aren't supported in a few semi-modern browsers
-  const premiseSet = {};
-  let duplicate = null;
-  premises.forEach((premise) => {
-    if (premiseSet[premise]) {
-      duplicate = `Arguments shouldn't use the same premise more than once. Yours repeats: ${premise}`;
-    }
-    premiseSet[premise] = true;
-  });
-  return duplicate;
-}
-
-/**
- * Make sure the argument has everything it needs.
- * If valid, return null. If not, return an error message explaining what's wrong with it.
- *
- * @param {Argument} argument The argument to validate
- * @return {string|null} Null if the argument is valid, or a string error message otherwise.
- */
-function validateArgument(argument) {
-  if (!argument.conclusion) {
-    return 'An argument must have a conclusion.';
-  }
-
-  return validatePremises(argument.premises);
-}
-
 /**
  * Make a new client.
  *
@@ -101,7 +39,16 @@ export default function newClient({ url, fetch }) {
      *   If none exist, this will be an empty array.
      */
     getSome(options) {
-      const queryString = Object.keys(options).reduce((valueSoFar, thisKey) => `${valueSoFar}${thisKey}=${encodeURIComponent(options[thisKey])}&`, '?');
+      let payload = options;
+      if (options.exclude) {
+        payload = Object.assign({}, payload, {
+          exclude: payload.exclude.join(','),
+        });
+      }
+      const queryString = Object.keys(payload).reduce(
+        (valueSoFar, thisKey) => `${valueSoFar}${thisKey}=${encodeURIComponent(payload[thisKey])}&`,
+        '?',
+      );
 
       return fetch(`${url}/arguments${queryString.substring(0, queryString.length - 1)}`, {
         mode: 'cors',
@@ -220,6 +167,7 @@ export default function newClient({ url, fetch }) {
  * @property [int] count The maximum number of objects which should appear in the response.
  * @property [int] offset The number of objects which the server should skip
  *   before it starts returning objects.
+ * @property [Array<int>] exclude A list of Argument IDs which you do _not_ want to be returned.
  */
 
 /**
@@ -240,3 +188,65 @@ export default function newClient({ url, fetch }) {
  * @property {string} location A URL where the saved argument can be found.
  * @property {ArgumentResponse} argument The argument after having been saved.
  */
+
+function handleServerErrors(response) {
+  if (response.status >= 500 && response.status < 600) {
+    throw new Error(`The server responded with a ${response.status}: ${response.body}`);
+  }
+  return response;
+}
+
+function onNotFound(value) {
+  return function responseOrValue(response) {
+    if (response.status === 404) {
+      return value;
+    }
+    return response;
+  };
+}
+
+function parseJSONResponseBody(response) {
+  if (response && response.json) {
+    return response.json();
+  }
+  return response;
+}
+
+/**
+ * Make sure the premises would be valid.
+ * If valid, return null. If not, return an error message explaining what's wrong with it.
+ *
+ * @param {string[]} premises The premises to validate
+ * @return {string|null} Null if the premises is valid, or a string error message otherwise.
+ */
+function validatePremises(premises) {
+  if (premises.length < 2) {
+    return 'An argument must have at least two premises.';
+  }
+
+  // Sets aren't supported in a few semi-modern browsers
+  const premiseSet = {};
+  let duplicate = null;
+  premises.forEach((premise) => {
+    if (premiseSet[premise]) {
+      duplicate = `Arguments shouldn't use the same premise more than once. Yours repeats: ${premise}`;
+    }
+    premiseSet[premise] = true;
+  });
+  return duplicate;
+}
+
+/**
+ * Make sure the argument has everything it needs.
+ * If valid, return null. If not, return an error message explaining what's wrong with it.
+ *
+ * @param {Argument} argument The argument to validate
+ * @return {string|null} Null if the argument is valid, or a string error message otherwise.
+ */
+function validateArgument(argument) {
+  if (!argument.conclusion) {
+    return 'An argument must have a conclusion.';
+  }
+
+  return validatePremises(argument.premises);
+}

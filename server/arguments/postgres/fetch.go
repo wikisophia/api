@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"sort"
 	"strconv"
 
 	"github.com/pkg/errors"
@@ -91,6 +92,7 @@ func (store *Store) FetchLive(ctx context.Context, id int64) (arguments.Argument
 // FetchSome returns all the "live" arguments matching the given options.
 // If none exist, error will be nil and the slice empty.
 func (store *Store) FetchSome(ctx context.Context, options arguments.FetchSomeOptions) ([]arguments.Argument, error) {
+	// TODO: StringBuilder this
 	selectArgumentsQuery := `SELECT arguments.id, arguments.live_version, argument_versions.id AS argument_version_id, claims.claim AS conclusion
 	FROM arguments
 		INNER JOIN argument_versions ON arguments.id = argument_versions.argument_id
@@ -103,6 +105,17 @@ func (store *Store) FetchSome(ctx context.Context, options arguments.FetchSomeOp
 	if options.Conclusion != "" {
 		selectArgumentsQuery += "\n\t\t AND claims.claim = " + nextParamPlaceholder()
 		params = append(params, options.Conclusion)
+	}
+	if len(options.Exclude) != 0 {
+		selectArgumentsQuery += "\n\t\t AND arguments.id NOT IN ("
+		for i := 0; i < len(options.Exclude); i++ {
+			selectArgumentsQuery += nextParamPlaceholder()
+			params = append(params, options.Exclude[i])
+			if i != len(options.Exclude)-1 {
+				selectArgumentsQuery += ", "
+			}
+		}
+		selectArgumentsQuery += ")"
 	}
 	selectArgumentsQuery += "\n\t ORDER BY arguments.id"
 	if options.Count != 0 {
@@ -120,7 +133,8 @@ func (store *Store) FetchSome(ctx context.Context, options arguments.FetchSomeOp
 	fetchAllQuery += `SELECT chosen_arguments.id, chosen_arguments.live_version, chosen_arguments.conclusion, claims.claim AS premise
 	FROM chosen_arguments
 		INNER JOIN argument_premises ON chosen_arguments.argument_version_id = argument_premises.argument_version_id
-		INNER JOIN claims ON claims.id = argument_premises.premise_id;
+		INNER JOIN claims ON claims.id = argument_premises.premise_id
+	ORDER BY chosen_arguments.id;
 	`
 
 	rows, err := store.db.QueryContext(ctx, fetchAllQuery, params...)
@@ -155,6 +169,7 @@ func (store *Store) FetchSome(ctx context.Context, options arguments.FetchSomeOp
 	for _, val := range args {
 		toReturn = append(toReturn, *val)
 	}
+	sort.Sort(arguments.ByID(toReturn))
 	return toReturn, nil
 }
 
@@ -162,6 +177,14 @@ func tryClose(rows *sql.Rows) {
 	if err := rows.Close(); err != nil {
 		log.Printf("ERROR: failed to close rows: %v", err)
 	}
+}
+
+func toIntArray(arr []int64) []int {
+	ret := make([]int, 0, len(arr))
+	for i := 0; i < len(arr); i++ {
+		ret = append(ret, int(arr[i]))
+	}
+	return ret
 }
 
 // newParamPlaceholderGenerator returns a function that generates postgres wildcards.
