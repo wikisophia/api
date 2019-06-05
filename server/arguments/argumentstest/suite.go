@@ -141,11 +141,14 @@ func (suite *StoreTests) TestFetchByConclusion() {
 	updated := ParseSample(suite.T(), "../../samples/update-request.json")
 
 	original.ID = suite.saveWithUpdates(store, original)
+	original.Version = 1
+
 	otherArg := arguments.Argument{
 		Conclusion: original.Conclusion,
 		Premises:   updated.Premises,
 	}
 	otherArg.ID = suite.saveWithUpdates(store, otherArg)
+	otherArg.Version = 1
 
 	suite.saveWithUpdates(store, arguments.Argument{
 		Conclusion: "some other conclusion",
@@ -162,20 +165,9 @@ func (suite *StoreTests) TestFetchByConclusion() {
 	if !assert.Len(suite.T(), allArgs, 2) {
 		return
 	}
-	original.Version = 1
-	otherArg.Version = 1
 
-	// Fixes #1: Arguments might be returned in any order
-	fetchedFirst := allArgs[0]
-	fetchedSecond := allArgs[1]
-	if fetchedFirst.ID != original.ID {
-		tmp := fetchedFirst
-		fetchedFirst = fetchedSecond
-		fetchedSecond = tmp
-	}
-
-	assert.Equal(suite.T(), original, fetchedFirst)
-	assert.Equal(suite.T(), otherArg, fetchedSecond)
+	assert.Equal(suite.T(), original, allArgs[0])
+	assert.Equal(suite.T(), otherArg, allArgs[1])
 }
 
 // TestVersionedFetchAll makes sure the Store returns the argument's live version only.
@@ -271,6 +263,50 @@ func (suite *StoreTests) TestFetchWithOffset() {
 	fetchAndAssert(0, first.Conclusion)
 	fetchAndAssert(1, second.Conclusion)
 	fetchAndAssert(2, third.Conclusion)
+}
+
+// TestFetchWithExclusions makes sure the Store excludes arguments properly.
+func (suite *StoreTests) TestFetchWithExclusions() {
+	store := suite.StoreFactory()
+	arg := ParseSample(suite.T(), "../../samples/save-request.json")
+
+	id1 := suite.saveWithUpdates(store, arg)
+	id2 := suite.saveWithUpdates(store, arg)
+
+	allArgs, err := store.FetchSome(context.Background(), arguments.FetchSomeOptions{
+		Exclude: []int64{id1},
+	})
+	if !assert.NoError(suite.T(), err) {
+		return
+	}
+	if !assert.Len(suite.T(), allArgs, 1) {
+		return
+	}
+	assert.Equal(suite.T(), id2, allArgs[0].ID)
+
+	allArgs, err = store.FetchSome(context.Background(), arguments.FetchSomeOptions{
+		Exclude: []int64{id2},
+	})
+	if !assert.NoError(suite.T(), err) {
+		return
+	}
+	if !assert.Len(suite.T(), allArgs, 1) {
+		return
+	}
+	assert.Equal(suite.T(), id1, allArgs[0].ID)
+
+	id3 := suite.saveWithUpdates(store, arg)
+	allArgs, err = store.FetchSome(context.Background(), arguments.FetchSomeOptions{
+		Exclude: []int64{id2},
+	})
+	if !assert.NoError(suite.T(), err) {
+		return
+	}
+	if !assert.Len(suite.T(), allArgs, 2) {
+		return
+	}
+	assert.Equal(suite.T(), id1, allArgs[0].ID)
+	assert.Equal(suite.T(), id3, allArgs[1].ID)
 }
 
 func (suite *StoreTests) saveWithUpdates(store endpoints.Store, arg arguments.Argument, updates ...arguments.Argument) int64 {

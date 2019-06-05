@@ -19,12 +19,10 @@ type ArgumentGetterByVersion interface {
 // Implements GET /arguments/:id/version/:version
 func getArgumentByVersionHandler(getter ArgumentGetterByVersion) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
-		id, goodID := parseIntParam(params.ByName("id"))
-		versionInt, goodVersion := parseIntParam(params.ByName("version"))
-		version, accurate := shrinkInt(versionInt)
+		id, goodID := parseInt64Param(params.ByName("id"))
+		version, ok := parseIntParam(params.ByName("version"))
 
-		// If the int can't fit into 16 bits, the database schema won't support it anyway.
-		if !goodID || !goodVersion || !accurate {
+		if !goodID || !ok {
 			response := fmt.Sprintf("version %s of argument %s does not exist", params.ByName("version"), params.ByName("id"))
 			http.Error(w, response, http.StatusNotFound)
 			return

@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strconv"
+	"strings"
 
 	"github.com/wikisophia/api-arguments/server/arguments"
 )
@@ -32,9 +34,16 @@ func getAllArgumentsHandler(getter ArgumentsGetter) http.HandlerFunc {
 			return
 		}
 
+		exclude, ok := parseOptionalArrayOfInt64s(r.URL.Query().Get("exclude"))
+		if !ok {
+			http.Error(w, "The exclude query param must be a comma-separated list of non-negative integers.", http.StatusBadRequest)
+			return
+		}
+
 		args, err := getter.FetchSome(context.Background(), arguments.FetchSomeOptions{
 			Conclusion: r.URL.Query().Get("conclusion"),
-			Count:      int(count),
+			Count:      count,
+			Exclude:    exclude,
 			Offset:     offset,
 		})
 		if err != nil {
@@ -63,9 +72,29 @@ func parseOptionalNonNegativeIntParam(param string) (int, bool) {
 	if !ok || parsed < 1 {
 		return 0, false
 	}
-	shrunk, ok := shrinkInt(parsed)
-	if !ok {
+	return parsed, true
+}
+
+func parseOptionalArrayOfInt64s(param string) ([]int64, bool) {
+	if param == "" {
+		return nil, true
+	}
+	stringNums := strings.Split(param, ",")
+	intNums := make([]int64, 0, len(stringNums))
+	for i := 0; i < len(stringNums); i++ {
+		parsed, ok := parseInt64Param(stringNums[i])
+		if !ok || parsed < 1 {
+			return nil, false
+		}
+		intNums = append(intNums, parsed)
+	}
+	return intNums, true
+}
+
+func parseIntParam(param string) (int, bool) {
+	parsed, err := strconv.Atoi(param)
+	if err != nil || parsed < 1 {
 		return 0, false
 	}
-	return shrunk, true
+	return parsed, true
 }

@@ -13,6 +13,19 @@ type Argument struct {
 	Premises   []string `json:"premises"`
 }
 
+// ByID can be used to sort slices of Arguments by ID.
+type ByID []Argument
+
+func (c ByID) Len() int {
+	return len(c)
+}
+func (c ByID) Swap(i, j int) {
+	c[i], c[j] = c[j], c[i]
+}
+func (c ByID) Less(i, j int) bool {
+	return c[i].ID < c[j].ID
+}
+
 // NotFoundError will be returned by Store.Fetch() calls when the cause of the returned error is
 // that the argument simply doesn't exist.
 type NotFoundError struct {
@@ -24,8 +37,10 @@ type NotFoundError struct {
 type FetchSomeOptions struct {
 	// Conclusion only finds arguments which support a given conclusion
 	Conclusion string
-	// Count limits the number of fetched objects.
+	// Count limits the number of fetched arguments.
 	Count int
+	// Exclude prevents arguments which have any of these IDs from being returned
+	Exclude []int64
 	// Offset changes which arguments start being returned.
 	//
 	// An offset of 0 will return arguments starting with the first one.

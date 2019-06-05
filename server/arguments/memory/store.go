@@ -81,15 +81,20 @@ func (s *InMemoryStore) FetchSome(ctx context.Context, options arguments.FetchSo
 	args := make([]arguments.Argument, 0, 20)
 	numSkipped := 0
 	for i := 1; i < len(s.arguments); i++ {
-		if options.Conclusion == "" || s.arguments[i][len(s.arguments[i])-1].Conclusion == options.Conclusion {
-			if numSkipped >= options.Offset {
-				args = append(args, s.arguments[i][len(s.arguments[i])-1])
-				if len(args) == options.Count {
-					return args, nil
-				}
-			} else {
-				numSkipped++
+		if containsInt64(options.Exclude, int64(i)) {
+			continue
+		}
+		if options.Conclusion != "" && options.Conclusion != s.arguments[i][len(s.arguments[i])-1].Conclusion {
+			continue
+		}
+
+		if numSkipped >= options.Offset {
+			args = append(args, s.arguments[i][len(s.arguments[i])-1])
+			if len(args) == options.Count {
+				return args, nil
 			}
+		} else {
+			numSkipped++
 		}
 	}
 	return args, nil
@@ -122,4 +127,13 @@ func (s *InMemoryStore) Update(ctx context.Context, argument arguments.Argument)
 
 func (s *InMemoryStore) argumentExists(id int64) bool {
 	return int64(len(s.arguments)) > id && s.arguments[id] != nil
+}
+
+func containsInt64(s []int64, e int64) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
 }

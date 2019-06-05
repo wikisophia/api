@@ -22,7 +22,7 @@ type ArgumentUpdater interface {
 // Implements PATCH /arguments/:id
 func updateHandler(updater ArgumentUpdater) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
-		id, goodID := parseIntParam(params.ByName("id"))
+		id, goodID := parseInt64Param(params.ByName("id"))
 		if !goodID || id < 1 {
 			http.Error(w, fmt.Sprintf("argument %s does not exist", params.ByName("id")), http.StatusNotFound)
 			return
@@ -60,15 +60,9 @@ func updateHandler(updater ArgumentUpdater) httprouter.Handle {
 	}
 }
 
-func parseIntParam(param string) (int64, bool) {
+func parseInt64Param(param string) (int64, bool) {
 	parsed, err := strconv.ParseInt(param, 10, 0)
 	return parsed, err == nil
-}
-
-// shrink an int to fit into the machine size. Return true if it still holds the same value
-func shrinkInt(value int64) (int, bool) {
-	shrunk := int(value)
-	return shrunk, int64(shrunk) == value
 }
 
 func writeStoreError(w http.ResponseWriter, err error) bool {
