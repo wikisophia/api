@@ -169,6 +169,7 @@ func (store *Store) FetchSome(ctx context.Context, options arguments.FetchSomeOp
 	for _, val := range args {
 		toReturn = append(toReturn, *val)
 	}
+	// Fixes #1: re-sort because iteration order on maps isn't guaranteed
 	sort.Sort(arguments.ByID(toReturn))
 	return toReturn, nil
 }
