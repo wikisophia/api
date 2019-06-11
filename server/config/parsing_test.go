@@ -30,6 +30,16 @@ func TestEnvironmentOverrides(t *testing.T) {
 		return cfg.Server.CorsAllowedOrigins
 	})
 
+	// WKSPH_ARGS_SERVER_KEY_PATH determines where the server should look for the key file.
+	assertStringParses(t, "WKSPH_ARGS_SERVER_KEY_PATH", "/etc/ssl/certs/key.pem", func(cfg config.Configuration) string {
+		return cfg.Server.KeyPath
+	})
+
+	// WKSPH_ARGS_SERVER_CERT_PATH determines where the server should look for the key file.
+	assertStringParses(t, "WKSPH_ARGS_SERVER_CERT_PATH", "/etc/ssl/certs/cert.pem", func(cfg config.Configuration) string {
+		return cfg.Server.CertPath
+	})
+
 	// WKSPH_ARGS_STORAGE_TYPE determines how the service stores data. Valid options are "memory" or "postgres".
 	assertStringParses(t, "WKSPH_ARGS_STORAGE_TYPE", "postgres", func(cfg config.Configuration) string {
 		return string(cfg.Storage.Type)

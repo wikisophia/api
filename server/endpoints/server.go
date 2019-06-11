@@ -76,7 +76,7 @@ func (s *Server) Start(done chan<- struct{}) error {
 	}
 
 	go shutdownOnSignal(httpServer, done)
-	return httpServer.ListenAndServe()
+	return httpServer.ListenAndServeTLS(s.config.CertPath, s.config.KeyPath)
 }
 
 func shutdownOnSignal(server *http.Server, done chan<- struct{}) {
