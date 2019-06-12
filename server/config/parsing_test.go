@@ -30,6 +30,21 @@ func TestEnvironmentOverrides(t *testing.T) {
 		return cfg.Server.CorsAllowedOrigins
 	})
 
+	// WKSPH_ARGS_SERVER_USE_SSL determines whether the server should connect with TLS.
+	assertBoolParses(t, "WKSPH_ARGS_SERVER_USE_SSL", true, func(cfg config.Configuration) bool {
+		return cfg.Server.UseSSL
+	})
+
+	// WKSPH_ARGS_SERVER_KEY_PATH determines where the server should look for the key file.
+	assertStringParses(t, "WKSPH_ARGS_SERVER_KEY_PATH", "/etc/ssl/certs/key.pem", func(cfg config.Configuration) string {
+		return cfg.Server.KeyPath
+	})
+
+	// WKSPH_ARGS_SERVER_CERT_PATH determines where the server should look for the key file.
+	assertStringParses(t, "WKSPH_ARGS_SERVER_CERT_PATH", "/etc/ssl/certs/cert.pem", func(cfg config.Configuration) string {
+		return cfg.Server.CertPath
+	})
+
 	// WKSPH_ARGS_STORAGE_TYPE determines how the service stores data. Valid options are "memory" or "postgres".
 	assertStringParses(t, "WKSPH_ARGS_STORAGE_TYPE", "postgres", func(cfg config.Configuration) string {
 		return string(cfg.Storage.Type)
@@ -78,6 +93,8 @@ func TestInvalidEnvironment(t *testing.T) {
 	assertInvalid(t, "WKSPH_ARGS_STORAGE_POSTGRES_PORT", "foo")
 	assertInvalid(t, "WKSPH_ARGS_SERVER_READ_HEADER_TIMEOUT_MILLIS", "-12")
 	assertInvalid(t, "WKSPH_ARGS_SERVER_READ_HEADER_TIMEOUT_MILLIS", "0")
+	assertInvalid(t, "WKSPH_ARGS_SERVER_USE_SSL", "3")
+	assertInvalid(t, "WKSPH_ARGS_SERVER_USE_SSL", "notABool")
 	assertInvalid(t, "WKSPH_ARGS_STORAGE_POSTGRES_PORT", "-3")
 	assertInvalid(t, "WKSPH_ARGS_STORAGE_POSTGRES_PORT", "0")
 	assertInvalid(t, "WKSPH_ARGS_STORAGE_TYPE", "invalid")
@@ -87,6 +104,16 @@ func TestEdgeCases(t *testing.T) {
 	assertStringSliceParses(t, "WKSPH_ARGS_SERVER_CORS_ALLOWED_ORIGINS", nil, func(cfg config.Configuration) []string {
 		return cfg.Server.CorsAllowedOrigins
 	})
+}
+
+func assertBoolParses(t *testing.T, env string, value bool, getter func(cfg config.Configuration) bool) {
+	t.Helper()
+	defer setEnv(t, env, strconv.FormatBool(value))()
+	cfg, errs := config.Parse()
+	if !assert.NoError(t, error(errs), "error was: \"%v\"", errs) {
+		return
+	}
+	assert.Equal(t, value, getter(cfg))
 }
 
 func assertStringParses(t *testing.T, env string, value string, getter func(cfg config.Configuration) string) {

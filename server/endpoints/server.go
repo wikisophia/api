@@ -76,6 +76,9 @@ func (s *Server) Start(done chan<- struct{}) error {
 	}
 
 	go shutdownOnSignal(httpServer, done)
+	if s.config.UseSSL {
+		return httpServer.ListenAndServeTLS(s.config.CertPath, s.config.KeyPath)
+	}
 	return httpServer.ListenAndServe()
 }
 

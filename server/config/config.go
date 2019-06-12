@@ -1,15 +1,28 @@
 package config
 
-import "time"
+import (
+	"os"
+	"path/filepath"
+	"time"
+)
 
 // Defaults returns a Configuration with all the default options.
 // This ignores environment variable values.
 func Defaults() Configuration {
+	ex, err := os.Executable()
+	if err != nil {
+		panic(err)
+	}
+	exPath := filepath.ToSlash(filepath.Dir(ex))
+
 	return Configuration{
 		Server: &Server{
 			Addr:                    ":8001",
 			ReadHeaderTimeoutMillis: 5000,
 			CorsAllowedOrigins:      []string{"*"},
+			UseSSL:                  false,
+			CertPath:                filepath.FromSlash(exPath + "/certificates/cert.pem"),
+			KeyPath:                 filepath.FromSlash(exPath + "/certificates/key.pem"),
 		},
 		Storage: &Storage{
 			Type: StorageTypeMemory,
@@ -35,6 +48,9 @@ type Server struct {
 	Addr                    string   `environment:"ADDR"`
 	ReadHeaderTimeoutMillis int      `environment:"READ_HEADER_TIMEOUT_MILLIS"`
 	CorsAllowedOrigins      []string `environment:"CORS_ALLOWED_ORIGINS"`
+	UseSSL                  bool     `environment:"USE_SSL"`
+	CertPath                string   `environment:"CERT_PATH"`
+	KeyPath                 string   `environment:"KEY_PATH"`
 }
 
 // Storage has all the config values related to the backend which is used to save arguments.
