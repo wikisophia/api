@@ -20,12 +20,6 @@ INSERT INTO argument_versions (argument_id, argument_version, conclusion_id)
 	RETURNING id, argument_version;
 `
 
-var updateLiveVersionQuery = `
-UPDATE arguments
-	SET live_version = $1
-	WHERE id = $2;
-`
-
 const updateArgumentErrorMsg = "failed to update argument %d"
 
 // Update saves a new version of an argument.
@@ -43,10 +37,6 @@ func (store *Store) Update(ctx context.Context, argument arguments.Argument) (ve
 		return -1, err
 	}
 	err = store.savePremises(ctx, transaction, argumentVersionID, argument.Premises)
-	if didRollback := rollbackIfErr(transaction, err); didRollback {
-		return -1, errors.Wrapf(err, updateArgumentErrorMsg, argument.ID)
-	}
-	err = store.updateLiveVersion(ctx, transaction, argumentVersion, argument.ID)
 	if didRollback := rollbackIfErr(transaction, err); didRollback {
 		return -1, errors.Wrapf(err, updateArgumentErrorMsg, argument.ID)
 	}
@@ -70,14 +60,4 @@ func (store *Store) newArgumentVersion(ctx context.Context, transaction *sql.Tx,
 		return -1, -1, errors.Wrapf(err, `couldn't create new argument version for id=%d`, argumentID)
 	}
 	return argumentVersionID, argumentVersion, nil
-}
-
-func (store *Store) updateLiveVersion(ctx context.Context, transaction *sql.Tx, liveVersion int, argumentID int64) error {
-	rows := transaction.StmtContext(ctx, store.updateLiveVersionStatement).QueryRowContext(ctx, liveVersion, argumentID)
-	// Run Scan() to make sure the Rows get closed.
-	err := rows.Scan()
-	if err == sql.ErrNoRows {
-		return nil
-	}
-	return err
 }

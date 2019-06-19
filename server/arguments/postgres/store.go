@@ -17,13 +17,12 @@ func NewStore(db *sql.DB) *Store {
 		db:                           db,
 		deleteStatement:              mustPrepareQuery(db, deleteQuery),
 		fetchStatement:               mustPrepareQuery(db, fetchQuery),
-		fetchLiveVersionStatement:    mustPrepareQuery(db, fetchLiveVersionQuery),
+		fetchLiveStatement:           mustPrepareQuery(db, fetchLiveQuery),
 		newArgumentVersionStatement:  mustPrepareQuery(db, newArgumentVersionQuery),
 		saveArgumentStatement:        mustPrepareQuery(db, saveArgumentQuery),
 		saveArgumentVersionStatement: mustPrepareQuery(db, saveArgumentVersionQuery),
 		saveClaimStatement:           mustPrepareQuery(db, saveClaimQuery),
 		savePremiseStatement:         mustPrepareQuery(db, savePremiseQuery),
-		updateLiveVersionStatement:   mustPrepareQuery(db, updateLiveVersionQuery),
 	}
 }
 
@@ -33,13 +32,12 @@ type Store struct {
 	db                           *sql.DB
 	deleteStatement              *sql.Stmt
 	fetchStatement               *sql.Stmt
-	fetchLiveVersionStatement    *sql.Stmt
+	fetchLiveStatement           *sql.Stmt
 	newArgumentVersionStatement  *sql.Stmt
 	saveClaimStatement           *sql.Stmt
 	saveArgumentStatement        *sql.Stmt
 	saveArgumentVersionStatement *sql.Stmt
 	savePremiseStatement         *sql.Stmt
-	updateLiveVersionStatement   *sql.Stmt
 }
 
 type closeErrors []error
@@ -66,13 +64,12 @@ func (store *Store) Close() error {
 	var errs []error
 	errs = mayAppendError(store.deleteStatement.Close, errs)
 	errs = mayAppendError(store.fetchStatement.Close, errs)
-	errs = mayAppendError(store.fetchLiveVersionStatement.Close, errs)
+	errs = mayAppendError(store.fetchLiveStatement.Close, errs)
 	errs = mayAppendError(store.newArgumentVersionStatement.Close, errs)
 	errs = mayAppendError(store.saveArgumentStatement.Close, errs)
 	errs = mayAppendError(store.saveArgumentVersionStatement.Close, errs)
 	errs = mayAppendError(store.saveClaimStatement.Close, errs)
 	errs = mayAppendError(store.savePremiseStatement.Close, errs)
-	errs = mayAppendError(store.updateLiveVersionStatement.Close, errs)
 	if len(errs) == 0 {
 		return nil
 	}

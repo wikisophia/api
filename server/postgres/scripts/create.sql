@@ -18,7 +18,7 @@
 CREATE FUNCTION update_last_modified()
 RETURNS TRIGGER AS $$
 BEGIN
-   NEW.last_modified = NOW(); 
+   NEW.last_modified = NOW();
    RETURN NEW;
 END;
 $$ language 'plpgsql';
@@ -36,14 +36,12 @@ GRANT INSERT ON TABLE claims TO app_wikisophia;
 
 CREATE TABLE IF NOT EXISTS arguments (
   id bigserial PRIMARY KEY,
-  live_version integer NOT NULL DEFAULT 1,
   deleted boolean NOT NULL DEFAULT FALSE,
   created_on TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   last_modified TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 CREATE TRIGGER update_arguments_last_modified BEFORE UPDATE ON arguments FOR EACH ROW EXECUTE PROCEDURE update_last_modified();
 COMMENT ON TABLE arguments IS 'This stores all the arguments on wikisophia.';
-COMMENT ON COLUMN arguments.live_version IS 'The version of the argument which is live. This refers to an argument_version in the argument_versions table.';
 COMMENT ON COLUMN arguments.deleted IS 'True if this argument has been deleted, and false otherwise.';
 COMMENT ON COLUMN arguments.created_on IS 'Timestamp of when the first version of this argument was created.';
 COMMENT ON COLUMN arguments.last_modified IS 'Timestamp of when this argument was last modified/deleted/restored.';

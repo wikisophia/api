@@ -13,7 +13,7 @@ import (
 )
 
 const fetchQuery = `
-(SELECT claims.claim, argument_premises.id AS o
+(SELECT claims.claim, argument_versions.argument_version AS argument_version, argument_premises.id AS o
 FROM claims
 	INNER JOIN argument_premises ON claims.id = argument_premises.premise_id
 	INNER JOIN argument_versions ON argument_premises.argument_version_id = argument_versions.id
@@ -22,7 +22,7 @@ WHERE arguments.id = $1
 	AND arguments.deleted = false
 	AND argument_versions.argument_version = $2)
 UNION ALL
-(SELECT claims.claim, -1 AS o
+(SELECT claims.claim, argument_versions.argument_version AS argument_version, -1 AS o
 FROM claims
 	INNER JOIN argument_versions ON claims.id = argument_versions.conclusion_id
 	INNER JOIN arguments ON arguments.id = argument_versions.argument_id
@@ -32,7 +32,29 @@ WHERE arguments.id = $1
 ORDER BY o;
 `
 
-const fetchLiveVersionQuery = `SELECT live_version FROM arguments WHERE id = $1;`
+const fetchLiveQuery = `
+(SELECT claims.claim, argument_versions.argument_version AS argument_version, argument_premises.id AS o
+	FROM claims
+		INNER JOIN argument_premises ON claims.id = argument_premises.premise_id
+		INNER JOIN argument_versions ON argument_premises.argument_version_id = argument_versions.id
+		INNER JOIN arguments ON arguments.id = argument_versions.argument_id
+		LEFT JOIN argument_versions tmp ON argument_versions.argument_id = tmp.argument_id AND argument_versions.argument_version < tmp.argument_version
+	WHERE tmp.id IS NULL
+		AND arguments.id = $1
+		AND arguments.deleted = false
+		AND argument_versions.argument_id = $1)
+UNION ALL
+(SELECT claims.claim, argument_versions.argument_version AS argument_version, -1 AS o
+	FROM claims
+		INNER JOIN argument_versions ON claims.id = argument_versions.conclusion_id
+		INNER JOIN arguments ON arguments.id = argument_versions.argument_id
+		LEFT JOIN argument_versions tmp ON argument_versions.argument_id = tmp.argument_id AND argument_versions.argument_version < tmp.argument_version
+	WHERE tmp.id IS NULL
+		AND arguments.id = $1
+		AND arguments.deleted = false
+		AND argument_versions.argument_id = $1)
+ORDER BY o;
+`
 
 // FetchVersion fetches a specific version of an argument.
 func (store *Store) FetchVersion(ctx context.Context, id int64, version int) (arguments.Argument, error) {
@@ -41,15 +63,31 @@ func (store *Store) FetchVersion(ctx context.Context, id int64, version int) (ar
 		return arguments.Argument{}, errors.Wrap(err, "argument fetch query failed")
 	}
 	defer tryClose(rows)
+	return store.parseFetchResults(id, rows)
+}
 
+// FetchLive fetches the "active" version of an argument.
+// This is usually the newest one, but it may not be if an
+// update has been reverted.
+func (store *Store) FetchLive(ctx context.Context, id int64) (arguments.Argument, error) {
+	rows, err := store.fetchLiveStatement.QueryContext(ctx, id)
+	if err != nil {
+		return arguments.Argument{}, errors.Wrap(err, "argument fetch query failed")
+	}
+	defer tryClose(rows)
+	return store.parseFetchResults(id, rows)
+}
+
+func (store *Store) parseFetchResults(id int64, rows *sql.Rows) (arguments.Argument, error) {
 	var claim string
-	var dummy int64
+	var version int
+	var dummy int
 
 	var conclusion string
 	var premises []string
 
 	for rows.Next() {
-		if err := rows.Scan(&claim, &dummy); err != nil {
+		if err := rows.Scan(&claim, &version, &dummy); err != nil {
 			return arguments.Argument{}, errors.Wrap(err, "fetch result scan failed")
 		}
 		if conclusion == "" {
@@ -60,7 +98,7 @@ func (store *Store) FetchVersion(ctx context.Context, id int64, version int) (ar
 	}
 	if conclusion == "" {
 		return arguments.Argument{}, &arguments.NotFoundError{
-			Message: fmt.Sprintf("no argument found for version %d of argument %d", version, id),
+			Message: fmt.Sprintf("no argument found with id=%d", id),
 		}
 	}
 	return arguments.Argument{
@@ -71,34 +109,17 @@ func (store *Store) FetchVersion(ctx context.Context, id int64, version int) (ar
 	}, nil
 }
 
-// FetchLive fetches the "active" version of an argument.
-// This is usually the newest one, but it may not be if an
-// update has been reverted.
-func (store *Store) FetchLive(ctx context.Context, id int64) (arguments.Argument, error) {
-	row := store.fetchLiveVersionStatement.QueryRowContext(ctx, id)
-	var liveVersion int
-	if err := row.Scan(&liveVersion); err != nil {
-		if err == sql.ErrNoRows {
-			return arguments.Argument{}, &arguments.NotFoundError{
-				Message: fmt.Sprintf("no argument found with id %d", id),
-			}
-		}
-
-		return arguments.Argument{}, err
-	}
-	return store.FetchVersion(ctx, id, liveVersion)
-}
-
 // FetchSome returns all the "live" arguments matching the given options.
 // If none exist, error will be nil and the slice empty.
 func (store *Store) FetchSome(ctx context.Context, options arguments.FetchSomeOptions) ([]arguments.Argument, error) {
 	// TODO: StringBuilder this
-	selectArgumentsQuery := `SELECT arguments.id, arguments.live_version, argument_versions.id AS argument_version_id, claims.claim AS conclusion
+	selectArgumentsQuery := `SELECT arguments.id, argument_versions.argument_version, argument_versions.id AS argument_version_id, claims.claim AS conclusion
 	FROM arguments
 		INNER JOIN argument_versions ON arguments.id = argument_versions.argument_id
 		INNER JOIN claims ON argument_versions.conclusion_id = claims.id
-	WHERE arguments.deleted = FALSE
-		AND arguments.live_version = argument_versions.argument_version`
+		LEFT JOIN argument_versions tmp ON argument_versions.argument_id = tmp.argument_id AND argument_versions.argument_version < tmp.argument_version
+	WHERE tmp.id IS NULL
+		AND arguments.deleted = FALSE`
 
 	var params []interface{}
 	nextParamPlaceholder := newParamPlaceholderGenerator()
@@ -130,7 +151,7 @@ func (store *Store) FetchSome(ctx context.Context, options arguments.FetchSomeOp
 	fetchAllQuery := `WITH chosen_arguments AS (`
 	fetchAllQuery += selectArgumentsQuery
 	fetchAllQuery += ") \n"
-	fetchAllQuery += `SELECT chosen_arguments.id, chosen_arguments.live_version, chosen_arguments.conclusion, claims.claim AS premise
+	fetchAllQuery += `SELECT chosen_arguments.id, chosen_arguments.argument_version, chosen_arguments.conclusion, claims.claim AS premise
 	FROM chosen_arguments
 		INNER JOIN argument_premises ON chosen_arguments.argument_version_id = argument_premises.argument_version_id
 		INNER JOIN claims ON claims.id = argument_premises.premise_id
