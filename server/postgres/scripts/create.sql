@@ -33,6 +33,8 @@ COMMENT ON COLUMN claims.claim IS 'This is the claim itself. For example, "Socra
 COMMENT ON COLUMN claims.created_on IS 'The time when this claim was added.';
 REVOKE ALL ON TABLE claims FROM PUBLIC;
 GRANT INSERT ON TABLE claims TO app_wikisophia;
+CREATE INDEX claims_claim_equals_idx ON claims (claim);
+CREATE INDEX claims_claim_search_idx ON claims USING gin(to_tsvector('english', claim));
 
 CREATE TABLE IF NOT EXISTS arguments (
   id bigserial PRIMARY KEY,
@@ -63,6 +65,9 @@ COMMENT ON COLUMN argument_versions.argument_id IS 'The argument''s ID.';
 COMMENT ON COLUMN argument_versions.argument_version IS 'The argument''s version.';
 COMMENT ON COLUMN argument_versions.conclusion_id IS 'The argument''s conclusion.';
 COMMENT ON COLUMN argument_versions.created_on IS 'Timestamp of when this version was created.';
+CREATE INDEX argument_versions_argument_idx ON argument_versions (argument_id);
+CREATE INDEX argument_versions_argument_version_idx ON argument_versions (argument_version);
+CREATE INDEX argument_versions_conclusion_idx ON argument_versions (conclusion_id);
 
 CREATE TABLE argument_premises (
   id bigserial PRIMARY KEY,
@@ -77,3 +82,5 @@ COMMENT ON TABLE argument_premises IS 'This stores the premises used in each arg
 COMMENT ON COLUMN argument_premises.argument_version_id IS 'The argument/version which includes this premise.';
 COMMENT ON COLUMN argument_premises.premise_id IS 'The premise used in this version of the argument.';
 COMMENT ON COLUMN argument_premises.created_on IS 'Timestamp of when this premise/version was created.';
+CREATE INDEX argument_premises_argument_version_idx ON argument_premises (argument_version_id);
+CREATE INDEX argument_premises_premise_idx ON argument_premises (premise_id);
