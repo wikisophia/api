@@ -1,6 +1,7 @@
 package endpoints_test
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/wikisophia/api-arguments/server/arguments"
@@ -54,6 +55,22 @@ func TestGetWithExclusions(t *testing.T) {
 	assertFetchSome(t, server, arguments.FetchSomeOptions{
 		Exclude: []int64{expected.Arguments[1].ID},
 	}, append(append([]arguments.Argument{}, expected.Arguments[0]), expected.Arguments[2:]...))
+}
+
+func TestGetWithSearch(t *testing.T) {
+	containing := []string{"bing", "words"}
+	available := parseGetAllResponse(t, argumentstest.ReadFile(t, "../samples/get-all-response.json"))
+	expected := make([]arguments.Argument, 0)
+	for i := 0; i < len(available.Arguments); i++ {
+		if strings.Contains(available.Arguments[i].Conclusion, containing[0]) && strings.Contains(available.Arguments[i].Conclusion, containing[1]) {
+			expected = append(expected, available.Arguments[i])
+		}
+	}
+	server := newServerForTests()
+	addAllArguments(t, server, available.Arguments)
+	assertFetchSome(t, server, arguments.FetchSomeOptions{
+		ConclusionContainsAll: containing,
+	}, expected)
 }
 
 func addAllArguments(t *testing.T, server *endpoints.Server, args []arguments.Argument) {

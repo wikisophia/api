@@ -170,6 +170,48 @@ func (suite *StoreTests) TestFetchByConclusion() {
 	assert.Equal(suite.T(), otherArg, allArgs[1])
 }
 
+// TestFetchWithConclusionSearch makes sure the Store limits what it returns
+// based on which words the user expects the conclusion to have.
+func (suite *StoreTests) TestFetchWithConclusionSearch() {
+	store := suite.StoreFactory()
+	sample := ParseSample(suite.T(), "../../samples/save-request.json")
+
+	first := suite.saveCopyWithConclusion(store, sample, "best of times")
+	second := suite.saveCopyWithConclusion(store, sample, "worst of times")
+	suite.saveCopyWithConclusion(store, sample, "unrelated conclusion")
+
+	found, err := store.FetchSome(context.Background(), arguments.FetchSomeOptions{
+		ConclusionContainsAll: []string{"times"},
+	})
+	if !assert.NoError(suite.T(), err) {
+		return
+	}
+	if !assert.Len(suite.T(), found, 2) {
+		return
+	}
+	assert.Equal(suite.T(), first, found[0])
+	assert.Equal(suite.T(), second, found[1])
+
+	found, err = store.FetchSome(context.Background(), arguments.FetchSomeOptions{
+		ConclusionContainsAll: []string{"best", "times"},
+	})
+	if !assert.NoError(suite.T(), err) {
+		return
+	}
+	if !assert.Len(suite.T(), found, 1) {
+		return
+	}
+	assert.Equal(suite.T(), first, found[0])
+}
+
+func (suite *StoreTests) saveCopyWithConclusion(store endpoints.Store, template arguments.Argument, conclusion string) arguments.Argument {
+	copy := template
+	copy.Conclusion = conclusion
+	copy.ID = suite.saveWithUpdates(store, copy)
+	copy.Version = 1
+	return copy
+}
+
 // TestVersionedFetchAll makes sure the Store returns the argument's live version only.
 func (suite *StoreTests) TestVersionedFetchAll() {
 	store := suite.StoreFactory()

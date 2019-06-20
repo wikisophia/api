@@ -3,6 +3,7 @@ package memory
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/wikisophia/api-arguments/server/arguments"
@@ -87,6 +88,9 @@ func (s *InMemoryStore) FetchSome(ctx context.Context, options arguments.FetchSo
 		if options.Conclusion != "" && options.Conclusion != s.arguments[i][len(s.arguments[i])-1].Conclusion {
 			continue
 		}
+		if !containsAll(s.arguments[i][len(s.arguments[i])-1].Conclusion, options.ConclusionContainsAll) {
+			continue
+		}
 
 		if numSkipped >= options.Offset {
 			args = append(args, s.arguments[i][len(s.arguments[i])-1])
@@ -98,6 +102,15 @@ func (s *InMemoryStore) FetchSome(ctx context.Context, options arguments.FetchSo
 		}
 	}
 	return args, nil
+}
+
+func containsAll(text string, elements []string) bool {
+	for _, element := range elements {
+		if !strings.Contains(text, element) {
+			return false
+		}
+	}
+	return true
 }
 
 // Save stores an argument and returns that argument's ID.

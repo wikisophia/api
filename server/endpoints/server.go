@@ -35,7 +35,6 @@ func NewServer(cfg config.Server, store Store) *Server {
 	server.router.PATCH("/arguments/:id", updateHandler(store))
 	server.router.DELETE("/arguments/:id", deleteHandler(store))
 	server.router.GET("/arguments/:id/version/:version", getArgumentByVersionHandler(store))
-	server.router.GET("/suggestions", suggestionsHandler())
 	return server
 }
 

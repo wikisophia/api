@@ -19,12 +19,21 @@
       ]
     },
     {
-      "id": 2,
+      "id": 3,
       "version": 3,
       "conclusion": "bong",
       "premises": [
         "bip",
         "boop"
+      ]
+    },
+    {
+      "id": 4,
+      "version": 1,
+      "conclusion": "bing with other words",
+      "premises": [
+        "bang",
+        "boom"
       ]
     }
   ]
