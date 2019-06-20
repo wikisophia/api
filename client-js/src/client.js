@@ -164,6 +164,8 @@ export default function newClient({ url, fetch }) {
  * @typedef {Object} SomeProperties
  *
  * @property [string] conclusion The conclusion that returned arguments must support.
+ * @property [string] search A search query. Returned arguments will use all of the words
+ *   from the search query in their conclusions.
  * @property [int] count The maximum number of objects which should appear in the response.
  * @property [int] offset The number of objects which the server should skip
  *   before it starts returning objects.

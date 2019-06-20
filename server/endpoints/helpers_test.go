@@ -118,6 +118,9 @@ func doFetchSomeArguments(server *endpoints.Server, options arguments.FetchSomeO
 	if options.Conclusion != "" {
 		path += queryParamSeparator() + "conclusion=" + url.QueryEscape(options.Conclusion)
 	}
+	if len(options.ConclusionContainsAll) > 0 {
+		path += queryParamSeparator() + "search=" + url.QueryEscape(strings.Join(options.ConclusionContainsAll, " "))
+	}
 	if options.Count > 0 {
 		path += queryParamSeparator() + "count=" + strconv.Itoa(options.Count)
 	}
