@@ -37,6 +37,9 @@ type NotFoundError struct {
 type FetchSomeOptions struct {
 	// Conclusion only finds arguments which support a given conclusion
 	Conclusion string
+	// ConclusionContainsAll limits returned arguments to ones with conclusions that
+	// contain all the words in this array.
+	ConclusionContainsAll []string
 	// Count limits the number of fetched arguments.
 	Count int
 	// Exclude prevents arguments which have any of these IDs from being returned

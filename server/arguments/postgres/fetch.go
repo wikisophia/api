@@ -7,6 +7,9 @@ import (
 	"log"
 	"sort"
 	"strconv"
+	"strings"
+
+	"github.com/lib/pq"
 
 	"github.com/pkg/errors"
 	"github.com/wikisophia/api-arguments/server/arguments"
@@ -127,6 +130,10 @@ func (store *Store) FetchSome(ctx context.Context, options arguments.FetchSomeOp
 		selectArgumentsQuery += "\n\t\t AND claims.claim = " + nextParamPlaceholder()
 		params = append(params, options.Conclusion)
 	}
+	if len(options.ConclusionContainsAll) != 0 {
+		tsQuery := strings.Join(escapeAll(options.ConclusionContainsAll), " & ")
+		selectArgumentsQuery += "\n\t\t AND to_tsvector(claim) @@ to_tsquery('" + tsQuery + "')"
+	}
 	if len(options.Exclude) != 0 {
 		selectArgumentsQuery += "\n\t\t AND arguments.id NOT IN ("
 		for i := 0; i < len(options.Exclude); i++ {
@@ -193,6 +200,14 @@ func (store *Store) FetchSome(ctx context.Context, options arguments.FetchSomeOp
 	// Fixes #1: re-sort because iteration order on maps isn't guaranteed
 	sort.Sort(arguments.ByID(toReturn))
 	return toReturn, nil
+}
+
+func escapeAll(inputs []string) []string {
+	outputs := make([]string, len(inputs))
+	for i := 0; i < len(inputs); i++ {
+		outputs[i] = strings.TrimSuffix(strings.TrimPrefix(pq.QuoteLiteral(inputs[i]), "'"), "'")
+	}
+	return outputs
 }
 
 func tryClose(rows *sql.Rows) {

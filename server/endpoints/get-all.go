@@ -4,11 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"regexp"
 	"strconv"
 	"strings"
 
 	"github.com/wikisophia/api-arguments/server/arguments"
 )
+
+var wordSplitter = regexp.MustCompile("[a-zA-Z]+")
 
 // ArgumentsGetter can fetch lists of arguments at once.
 type ArgumentsGetter interface {
@@ -33,7 +36,6 @@ func getAllArgumentsHandler(getter ArgumentsGetter) http.HandlerFunc {
 			http.Error(w, "The offset query param must be a nonnegative integer.", http.StatusBadRequest)
 			return
 		}
-
 		exclude, ok := parseOptionalArrayOfInt64s(r.URL.Query().Get("exclude"))
 		if !ok {
 			http.Error(w, "The exclude query param must be a comma-separated list of non-negative integers.", http.StatusBadRequest)
@@ -41,10 +43,11 @@ func getAllArgumentsHandler(getter ArgumentsGetter) http.HandlerFunc {
 		}
 
 		args, err := getter.FetchSome(context.Background(), arguments.FetchSomeOptions{
-			Conclusion: r.URL.Query().Get("conclusion"),
-			Count:      count,
-			Exclude:    exclude,
-			Offset:     offset,
+			Conclusion:            r.URL.Query().Get("conclusion"),
+			ConclusionContainsAll: wordSplitter.FindAllString(r.URL.Query().Get("search"), -1),
+			Count:                 count,
+			Exclude:               exclude,
+			Offset:                offset,
 		})
 		if err != nil {
 			http.Error(w, "failed to fetch arguments from the backend", http.StatusInternalServerError)
