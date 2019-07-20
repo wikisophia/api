@@ -4,12 +4,14 @@ module.exports = {
         'space-before-function-paren': 'off',
         'no-use-before-define': 'off'
     },
-    overrides: {
-        files: [
-            '**/*.test.js'
-        ],
-        env: {
-            jest: true
+    overrides: [
+        {
+            files: [
+                '**/*.test.js'
+            ],
+            env: {
+                jest: true
+            }
         }
-    }
+    ]
 }
