@@ -1,11 +1,11 @@
-package memory_test
+package arguments_test
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
+	"github.com/wikisophia/api-arguments/server/arguments"
 	"github.com/wikisophia/api-arguments/server/arguments/argumentstest"
-	"github.com/wikisophia/api-arguments/server/arguments/memory"
 	"github.com/wikisophia/api-arguments/server/endpoints"
 )
 
@@ -16,7 +16,7 @@ import (
 func TestInMemoryStore(t *testing.T) {
 	suite.Run(t, &argumentstest.StoreTests{
 		StoreFactory: func() endpoints.Store {
-			return memory.NewStore()
+			return arguments.NewStore()
 		},
 	})
 }

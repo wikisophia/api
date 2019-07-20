@@ -38,15 +38,15 @@ CREATE INDEX claims_claim_search_idx ON claims USING gin(to_tsvector('english', 
 
 CREATE TABLE IF NOT EXISTS arguments (
   id bigserial PRIMARY KEY,
-  deleted boolean NOT NULL DEFAULT FALSE,
+  deleted_on TIMESTAMPTZ DEFAULT NULL,
   created_on TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   last_modified TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 CREATE TRIGGER update_arguments_last_modified BEFORE UPDATE ON arguments FOR EACH ROW EXECUTE PROCEDURE update_last_modified();
 COMMENT ON TABLE arguments IS 'This stores all the arguments on wikisophia.';
-COMMENT ON COLUMN arguments.deleted IS 'True if this argument has been deleted, and false otherwise.';
+COMMENT ON COLUMN arguments.deleted_on IS 'The timestamp when this argument was deleted. If null, it''s still live.';
 COMMENT ON COLUMN arguments.created_on IS 'Timestamp of when the first version of this argument was created.';
-COMMENT ON COLUMN arguments.last_modified IS 'Timestamp of when this argument was last modified/deleted/restored.';
+COMMENT ON COLUMN arguments.last_modified IS 'Timestamp of when this argument was last deleted/restored. This does not update when the argument is edited to a new version.';
 REVOKE ALL ON TABLE arguments FROM PUBLIC;
 GRANT INSERT, UPDATE ON TABLE arguments TO app_wikisophia;
 

@@ -3,15 +3,16 @@ package postgres
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/wikisophia/api-arguments/server/arguments"
 )
 
-const deleteQuery = `UPDATE arguments SET deleted = true WHERE id = $1 RETURNING id;`
+const deleteQuery = `UPDATE arguments SET deleted_on = $1 WHERE id = $2 RETURNING id;`
 
 // Delete soft deletes an argument by ID.
 func (store *Store) Delete(ctx context.Context, id int64) error {
-	rows, err := store.deleteStatement.QueryContext(ctx, id)
+	rows, err := store.deleteStatement.QueryContext(ctx, time.Now(), id)
 	if err != nil {
 		return err
 	}

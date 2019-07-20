@@ -12,7 +12,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/wikisophia/api-arguments/server/arguments"
-	"github.com/wikisophia/api-arguments/server/arguments/memory"
 	"github.com/wikisophia/api-arguments/server/config"
 	"github.com/wikisophia/api-arguments/server/endpoints"
 )
@@ -23,7 +22,7 @@ import (
 // newServerForTests returns a Server that stores arguments in memory.
 func newServerForTests() *endpoints.Server {
 	cfg := config.Defaults()
-	return endpoints.NewServer(*cfg.Server, memory.NewStore())
+	return endpoints.NewServer(*cfg.Server, arguments.NewStore())
 }
 
 func parseGetAllResponse(t *testing.T, data []byte) endpoints.GetAllResponse {
