@@ -8,14 +8,14 @@ import (
 	"github.com/pkg/errors"
 )
 
-// NewStore returns an in-memory implementation of a Store.
+// NewMemoryStore returns an in-memory implementation of a Store.
 //
 // This is used when testing other parts of the app so that those tests don't
 // need to rely on a database.
 //
 // TODO #11: This should be threadsafe. It's not a huge deal yet because this
 // is used for tests & development... but might cause some false positives.
-func NewStore() *InMemoryStore {
+func NewMemoryStore() *InMemoryStore {
 	// Populate the arguments value with a "dummy" arg, since versions start at 1.
 	// The implementation is just a bit simpler if we start the real data at index 1 too.
 	return &InMemoryStore{

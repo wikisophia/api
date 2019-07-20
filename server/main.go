@@ -23,7 +23,7 @@ func main() {
 func newStore(cfg *config.Storage) (endpoints.Store, func() error) {
 	switch cfg.Type {
 	case config.StorageTypeMemory:
-		return arguments.NewStore(), func() error { return nil }
+		return arguments.NewMemoryStore(), func() error { return nil }
 	case config.StorageTypePostgres:
 		store := postgres.NewStore(postgres.NewDB(cfg.Postgres))
 		return store, store.Close

@@ -16,7 +16,7 @@ import (
 func TestInMemoryStore(t *testing.T) {
 	suite.Run(t, &argumentstest.StoreTests{
 		StoreFactory: func() endpoints.Store {
-			return arguments.NewStore()
+			return arguments.NewMemoryStore()
 		},
 	})
 }

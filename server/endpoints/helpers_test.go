@@ -22,7 +22,7 @@ import (
 // newServerForTests returns a Server that stores arguments in memory.
 func newServerForTests() *endpoints.Server {
 	cfg := config.Defaults()
-	return endpoints.NewServer(*cfg.Server, arguments.NewStore())
+	return endpoints.NewServer(*cfg.Server, arguments.NewMemoryStore())
 }
 
 func parseGetAllResponse(t *testing.T, data []byte) endpoints.GetAllResponse {
