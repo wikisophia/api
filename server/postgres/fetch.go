@@ -22,7 +22,7 @@ FROM claims
 	INNER JOIN argument_versions ON argument_premises.argument_version_id = argument_versions.id
 	INNER JOIN arguments ON arguments.id = argument_versions.argument_id
 WHERE arguments.id = $1
-	AND arguments.deleted = false
+	AND arguments.deleted_on IS NULL
 	AND argument_versions.argument_version = $2)
 UNION ALL
 (SELECT claims.claim, argument_versions.argument_version AS argument_version, -1 AS o
@@ -30,7 +30,7 @@ FROM claims
 	INNER JOIN argument_versions ON claims.id = argument_versions.conclusion_id
 	INNER JOIN arguments ON arguments.id = argument_versions.argument_id
 WHERE arguments.id = $1
-	AND arguments.deleted = false
+	AND arguments.deleted_on IS NULL
 	AND argument_versions.argument_version = $2)
 ORDER BY o;
 `
@@ -44,7 +44,7 @@ const fetchLiveQuery = `
 		LEFT JOIN argument_versions tmp ON argument_versions.argument_id = tmp.argument_id AND argument_versions.argument_version < tmp.argument_version
 	WHERE tmp.id IS NULL
 		AND arguments.id = $1
-		AND arguments.deleted = false
+		AND arguments.deleted_on IS NULL
 		AND argument_versions.argument_id = $1)
 UNION ALL
 (SELECT claims.claim, argument_versions.argument_version AS argument_version, -1 AS o
@@ -54,7 +54,7 @@ UNION ALL
 		LEFT JOIN argument_versions tmp ON argument_versions.argument_id = tmp.argument_id AND argument_versions.argument_version < tmp.argument_version
 	WHERE tmp.id IS NULL
 		AND arguments.id = $1
-		AND arguments.deleted = false
+		AND arguments.deleted_on IS NULL
 		AND argument_versions.argument_id = $1)
 ORDER BY o;
 `
@@ -122,7 +122,7 @@ func (store *Store) FetchSome(ctx context.Context, options arguments.FetchSomeOp
 		INNER JOIN claims ON argument_versions.conclusion_id = claims.id
 		LEFT JOIN argument_versions tmp ON argument_versions.argument_id = tmp.argument_id AND argument_versions.argument_version < tmp.argument_version
 	WHERE tmp.id IS NULL
-		AND arguments.deleted = FALSE`
+		AND arguments.deleted_on IS NULL`
 
 	var params []interface{}
 	nextParamPlaceholder := newParamPlaceholderGenerator()

@@ -18,7 +18,7 @@ type StoreTests struct {
 
 // TestSaveIsLive makes sure that an argument is "live" immediately after being saved.
 func (suite *StoreTests) TestSaveIsLive() {
-	original := ParseSample(suite.T(), "../../samples/save-request.json")
+	original := ParseSample(suite.T(), "../samples/save-request.json")
 	store := suite.StoreFactory()
 	id, err := store.Save(context.Background(), original)
 	if !assert.NoError(suite.T(), err) {
@@ -35,8 +35,8 @@ func (suite *StoreTests) TestSaveIsLive() {
 
 // TestUpdatedIsLive makes sure that a newly updated argument uses the latest premises.
 func (suite *StoreTests) TestUpdatedIsLive() {
-	original := ParseSample(suite.T(), "../../samples/save-request.json")
-	updated := ParseSample(suite.T(), "../../samples/update-request.json")
+	original := ParseSample(suite.T(), "../samples/save-request.json")
+	updated := ParseSample(suite.T(), "../samples/update-request.json")
 
 	store := suite.StoreFactory()
 	id := suite.saveWithUpdates(store, original, updated)
@@ -55,7 +55,7 @@ func (suite *StoreTests) TestUpdatedIsLive() {
 // TestUpdateUnknownReturnsError makes sure that we can't update arguments which don't exist.
 func (suite *StoreTests) TestUpdateUnknownReturnsError() {
 	store := suite.StoreFactory()
-	unknown := ParseSample(suite.T(), "../../samples/save-request.json")
+	unknown := ParseSample(suite.T(), "../samples/save-request.json")
 	unknown.ID = 1
 	_, err := store.Update(context.Background(), unknown)
 	if !assert.Error(suite.T(), err) {
@@ -70,8 +70,8 @@ func (suite *StoreTests) TestUpdateUnknownReturnsError() {
 // TestOriginalIsAvailable makes sure that old versions of updated arguments can still be fetched.
 func (suite *StoreTests) TestOriginalIsAvailable() {
 	store := suite.StoreFactory()
-	original := ParseSample(suite.T(), "../../samples/save-request.json")
-	updated := ParseSample(suite.T(), "../../samples/update-request.json")
+	original := ParseSample(suite.T(), "../samples/save-request.json")
+	updated := ParseSample(suite.T(), "../samples/update-request.json")
 
 	id := suite.saveWithUpdates(store, original, updated)
 	if id == -1 {
@@ -99,8 +99,8 @@ func (suite *StoreTests) TestDeletedUnknownReturnsNotFound() {
 // TestDeletedIsUnavailable makes sure the backend doesn't return arguments that have been deleted.
 func (suite *StoreTests) TestDeletedIsUnavailable() {
 	store := suite.StoreFactory()
-	original := ParseSample(suite.T(), "../../samples/save-request.json")
-	updated := ParseSample(suite.T(), "../../samples/update-request.json")
+	original := ParseSample(suite.T(), "../samples/save-request.json")
+	updated := ParseSample(suite.T(), "../samples/update-request.json")
 
 	id := suite.saveWithUpdates(store, original, updated)
 	if id == -1 {
@@ -137,8 +137,8 @@ func (suite *StoreTests) TestFetchUnknownReturnsError() {
 // TestFetchByConclusion makes sure the Store returns all the arguments for a conclusion.
 func (suite *StoreTests) TestFetchByConclusion() {
 	store := suite.StoreFactory()
-	original := ParseSample(suite.T(), "../../samples/save-request.json")
-	updated := ParseSample(suite.T(), "../../samples/update-request.json")
+	original := ParseSample(suite.T(), "../samples/save-request.json")
+	updated := ParseSample(suite.T(), "../samples/update-request.json")
 
 	original.ID = suite.saveWithUpdates(store, original)
 	original.Version = 1
@@ -174,7 +174,7 @@ func (suite *StoreTests) TestFetchByConclusion() {
 // based on which words the user expects the conclusion to have.
 func (suite *StoreTests) TestFetchWithConclusionSearch() {
 	store := suite.StoreFactory()
-	sample := ParseSample(suite.T(), "../../samples/save-request.json")
+	sample := ParseSample(suite.T(), "../samples/save-request.json")
 
 	first := suite.saveCopyWithConclusion(store, sample, "best of times")
 	second := suite.saveCopyWithConclusion(store, sample, "worst of times")
@@ -215,8 +215,8 @@ func (suite *StoreTests) saveCopyWithConclusion(store endpoints.Store, template 
 // TestVersionedFetchAll makes sure the Store returns the argument's live version only.
 func (suite *StoreTests) TestVersionedFetchAll() {
 	store := suite.StoreFactory()
-	original := ParseSample(suite.T(), "../../samples/save-request.json")
-	updated := ParseSample(suite.T(), "../../samples/update-request.json")
+	original := ParseSample(suite.T(), "../samples/save-request.json")
+	updated := ParseSample(suite.T(), "../samples/update-request.json")
 	updated.Conclusion = original.Conclusion
 
 	id := suite.saveWithUpdates(store, original, updated)
@@ -238,8 +238,8 @@ func (suite *StoreTests) TestVersionedFetchAll() {
 // which have a different conclusion from when they started.
 func (suite *StoreTests) TestFetchAllChangedConclusion() {
 	store := suite.StoreFactory()
-	original := ParseSample(suite.T(), "../../samples/save-request.json")
-	updated := ParseSample(suite.T(), "../../samples/update-request.json")
+	original := ParseSample(suite.T(), "../samples/save-request.json")
+	updated := ParseSample(suite.T(), "../samples/update-request.json")
 
 	id := suite.saveWithUpdates(store, original, updated)
 	allArgs, err := store.FetchSome(context.Background(), arguments.FetchSomeOptions{
@@ -259,7 +259,7 @@ func (suite *StoreTests) TestFetchAllChangedConclusion() {
 // TestFetchOne makes sure the Store limits how many objects it returns properly.
 func (suite *StoreTests) TestFetchOne() {
 	store := suite.StoreFactory()
-	original := ParseSample(suite.T(), "../../samples/save-request.json")
+	original := ParseSample(suite.T(), "../samples/save-request.json")
 
 	suite.saveWithUpdates(store, original)
 	suite.saveWithUpdates(store, original)
@@ -277,7 +277,7 @@ func (suite *StoreTests) TestFetchOne() {
 func (suite *StoreTests) TestFetchWithOffset() {
 	store := suite.StoreFactory()
 
-	first := ParseSample(suite.T(), "../../samples/save-request.json")
+	first := ParseSample(suite.T(), "../samples/save-request.json")
 	suite.saveWithUpdates(store, first)
 	second := arguments.Argument{
 		Conclusion: "some second conclusion",
@@ -310,7 +310,7 @@ func (suite *StoreTests) TestFetchWithOffset() {
 // TestFetchWithExclusions makes sure the Store excludes arguments properly.
 func (suite *StoreTests) TestFetchWithExclusions() {
 	store := suite.StoreFactory()
-	arg := ParseSample(suite.T(), "../../samples/save-request.json")
+	arg := ParseSample(suite.T(), "../samples/save-request.json")
 
 	id1 := suite.saveWithUpdates(store, arg)
 	id2 := suite.saveWithUpdates(store, arg)

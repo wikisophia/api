@@ -13,7 +13,6 @@ import (
 	"github.com/smotes/purse"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
-	argumentsInPostgres "github.com/wikisophia/api-arguments/server/arguments/postgres"
 	"github.com/wikisophia/api-arguments/server/config"
 	"github.com/wikisophia/api-arguments/server/postgres"
 )
@@ -32,7 +31,7 @@ func TestArgumentStorageIntegration(t *testing.T) {
 	}
 
 	db := postgres.NewDB(config.MustParse().Storage.Postgres)
-	sqlScripts, err := purse.New(filepath.Join("..", "..", "postgres", "scripts"))
+	sqlScripts, err := purse.New(filepath.Join(".", "scripts"))
 	if !assert.NoError(t, err) {
 		return
 	}
@@ -45,7 +44,7 @@ func TestArgumentStorageIntegration(t *testing.T) {
 		return
 	}
 
-	store := argumentsInPostgres.NewStore(db)
+	store := postgres.NewStore(db)
 
 	// Run all the same tests from the StoreTests suite.
 	empty, ok := sqlScripts.Get("empty.sql")

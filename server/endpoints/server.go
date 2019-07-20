@@ -63,7 +63,7 @@ func (s *Server) Start(done chan<- struct{}) error {
 		// AllowedMethods should stay in sync with the methods used by the routes
 		handler = cors.New(cors.Options{
 			AllowedOrigins: s.config.CorsAllowedOrigins,
-			AllowedMethods: []string{"GET", "POST", "PATCH"},
+			AllowedMethods: []string{"DELETE", "GET", "POST", "PATCH"},
 			ExposedHeaders: []string{"Location"},
 		}).Handler(handler)
 	}
