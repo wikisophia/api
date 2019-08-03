@@ -12,17 +12,15 @@ import (
 	"github.com/wikisophia/api-arguments/server/config"
 )
 
-// Server runs the service. Use NewServier() to construct one from an app config,
+// Server runs the service. Use NewServer() to construct one from an app config,
 // and Start() to make it start listening and serving requests.
 type Server struct {
-	config *config.Server
 	router *httprouter.Router
 }
 
 // NewServer makes a server which defines REST endpoints for the service.
-func NewServer(cfg config.Server, store Store) *Server {
+func NewServer(store Store) *Server {
 	return &Server{
-		config: &cfg,
 		router: newRouter(store),
 	}
 }
@@ -46,16 +44,16 @@ func (s *Server) Handle(w http.ResponseWriter, req *http.Request) {
 // Start connects the API server to its port and blocks until it hears a
 // shutdown signal. Once the server has shut down completely, it adds
 // an element to the done channel.
-func (s *Server) Start(done chan<- struct{}) error {
+func (s *Server) Start(cfg config.Server, done chan<- struct{}) error {
 	httpServer := &http.Server{
-		Addr:              s.config.Addr,
+		Addr:              cfg.Addr,
 		Handler:           s.router,
-		ReadHeaderTimeout: s.config.ReadHeaderTimeout(),
+		ReadHeaderTimeout: cfg.ReadHeaderTimeout(),
 	}
 
 	go shutdownOnSignal(httpServer, done)
-	if s.config.UseSSL {
-		return httpServer.ListenAndServeTLS(s.config.CertPath, s.config.KeyPath)
+	if cfg.UseSSL {
+		return httpServer.ListenAndServeTLS(cfg.CertPath, cfg.KeyPath)
 	}
 	return httpServer.ListenAndServe()
 }

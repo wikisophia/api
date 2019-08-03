@@ -12,10 +12,10 @@ import (
 func main() {
 	cfg := config.MustParse()
 	store, cleanup := newStore(cfg.Storage)
-	server := endpoints.NewServer(*cfg.Server, store)
+	server := endpoints.NewServer(store)
 
 	done := make(chan struct{}, 1)
-	go server.Start(done)
+	go server.Start(*cfg.Server, done)
 	<-done
 	cleanup()
 }
