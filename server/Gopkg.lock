@@ -45,14 +45,6 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:275de36a5db8e4b182f5e6527123fc4f33f5b7f7304eb33e7d06072c5a4801c4"
-  name = "github.com/rs/cors"
-  packages = ["."]
-  pruneopts = ""
-  revision = "ca016a06a5753f8ba03029c0aa5e54afb1bf713f"
-  version = "v1.4.0"
-
-[[projects]]
   digest = "1:ddf40105c72a108e872eb00e9ae39043303e067faa8002de2eb2ae78e1addacf"
   name = "github.com/smotes/purse"
   packages = ["."]
@@ -87,7 +79,6 @@
     "github.com/julienschmidt/httprouter",
     "github.com/lib/pq",
     "github.com/pkg/errors",
-    "github.com/rs/cors",
     "github.com/smotes/purse",
     "github.com/stretchr/testify/assert",
     "github.com/stretchr/testify/suite",
