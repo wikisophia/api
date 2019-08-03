@@ -21,11 +21,10 @@ type Server struct {
 
 // NewServer makes a server which defines REST endpoints for the service.
 func NewServer(cfg config.Server, store Store) *Server {
-	server := &Server{
+	return &Server{
 		config: &cfg,
 		router: newRouter(store),
 	}
-	return server
 }
 
 // Store has all the functions needed by the server for persistent storage
