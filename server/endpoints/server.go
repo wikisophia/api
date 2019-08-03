@@ -13,29 +13,17 @@ import (
 	"github.com/wikisophia/api-arguments/server/config"
 )
 
-// Server runs the service. Use NewServier() to construct one from an app config,
+// Server runs the service. Use NewServer() to construct one from an app config,
 // and Start() to make it start listening and serving requests.
 type Server struct {
-	config *config.Server
 	router *httprouter.Router
 }
 
 // NewServer makes a server which defines REST endpoints for the service.
-func NewServer(cfg config.Server, store Store) *Server {
-	server := &Server{
-		config: &cfg,
-		router: httprouter.New(),
+func NewServer(store Store) *Server {
+	return &Server{
+		router: newRouter(store),
 	}
-
-	// The HTTP Methods used here should stay in sync with the cors
-	// AllowedMethods in Start().
-	server.router.HandlerFunc("POST", "/arguments", saveHandler(store))
-	server.router.HandlerFunc("GET", "/arguments", getAllArgumentsHandler(store))
-	server.router.GET("/arguments/:id", getLiveArgumentHandler(store))
-	server.router.PATCH("/arguments/:id", updateHandler(store))
-	server.router.DELETE("/arguments/:id", deleteHandler(store))
-	server.router.GET("/arguments/:id/version/:version", getArgumentByVersionHandler(store))
-	return server
 }
 
 // Store has all the functions needed by the server for persistent storage
@@ -57,26 +45,26 @@ func (s *Server) Handle(w http.ResponseWriter, req *http.Request) {
 // Start connects the API server to its port and blocks until it hears a
 // shutdown signal. Once the server has shut down completely, it adds
 // an element to the done channel.
-func (s *Server) Start(done chan<- struct{}) error {
+func (s *Server) Start(cfg config.Server, done chan<- struct{}) error {
 	var handler http.Handler = s.router
-	if len(s.config.CorsAllowedOrigins) > 0 {
+	if len(cfg.CorsAllowedOrigins) > 0 {
 		// AllowedMethods should stay in sync with the methods used by the routes
 		handler = cors.New(cors.Options{
-			AllowedOrigins: s.config.CorsAllowedOrigins,
+			AllowedOrigins: cfg.CorsAllowedOrigins,
 			AllowedMethods: []string{"DELETE", "GET", "POST", "PATCH"},
 			ExposedHeaders: []string{"Location"},
 		}).Handler(handler)
 	}
 
 	httpServer := &http.Server{
-		Addr:              s.config.Addr,
+		Addr:              cfg.Addr,
 		Handler:           handler,
-		ReadHeaderTimeout: s.config.ReadHeaderTimeout(),
+		ReadHeaderTimeout: cfg.ReadHeaderTimeout(),
 	}
 
 	go shutdownOnSignal(httpServer, done)
-	if s.config.UseSSL {
-		return httpServer.ListenAndServeTLS(s.config.CertPath, s.config.KeyPath)
+	if cfg.UseSSL {
+		return httpServer.ListenAndServeTLS(cfg.CertPath, cfg.KeyPath)
 	}
 	return httpServer.ListenAndServe()
 }
