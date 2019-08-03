@@ -2,12 +2,12 @@
 
 
 [[projects]]
-  digest = "1:56c130d885a4aacae1dd9c7b71cfe39912c7ebc1ff7d2b46083c8812996dc43b"
+  digest = "1:0deddd908b6b4b768cfc272c16ee61e7088a60f7fe2f06c547bd3d8e1f8b8e77"
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
   pruneopts = ""
-  revision = "346938d642f2ec3594ed81d874461961cd0faa76"
-  version = "v1.1.0"
+  revision = "8991bc29aa16c548c550c7ff78260e27b9ab7c73"
+  version = "v1.1.1"
 
 [[projects]]
   digest = "1:deeb6536ebbcb66ab11213ecfaac9daadfcd004dd057446a4980ffd6c15c36e2"
@@ -18,7 +18,7 @@
   version = "v1.2.0"
 
 [[projects]]
-  digest = "1:4baf03221e12922dc224a470f9e1a36d8c7564af81fd6427924383232d92b20c"
+  digest = "1:f4216047c24ab66fb757045febd7dac4edc6f4ad9f6c0063d0755d654d04f25e"
   name = "github.com/lib/pq"
   packages = [
     ".",
@@ -26,7 +26,7 @@
     "scram",
   ]
   pruneopts = ""
-  revision = "2ff3cb3adc01768e0a552b3a02575a6df38a9bea"
+  revision = "v1.2.0"
 
 [[projects]]
   digest = "1:1d7e1867c49a6dd9856598ef7c3123604ea3daabf5b83f303ff457bcbc410b1d"
@@ -43,14 +43,6 @@
   pruneopts = ""
   revision = "792786c7400a136282c1664665ae0a8db921c6c2"
   version = "v1.0.0"
-
-[[projects]]
-  digest = "1:275de36a5db8e4b182f5e6527123fc4f33f5b7f7304eb33e7d06072c5a4801c4"
-  name = "github.com/rs/cors"
-  packages = ["."]
-  pruneopts = ""
-  revision = "ca016a06a5753f8ba03029c0aa5e54afb1bf713f"
-  version = "v1.4.0"
 
 [[projects]]
   digest = "1:ddf40105c72a108e872eb00e9ae39043303e067faa8002de2eb2ae78e1addacf"
@@ -74,11 +66,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:7018a5a58e70aa4f14651e0d6422ac5417a13c56d4176d1234831a7923159361"
+  digest = "1:6f670e69d08b1b7b1720d4a94d7b68292f6163010f43d5219722ba3fac22700d"
   name = "github.com/wikisophia/go-environment-configs"
   packages = ["."]
   pruneopts = ""
-  revision = "58432a6545649fe66998a6be95d9e0deabdb9ffa"
+  revision = "fe19e4a925527b0866cf7d54dcfa8cceaa84acfc"
 
 [solve-meta]
   analyzer-name = "dep"
@@ -87,7 +79,6 @@
     "github.com/julienschmidt/httprouter",
     "github.com/lib/pq",
     "github.com/pkg/errors",
-    "github.com/rs/cors",
     "github.com/smotes/purse",
     "github.com/stretchr/testify/assert",
     "github.com/stretchr/testify/suite",

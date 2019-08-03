@@ -24,12 +24,6 @@ func TestEnvironmentOverrides(t *testing.T) {
 		return cfg.Server.ReadHeaderTimeoutMillis
 	})
 
-	// WKSPH_ARGS_SERVER_CORS_ALLOWED_ORIGINS configures which domains can call us
-	// with a CORS request. For more info, see https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
-	assertStringSliceParses(t, "WKSPH_ARGS_SERVER_CORS_ALLOWED_ORIGINS", []string{"abc", "def"}, func(cfg config.Configuration) []string {
-		return cfg.Server.CorsAllowedOrigins
-	})
-
 	// WKSPH_ARGS_SERVER_USE_SSL determines whether the server should connect with TLS.
 	assertBoolParses(t, "WKSPH_ARGS_SERVER_USE_SSL", true, func(cfg config.Configuration) bool {
 		return cfg.Server.UseSSL
@@ -98,12 +92,6 @@ func TestInvalidEnvironment(t *testing.T) {
 	assertInvalid(t, "WKSPH_ARGS_STORAGE_POSTGRES_PORT", "-3")
 	assertInvalid(t, "WKSPH_ARGS_STORAGE_POSTGRES_PORT", "0")
 	assertInvalid(t, "WKSPH_ARGS_STORAGE_TYPE", "invalid")
-}
-
-func TestEdgeCases(t *testing.T) {
-	assertStringSliceParses(t, "WKSPH_ARGS_SERVER_CORS_ALLOWED_ORIGINS", nil, func(cfg config.Configuration) []string {
-		return cfg.Server.CorsAllowedOrigins
-	})
 }
 
 func assertBoolParses(t *testing.T, env string, value bool, getter func(cfg config.Configuration) bool) {
