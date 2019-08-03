@@ -16,4 +16,4 @@
 
 [[constraint]]
   name = "github.com/lib/pq"
-  revision = "2ff3cb3adc01768e0a552b3a02575a6df38a9bea"
+  revision = "v1.2.0"
