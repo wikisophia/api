@@ -25,7 +25,7 @@ function mockOneReturn(status, body, headers) {
 
 function saveRequestToResponse(req) {
   return {
-    argument: Object.assign({}, req, { id: 1, version: 1 }),
+    argument: { ...req, id: 1, version: 1 },
   };
 }
 
@@ -133,7 +133,7 @@ describe('save()', () => {
   test('rejects arguments with no conclusion', () => {
     const fetch = jest.fn();
     const client = newClient({ url, fetch });
-    const mangled = Object.assign({}, saveRequest);
+    const mangled = { ...saveRequest };
     delete mangled.conclusion;
     const saved = client.save(mangled);
     expect(fetch.mock.calls.length).toBe(0);
@@ -143,7 +143,7 @@ describe('save()', () => {
   test('rejects arguments with duplicate premises', () => {
     const fetch = jest.fn();
     const client = newClient({ url, fetch });
-    const mangled = Object.assign({}, saveRequest);
+    const mangled = { ...saveRequest };
     mangled.premises = Array(saveRequest.premises.length).fill(saveRequest.premises[0]);
     const saved = client.save(mangled);
     expect(fetch.mock.calls.length).toBe(0);
@@ -153,7 +153,7 @@ describe('save()', () => {
   test('rejects arguments with too few premises', () => {
     const fetch = jest.fn();
     const client = newClient({ url, fetch });
-    const mangled = Object.assign({}, saveRequest);
+    const mangled = { ...saveRequest };
     mangled.premises = ['only one'];
     const saved = client.save(mangled);
     expect(fetch.mock.calls.length).toBe(0);
@@ -188,7 +188,7 @@ describe('update()', () => {
       Location: mockLocation,
     });
     const client = newClient({ url, fetch });
-    const updatePremisesOnly = Object.assign({}, updateRequest, { conclusion: null });
+    const updatePremisesOnly = { ...updateRequest, conclusion: null };
     return expect(client.update(1, updatePremisesOnly)).resolves.toEqual({
       argument: response.argument,
       location: mockLocation,
@@ -210,9 +210,11 @@ describe('update()', () => {
   test('rejects updates with duplicate premises', () => {
     const fetch = jest.fn();
     const client = newClient({ url, fetch });
-    const update = Object.assign({}, updateRequest, {
+    const { premises, ...updateRequestWithoutPremises } = updateRequest;
+    const update = {
       premises: Array(updateRequest.premises.length).fill(updateRequest.premises[0]),
-    });
+      ...updateRequestWithoutPremises,
+    };
     const call = client.update(1, update);
     expect(fetch.mock.calls.length).toBe(0);
     return expect(call).rejects.toThrow(`Arguments shouldn't use the same premise more than once. Yours repeats: ${updateRequest.premises[0]}`);
@@ -221,9 +223,7 @@ describe('update()', () => {
   test('rejects updates with too few premises', () => {
     const fetch = jest.fn();
     const client = newClient({ url, fetch });
-    const update = Object.assign({}, updateRequest, {
-      premises: ['only one'],
-    });
+    const update = { ...updateRequest, premises: ['only one'] };
     const call = client.update(1, update);
     expect(fetch.mock.calls.length).toBe(0);
     return expect(call).rejects.toThrow('An argument must have at least two premises.');

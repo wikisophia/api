@@ -41,9 +41,7 @@ export default function newClient({ url, fetch }) {
     getSome(options) {
       let payload = options;
       if (options.exclude) {
-        payload = Object.assign({}, payload, {
-          exclude: payload.exclude.join(','),
-        });
+        payload = { ...payload, exclude: payload.exclude.join(',') };
       }
       const queryString = Object.keys(payload).reduce(
         (valueSoFar, thisKey) => `${valueSoFar}${thisKey}=${encodeURIComponent(payload[thisKey])}&`,
@@ -74,7 +72,7 @@ export default function newClient({ url, fetch }) {
         mode: 'cors',
         body: JSON.stringify(argument),
       }).then(handleServerErrors)
-        .then(response => parseJSONResponseBody(response).then(responseBody => ({
+        .then((response) => parseJSONResponseBody(response).then((responseBody) => ({
           location: response.headers.get('Location'),
           argument: responseBody.argument,
         })));
@@ -94,9 +92,9 @@ export default function newClient({ url, fetch }) {
         return Promise.reject(new Error('Updates must change premises, a conclusion, or both.'));
       }
       if (argument.premises) {
-        const validation = validatePremises(argument.premises);
-        if (validation) {
-          return Promise.reject(new Error(validation));
+        const err = validatePremises(argument.premises);
+        if (err) {
+          return Promise.reject(new Error(err));
         }
       }
       return fetch(`${url}/arguments/${id}`, {
@@ -116,7 +114,7 @@ export default function newClient({ url, fetch }) {
           }
           return response;
         })
-        .then(response => parseJSONResponseBody(response).then(responseBody => ({
+        .then((response) => parseJSONResponseBody(response).then((responseBody) => ({
           location: response.headers.get('Location'),
           argument: responseBody.argument,
         })));
