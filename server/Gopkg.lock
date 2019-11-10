@@ -2,104 +2,67 @@
 
 
 [[projects]]
-  digest = "1:0deddd908b6b4b768cfc272c16ee61e7088a60f7fe2f06c547bd3d8e1f8b8e77"
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
-  pruneopts = ""
   revision = "8991bc29aa16c548c550c7ff78260e27b9ab7c73"
   version = "v1.1.1"
 
 [[projects]]
-  digest = "1:deeb6536ebbcb66ab11213ecfaac9daadfcd004dd057446a4980ffd6c15c36e2"
   name = "github.com/julienschmidt/httprouter"
   packages = ["."]
-  pruneopts = ""
-  revision = "348b672cd90d8190f8240323e372ecd1e66b59dc"
-  version = "v1.2.0"
+  revision = "4eec211fa4e8df74ed978dc5681612131854144f"
+  version = "v1.3.0"
 
 [[projects]]
-  digest = "1:f4216047c24ab66fb757045febd7dac4edc6f4ad9f6c0063d0755d654d04f25e"
   name = "github.com/lib/pq"
-  packages = [
-    ".",
-    "oid",
-    "scram",
-  ]
-  pruneopts = ""
+  packages = [".","oid","scram"]
   revision = "v1.2.0"
 
 [[projects]]
-  digest = "1:1d7e1867c49a6dd9856598ef7c3123604ea3daabf5b83f303ff457bcbc410b1d"
   name = "github.com/pkg/errors"
   packages = ["."]
-  pruneopts = ""
   revision = "ba968bfe8b2f7e042a574c888954fccecfa385b4"
   version = "v0.8.1"
 
 [[projects]]
-  digest = "1:256484dbbcd271f9ecebc6795b2df8cad4c458dd0f5fd82a8c2fa0c29f233411"
   name = "github.com/pmezard/go-difflib"
   packages = ["difflib"]
-  pruneopts = ""
   revision = "792786c7400a136282c1664665ae0a8db921c6c2"
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:1b2b34c281548413e60ec8a0efb951e75820bc6d1ee25f6d3c83fde0add004c3"
   name = "github.com/rs/cors"
   packages = ["."]
-  pruneopts = ""
   revision = "db0fe48135e83b5812a5a31be0eea66984b1b521"
   version = "v1.7.0"
 
 [[projects]]
-  digest = "1:ddf40105c72a108e872eb00e9ae39043303e067faa8002de2eb2ae78e1addacf"
   name = "github.com/smotes/purse"
   packages = ["."]
-  pruneopts = ""
   revision = "9ce9ed34191cbabb61a4dd1d5623e69a3b95cdda"
   version = "v1.0.1"
 
 [[projects]]
-  digest = "1:f7b541897bcde05a04a044c342ddc7425aab7e331f37b47fbb486cd16324b48e"
   name = "github.com/stretchr/testify"
-  packages = [
-    "assert",
-    "require",
-    "suite",
-  ]
-  pruneopts = ""
+  packages = ["assert","require","suite"]
   revision = "221dbe5ed46703ee255b1da0dec05086f5035f62"
   version = "v1.4.0"
 
 [[projects]]
   branch = "master"
-  digest = "1:6f670e69d08b1b7b1720d4a94d7b68292f6163010f43d5219722ba3fac22700d"
   name = "github.com/wikisophia/go-environment-configs"
   packages = ["."]
-  pruneopts = ""
   revision = "fe19e4a925527b0866cf7d54dcfa8cceaa84acfc"
 
 [[projects]]
-  digest = "1:cedccf16b71e86db87a24f8d4c70b0a855872eb967cb906a66b95de56aefbd0d"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
-  pruneopts = ""
   revision = "51d6538a90f86fe93ac480b35f37b2be17fef232"
   version = "v2.2.2"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  input-imports = [
-    "github.com/julienschmidt/httprouter",
-    "github.com/lib/pq",
-    "github.com/pkg/errors",
-    "github.com/rs/cors",
-    "github.com/smotes/purse",
-    "github.com/stretchr/testify/assert",
-    "github.com/stretchr/testify/suite",
-    "github.com/wikisophia/go-environment-configs",
-  ]
+  inputs-digest = "acac1ed82ac8054c74df371840452aae4960c61844933043b5a0da971767584b"
   solver-name = "gps-cdcl"
   solver-version = 1
