@@ -5,9 +5,7 @@ jobs:
       # Whitelist master so PRs only run one set of tests.
       # Other whitelists make tagged pushes build, so tagged pushes cause releases.
       # For more info see: https://docs.travis-ci.com/user/customizing-the-build/#safelisting-or-blocklisting-branches
-      branches:
-        only:
-          - master
+      if: branch = master
       go:
         - '1.11.4'
       addons:
@@ -26,17 +24,15 @@ jobs:
         - psql -c 'create user app_wikisophia;' -U postgres
       script:
         - ./scripts/test-server.sh
-    - language: node
+    - language: node_js
+      node_js:
+        - node
       dist: xenial
       # Whitelist master so PRs only run one set of tests.
       # Other whitelists make tagged pushes build, so tagged pushes cause releases.
       # For more info see: https://docs.travis-ci.com/user/customizing-the-build/#safelisting-or-blocklisting-branches
-      branches:
-        only:
-          - master
-          - /^client-js-\d+\.\d+\.\d+$/
-      install:
-        - cd client-js && npm install && cd ..
+      if: branch = master OR branch =~ /^client-js-\d+\.\d+\.\d+$/
+      install: cd client-js && npm install && cd ..
       script:
         - ./scripts/test-client-js.sh
       deploy:
