@@ -6,5 +6,6 @@ trap 'CMD=${last_command} RET=$?; if [[ $RET -ne 0 ]]; then echo "\"${CMD}\" com
 SCRIPTPATH="$( cd "$(dirname "$0")" ; pwd -P )"
 cd ${SCRIPTPATH}/../client-js
 
+ls
 npm run lint:nofix
 npm run test:coverage
