@@ -1,5 +1,5 @@
-import { uglify } from 'rollup-plugin-uglify';
-import babel from 'rollup-plugin-babel';
+import { terser } from 'rollup-plugin-terser';
+import babel from '@rollup/plugin-babel';
 
 const formats = ['iife', 'cjs', 'umd'];
 const configs = [];
@@ -9,7 +9,7 @@ formats.forEach(format => {
   configs.push({
     plugins: [babel({
       exclude: "node_modules/**"
-    }), uglify()],
+    }), terser()],
     input: ["src/client.js"],
     output: [
       {
