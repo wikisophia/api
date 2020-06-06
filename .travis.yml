@@ -5,7 +5,7 @@ jobs:
       # Whitelist master so PRs only run one set of tests.
       if: branch = master
       go:
-        - '1.11.4'
+        - '1.14.4'
       addons:
         postgresql: "10"
       env:
@@ -16,7 +16,7 @@ jobs:
         - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
         - cd server && dep ensure && cd ..
       before_script:
-        - go get -u github.com/golang/lint/golint
+        - go get -u golang.org/x/lint/golint
         - psql -c 'create database wikisophia_test;' -U postgres
         - psql -c 'create user app_wikisophia;' -U postgres
       script:
