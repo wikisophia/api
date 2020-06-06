@@ -18,7 +18,7 @@ env:
     - WKSPH_ARGS_STORAGE_POSTGRES_USER="postgres"
 install:
   - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-  - cd client-js && npm install && cd ..
+  - cd client-js && npm ci && cd ..
   - cd server && dep ensure && cd ..
 before_script:
   - go get -u github.com/golang/lint/golint

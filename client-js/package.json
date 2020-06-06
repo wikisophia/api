@@ -10,7 +10,7 @@
     "lint": "eslint src --fix",
     "lint:nofix": "eslint src",
     "test": "jest",
-    "test:coverage": "jest --config=./jest.config.coverage.js"
+    "test:coverage": "jest --config=jest.config.coverage.js"
   },
   "devDependencies": {
     "@babel/core": "^7.10.2",
