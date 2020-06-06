@@ -1,7 +1,11 @@
-matrix:
+dist: xenial
+language: go
+go:
+  - '1.11.4'
+
+jobs:
   include:
     - language: go
-      dist: xenial
       # Whitelist master so PRs only run one set of tests.
       # Other whitelists make tagged pushes build, so tagged pushes cause releases.
       # For more info see: https://docs.travis-ci.com/user/customizing-the-build/#safelisting-or-blocklisting-branches
@@ -27,7 +31,6 @@ matrix:
       script:
         - ./scripts/test-server.sh
     - language: node
-      dist: xenial
       branches: only
         - master
         - /^client-js-\d+\.\d+\.\d+$/
