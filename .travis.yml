@@ -11,10 +11,9 @@ jobs:
       addons:
         postgresql: "10"
       env:
-        global:
-          - DEP_VERSION="0.5.0"
-          - WKSPH_ARGS_STORAGE_POSTGRES_DBNAME="wikisophia_test"
-          - WKSPH_ARGS_STORAGE_POSTGRES_USER="postgres"
+        - DEP_VERSION="0.5.0"
+        - WKSPH_ARGS_STORAGE_POSTGRES_DBNAME="wikisophia_test"
+        - WKSPH_ARGS_STORAGE_POSTGRES_USER="postgres"
       install:
         - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
         - cd server && dep ensure && cd ..
