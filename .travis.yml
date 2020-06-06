@@ -3,11 +3,9 @@ jobs:
     - language: go
       dist: bionic
       # Whitelist master so PRs only run one set of tests.
-      # Other whitelists make tagged pushes build, so tagged pushes cause releases.
-      # For more info see: https://docs.travis-ci.com/user/customizing-the-build/#safelisting-or-blocklisting-branches
       if: branch = master
       go:
-        - '1.14.4'
+        - '1.11.4'
       addons:
         postgresql: "10"
       env:
@@ -27,13 +25,16 @@ jobs:
       node_js:
         - node
       dist: bionic
-      # Whitelist master so PRs only run one set of tests.
-      # Other whitelists make tagged pushes build, so tagged pushes cause releases.
-      # For more info see: https://docs.travis-ci.com/user/customizing-the-build/#safelisting-or-blocklisting-branches
-      if: branch = master OR branch =~ /^client-js-\d+\.\d+\.\d+$/
+      if: branch = master
       install: cd client-js && npm install && cd ..
       script:
         - ./scripts/test-client-js.sh
+    - language: node_js
+      node_js:
+        - node
+      dist: bionic
+      if: branch = master AND tag =~ /^client-js-\d+\.\d+\.\d+$/
+      install: cd client-js && npm install && cd ..
       deploy:
         - provider: script
           skip_cleanup: true
