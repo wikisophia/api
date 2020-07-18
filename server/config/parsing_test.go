@@ -6,10 +6,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/wikisophia/go-environment-configs"
+	configs "github.com/wikisophia/go-environment-configs"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/wikisophia/api-arguments/server/config"
+	"github.com/wikisophia/api-arguments/config"
 )
 
 func TestEnvironmentOverrides(t *testing.T) {

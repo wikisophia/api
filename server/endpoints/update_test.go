@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/wikisophia/api-arguments/server/arguments/argumentstest"
+	"github.com/wikisophia/api-arguments/arguments/argumentstest"
 )
 
 func TestPatchLive(t *testing.T) {

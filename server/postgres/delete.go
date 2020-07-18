@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/wikisophia/api-arguments/server/arguments"
+	"github.com/wikisophia/api-arguments/arguments"
 )
 
 const deleteQuery = `UPDATE arguments SET deleted_on = $1 WHERE id = $2 RETURNING id;`

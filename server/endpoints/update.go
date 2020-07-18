@@ -9,7 +9,7 @@ import (
 	"strconv"
 
 	"github.com/julienschmidt/httprouter"
-	"github.com/wikisophia/api-arguments/server/arguments"
+	"github.com/wikisophia/api-arguments/arguments"
 )
 
 // ArgumentUpdater can update existing arguments.

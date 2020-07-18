@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
-	"github.com/wikisophia/api-arguments/server/arguments"
+	"github.com/wikisophia/api-arguments/arguments"
 )
 
 // ArgumentGetterLiveVersion can fetch the live version of an argument.

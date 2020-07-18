@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/wikisophia/api-arguments/server/arguments"
+	"github.com/wikisophia/api-arguments/arguments"
 )
 
 // ArgumentSaver can save arguments.

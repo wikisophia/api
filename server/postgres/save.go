@@ -6,7 +6,7 @@ import (
 	"log"
 
 	"github.com/pkg/errors"
-	"github.com/wikisophia/api-arguments/server/arguments"
+	"github.com/wikisophia/api-arguments/arguments"
 )
 
 const saveClaimQuery = `
