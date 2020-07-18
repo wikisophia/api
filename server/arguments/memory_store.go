@@ -2,10 +2,9 @@ package arguments
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
-
-	"github.com/pkg/errors"
 )
 
 // NewMemoryStore returns an in-memory implementation of a Store.
