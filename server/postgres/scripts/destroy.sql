@@ -23,4 +23,7 @@ DROP INDEX IF EXISTS claims_claim_search_idx;
 DROP INDEX IF EXISTS claims_claim_equals_idx;
 DROP TABLE IF EXISTS claims;
 
+DROP INDEX IF EXISTS accounts_email_idx;
+DROP TABLE IF EXISTS accounts;
+
 DROP FUNCTION IF EXISTS update_last_modified;

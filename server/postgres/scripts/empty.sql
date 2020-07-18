@@ -10,3 +10,4 @@ DELETE FROM argument_premises;
 DELETE FROM argument_versions;
 DELETE FROM arguments;
 DELETE FROM claims;
+DELETE FROM accounts;

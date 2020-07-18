@@ -34,7 +34,7 @@ jobs:
         - node
       dist: bionic
       if: branch = master AND tag =~ /^client-js-\d+\.\d+\.\d+$/
-      install: cd client-js && npm install && cd ..
+      install: cd client-js && npm ci && cd ..
       deploy:
         - provider: script
           skip_cleanup: true
