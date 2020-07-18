@@ -23,7 +23,7 @@ func Parse() (Configuration, error) {
 	cfg := Defaults()
 	errs := configs.LoadWithPrefix(&cfg, "WKSPH_ARGS")
 	log.SetOutput(os.Stdout)
-	configs.LogWithPrefix(cfg, "WKSPH_ARGS")
+	configs.LogWithPrefix(&cfg, "WKSPH_ARGS")
 	log.SetOutput(os.Stderr)
 
 	errs = requirePositive(cfg.Server.ReadHeaderTimeoutMillis, "WKSPH_ARGS_SERVER_READ_HEADER_TIMEOUT_MILLIS", errs)
@@ -33,7 +33,7 @@ func Parse() (Configuration, error) {
 }
 
 func requirePositive(value int, prefix string, err error) error {
-	return configs.Ensure(err, prefix, value <= 0, "must be positive. Got %d", value)
+	return configs.Ensure(err, prefix, value > 0, "must be positive. Got %d", value)
 }
 
 func requireValidStorageType(value StorageType, prefix string, err error) error {

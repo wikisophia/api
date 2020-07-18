@@ -6,9 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/wikisophia/go-environment-configs"
-
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/wikisophia/api-arguments/server/config"
 )
 
@@ -140,9 +139,7 @@ func assertIntParses(t *testing.T, env string, value int, getter func(cfg config
 	t.Helper()
 	defer setEnv(t, env, strconv.Itoa(value))()
 	cfg, errs := config.Parse()
-	if !assert.NoError(t, errs) {
-		return
-	}
+	require.NoError(t, errs)
 	assert.EqualValues(t, getter(cfg), value)
 }
 
@@ -150,12 +147,8 @@ func assertInvalid(t *testing.T, env string, value string) {
 	t.Helper()
 	defer setEnv(t, env, value)()
 	_, err := config.Parse()
-	if !assert.Error(t, err) {
-		return
-	}
-	if casted, ok := err.(*configs.TraversalError); assert.True(t, ok) {
-		assert.False(t, casted.IsValid(env))
-	}
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), env)
 }
 
 // setEnv acts as a wrapper around os.Setenv, returning a function that resets the environment

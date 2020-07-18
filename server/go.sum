@@ -18,6 +18,8 @@ github.com/stretchr/testify v1.4.0 h1:2E4SXV/wtOkTonXsotYi4li6zVWxYlZuYNCXe9XRJy
 github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81PSLYec5m4=
 github.com/wikisophia/go-environment-configs v0.0.0-20190323132709-fe19e4a92552 h1:wI3iv+AsJQIDZOypUryumNqWW5XOxkCDRmlpJAaiWfU=
 github.com/wikisophia/go-environment-configs v0.0.0-20190323132709-fe19e4a92552/go.mod h1:rAyLlZdodSadcY0JbhSiCdWBQzrhhpxNvMlCI110Kxs=
+github.com/wikisophia/go-environment-configs v0.1.0 h1:5OOf3xSb11s7oi5RvYpN2iG0ikf6D/GjJ3hZ0MxlRi8=
+github.com/wikisophia/go-environment-configs v0.1.0/go.mod h1:CKpqDdk1VVSQjieh4HMwz8+nufJhw6TH+liBWJDw5Qw=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405 h1:yhCVgyC4o1eVCa2tZl7eS0r+SDo693bJlVdllGtEeKM=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/yaml.v2 v2.2.2 h1:ZCJp+EgiOT7lHqUV2J862kp8Qj64Jo6az82+3Td9dZw=

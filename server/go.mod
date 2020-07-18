@@ -10,5 +10,5 @@ require (
 	github.com/rs/cors v1.7.0
 	github.com/smotes/purse v1.0.1
 	github.com/stretchr/testify v1.4.0
-	github.com/wikisophia/go-environment-configs v0.0.0-20190323132709-fe19e4a92552
+	github.com/wikisophia/go-environment-configs v0.1.0
 )
