@@ -7,5 +7,5 @@ npm-debug.log
 /client-js/node_modules
 /client-js/prod
 
-/server/vendor/
-/server/server
+/server/api-arguments
+
