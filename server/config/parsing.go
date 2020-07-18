@@ -1,11 +1,10 @@
 package config
 
 import (
-	"fmt"
 	"log"
 	"os"
 
-	"github.com/wikisophia/go-environment-configs"
+	configs "github.com/wikisophia/go-environment-configs"
 )
 
 // MustParse wraps Parse, but prints the errors and exits rather than returning them.
@@ -22,9 +21,9 @@ func MustParse() Configuration {
 // It logs all the values before returning, and panics on validation errors.
 func Parse() (Configuration, error) {
 	cfg := Defaults()
-	errs := configs.Visit(&cfg, configs.Loader("WKSPH_ARGS"))
+	errs := configs.LoadWithPrefix(&cfg, "WKSPH_ARGS")
 	log.SetOutput(os.Stdout)
-	configs.Visit(&cfg, configs.Logger("WKSPH_ARGS"))
+	configs.LogWithPrefix(cfg, "WKSPH_ARGS")
 	log.SetOutput(os.Stderr)
 
 	errs = requirePositive(cfg.Server.ReadHeaderTimeoutMillis, "WKSPH_ARGS_SERVER_READ_HEADER_TIMEOUT_MILLIS", errs)
@@ -34,10 +33,7 @@ func Parse() (Configuration, error) {
 }
 
 func requirePositive(value int, prefix string, err error) error {
-	if value <= 0 {
-		return configs.Append(err, prefix, fmt.Errorf("must be positive. Got %d", value))
-	}
-	return err
+	return configs.Ensure(err, prefix, value <= 0, "must be positive. Got %d", value)
 }
 
 func requireValidStorageType(value StorageType, prefix string, err error) error {
@@ -47,5 +43,5 @@ func requireValidStorageType(value StorageType, prefix string, err error) error 
 			return err
 		}
 	}
-	return configs.Append(err, prefix, fmt.Errorf("must be one of %v. Got %s", allowedTypes, value))
+	return configs.Ensure(err, prefix, false, "must be one of %v. Got %s", allowedTypes, value)
 }
