@@ -11,7 +11,6 @@ import (
 
 	"github.com/lib/pq"
 
-	"github.com/pkg/errors"
 	"github.com/wikisophia/api-arguments/server/arguments"
 )
 
@@ -63,7 +62,7 @@ ORDER BY o;
 func (store *Store) FetchVersion(ctx context.Context, id int64, version int) (arguments.Argument, error) {
 	rows, err := store.fetchStatement.QueryContext(ctx, id, version)
 	if err != nil {
-		return arguments.Argument{}, errors.Wrap(err, "argument fetch query failed")
+		return arguments.Argument{}, fmt.Errorf("argument fetch query failed: %v", err)
 	}
 	defer tryClose(rows)
 	return store.parseFetchResults(id, rows)
@@ -75,7 +74,7 @@ func (store *Store) FetchVersion(ctx context.Context, id int64, version int) (ar
 func (store *Store) FetchLive(ctx context.Context, id int64) (arguments.Argument, error) {
 	rows, err := store.fetchLiveStatement.QueryContext(ctx, id)
 	if err != nil {
-		return arguments.Argument{}, errors.Wrap(err, "argument fetch query failed")
+		return arguments.Argument{}, fmt.Errorf("argument fetch query failed: %v", err)
 	}
 	defer tryClose(rows)
 	return store.parseFetchResults(id, rows)
@@ -91,7 +90,7 @@ func (store *Store) parseFetchResults(id int64, rows *sql.Rows) (arguments.Argum
 
 	for rows.Next() {
 		if err := rows.Scan(&claim, &version, &dummy); err != nil {
-			return arguments.Argument{}, errors.Wrap(err, "fetch result scan failed")
+			return arguments.Argument{}, fmt.Errorf("fetch result scan failed: %v", err)
 		}
 		if conclusion == "" {
 			conclusion = claim
@@ -167,7 +166,7 @@ func (store *Store) FetchSome(ctx context.Context, options arguments.FetchSomeOp
 
 	rows, err := store.db.QueryContext(ctx, fetchAllQuery, params...)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed fetchAll query")
+		return nil, fmt.Errorf("failed fetchAll query: %v", err)
 	}
 	defer tryClose(rows)
 
@@ -178,7 +177,7 @@ func (store *Store) FetchSome(ctx context.Context, options arguments.FetchSomeOp
 	var premise string
 	for rows.Next() {
 		if err := rows.Scan(&id, &version, &conclusion, &premise); err != nil {
-			return nil, errors.Wrap(err, "fetch result scan failed")
+			return nil, fmt.Errorf("fetch result scan failed: %v", err)
 		}
 		if val, ok := args[id]; ok {
 			val.Premises = append(val.Premises, premise)

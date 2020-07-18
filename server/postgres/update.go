@@ -3,11 +3,10 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"strconv"
 
 	"github.com/wikisophia/api-arguments/server/arguments"
-
-	"github.com/pkg/errors"
 )
 
 var newArgumentVersionQuery = `
@@ -20,7 +19,7 @@ INSERT INTO argument_versions (argument_id, argument_version, conclusion_id)
 	RETURNING id, argument_version;
 `
 
-const updateArgumentErrorMsg = "failed to update argument %d"
+const updateArgumentErrorMsg = "failed to update argument %d: %v"
 
 // Update saves a new version of an argument.
 func (store *Store) Update(ctx context.Context, argument arguments.Argument) (version int, err error) {
@@ -38,11 +37,11 @@ func (store *Store) Update(ctx context.Context, argument arguments.Argument) (ve
 	}
 	err = store.savePremises(ctx, transaction, argumentVersionID, argument.Premises)
 	if didRollback := rollbackIfErr(transaction, err); didRollback {
-		return -1, errors.Wrapf(err, updateArgumentErrorMsg, argument.ID)
+		return -1, fmt.Errorf(updateArgumentErrorMsg, argument.ID, err)
 	}
 	err = transaction.Commit()
 	if err != nil {
-		return -1, errors.Wrapf(err, updateArgumentErrorMsg, argument.ID)
+		return -1, fmt.Errorf(updateArgumentErrorMsg, argument.ID, err)
 	}
 	return argumentVersion, nil
 }
@@ -57,7 +56,7 @@ func (store *Store) newArgumentVersion(ctx context.Context, transaction *sql.Tx,
 				Message: "argument " + strconv.FormatInt(argumentID, 10) + " does not exist",
 			}
 		}
-		return -1, -1, errors.Wrapf(err, `couldn't create new argument version for id=%d`, argumentID)
+		return -1, -1, fmt.Errorf(`couldn't create new argument version for id=%d: %v`, argumentID, err)
 	}
 	return argumentVersionID, argumentVersion, nil
 }
