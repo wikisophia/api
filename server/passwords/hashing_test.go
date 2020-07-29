@@ -1,16 +1,18 @@
-package hash_test
+package passwords_test
 
 import (
+	"math/rand"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/wikisophia/api-arguments/server/config"
-	"github.com/wikisophia/api-arguments/server/hash"
+	"github.com/wikisophia/api-arguments/server/passwords"
 )
 
 func TestHasher(t *testing.T) {
-	hasher := hash.NewHasher(config.Hash{
+	hasher := passwords.NewHasher(config.Hash{
 		Time:        1,
 		Memory:      64 * 1024,
 		Parallelism: 1,
@@ -18,11 +20,28 @@ func TestHasher(t *testing.T) {
 		KeyLength:   32,
 	})
 
-	assertMatches(t, hasher, "password")
-	assertMatches(t, hasher, "bjkncASDKIXCNH)*(*(!@#412-=_+~`,l./\\z]][p]{}682XDT&^T62t<>1?/.,m 2@#!wy8qasbki nyu")
+	var wg sync.WaitGroup
+
+	for i := 0; i < 10; i++ {
+		go doHashTests(t, hasher, &wg)
+	}
+	wg.Add(2)
+	assertMatches(t, hasher, "password", &wg)
+	assertMatches(t, hasher, "bjkncASDKIXCNH)*(*(!@#412-=_+~`,l./\\z]][p]{}682XDT&^T62t<>1?/.,m 2@#!wy8qasbki nyu", &wg)
+	wg.Wait()
 }
 
-func assertMatches(t *testing.T, hasher *hash.Hasher, value string) {
+func doHashTests(t *testing.T, hasher *passwords.Hasher, wg *sync.WaitGroup) {
+	thisPassword := make([]byte, rand.Intn(50))
+	wg.Add(50)
+	for i := 0; i < 50; i++ {
+		_, err := rand.Read(thisPassword)
+		require.NoError(t, err)
+		assertMatches(t, hasher, string(thisPassword), wg)
+	}
+}
+
+func assertMatches(t *testing.T, hasher *passwords.Hasher, value string, wg *sync.WaitGroup) {
 	t.Helper()
 	hash, err := hasher.Hash(value)
 	require.NoError(t, err)
@@ -34,4 +53,5 @@ func assertMatches(t *testing.T, hasher *hash.Hasher, value string) {
 	matches, err = hasher.Matches("some other value", hash)
 	require.NoError(t, err)
 	assert.False(t, matches)
+	wg.Done()
 }
