@@ -7,6 +7,8 @@ import (
 	configs "github.com/wikisophia/go-environment-configs"
 )
 
+const prefix = "WKSPH_ARGS"
+
 // MustParse wraps Parse, but prints the errors and exits rather than returning them.
 func MustParse() Configuration {
 	cfg, errs := Parse()
@@ -21,14 +23,14 @@ func MustParse() Configuration {
 // It logs all the values before returning, and panics on validation errors.
 func Parse() (Configuration, error) {
 	cfg := Defaults()
-	errs := configs.LoadWithPrefix(&cfg, "WKSPH_ARGS")
+	errs := configs.LoadWithPrefix(&cfg, prefix)
 	log.SetOutput(os.Stdout)
-	configs.LogWithPrefix(&cfg, "WKSPH_ARGS")
+	configs.LogWithPrefix(&cfg, prefix)
 	log.SetOutput(os.Stderr)
 
-	errs = requirePositive(cfg.Server.ReadHeaderTimeoutMillis, "WKSPH_ARGS_SERVER_READ_HEADER_TIMEOUT_MILLIS", errs)
-	errs = requirePositive(cfg.Storage.Postgres.Port, "WKSPH_ARGS_STORAGE_POSTGRES_PORT", errs)
-	errs = requireValidStorageType(cfg.Storage.Type, "WKSPH_ARGS_STORAGE_TYPE", errs)
+	errs = requirePositive(cfg.Server.ReadHeaderTimeoutMillis, prefix+"_SERVER_READ_HEADER_TIMEOUT_MILLIS", errs)
+	errs = requirePositive(cfg.Storage.Postgres.Port, prefix+"_STORAGE_POSTGRES_PORT", errs)
+	errs = requireValidStorageType(cfg.Storage.Type, prefix+"_STORAGE_TYPE", errs)
 	return cfg, errs
 }
 

@@ -1,6 +1,7 @@
 package config_test
 
 import (
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -78,6 +79,37 @@ func TestEnvironmentOverrides(t *testing.T) {
 	assertStringParses(t, "WKSPH_ARGS_STORAGE_POSTGRES_PASSWORD", "some-password", func(cfg config.Configuration) string {
 		return cfg.Storage.Postgres.Password
 	})
+
+	// WKSPH_ARGS_HASH_ITERATIONS determines the "time" argument to argon2.Key() when hashing passwords.
+	assertUInt32Parses(t, "WKSPH_ARGS_HASH_ITERATIONS", ^uint32(0), func(cfg config.Configuration) uint32 {
+		return cfg.Hash.Time
+	})
+
+	// WKSPH_ARGS_HASH_MEMORY_BYTES determines the "memory" argument to argon2.Key() when hashing passwords.
+	assertUInt32Parses(t, "WKSPH_ARGS_HASH_MEMORY_BYTES", ^uint32(0), func(cfg config.Configuration) uint32 {
+		return cfg.Hash.Memory
+	})
+
+	// WKSPH_ARGS_HASH_MEMORY_BYTES determines the "threads" argument to argon2.Key() when hashing passwords.
+	assertUInt8Parses(t, "WKSPH_ARGS_HASH_PARALLELISM", ^uint8(0), func(cfg config.Configuration) uint8 {
+		return cfg.Hash.Parallelism
+	})
+
+	// WKSPH_ARGS_HASH_MEMORY_BYTES determines the length of the "salt" byte[] argument to
+	// argon2.Key() when hashing passwords.
+	assertUInt8Parses(t, "WKSPH_ARGS_HASH_SALT_LENGTH", ^uint8(0), func(cfg config.Configuration) uint8 {
+		return cfg.Hash.SaltLength
+	})
+
+	// WKSPH_ARGS_HASH_KEY_LENGTH determines the "keyLen" argument to argon2.Key() when hashing passwords.
+	assertUInt32Parses(t, "WKSPH_ARGS_HASH_KEY_LENGTH", ^uint32(0), func(cfg config.Configuration) uint32 {
+		return cfg.Hash.KeyLength
+	})
+
+	// WKSPH_ARGS_JWT_PRIVATE_KEY_PATH determines which file is used as the private key to sign/verify JWTs.
+	assertStringParses(t, "WKSPH_ARGS_JWT_PRIVATE_KEY_PATH", "/path-to-some-jwt-key.pem", func(cfg config.Configuration) string {
+		return cfg.JwtPrivateKeyPath
+	})
 }
 
 // TestLegalDefaults makes sure all the default values make a valid config object.
@@ -97,6 +129,20 @@ func TestInvalidEnvironment(t *testing.T) {
 	assertInvalid(t, "WKSPH_ARGS_STORAGE_POSTGRES_PORT", "-3")
 	assertInvalid(t, "WKSPH_ARGS_STORAGE_POSTGRES_PORT", "0")
 	assertInvalid(t, "WKSPH_ARGS_STORAGE_TYPE", "invalid")
+	assertInvalid(t, "WKSPH_ARGS_HASH_ITERATIONS", fmt.Sprintf("%d", uint64(^uint32(0))+1))
+	assertInvalid(t, "WKSPH_ARGS_HASH_ITERATIONS", "-1")
+	assertInvalid(t, "WKSPH_ARGS_HASH_MEMORY_BYTES", "notAnInt")
+	assertInvalid(t, "WKSPH_ARGS_HASH_MEMORY_BYTES", fmt.Sprintf("%d", uint64(^uint32(0))+1))
+	assertInvalid(t, "WKSPH_ARGS_HASH_MEMORY_BYTES", "-1")
+	assertInvalid(t, "WKSPH_ARGS_HASH_PARALLELISM", "notAnInt")
+	assertInvalid(t, "WKSPH_ARGS_HASH_PARALLELISM", fmt.Sprintf("%d", uint16(^uint8(0))+1))
+	assertInvalid(t, "WKSPH_ARGS_HASH_PARALLELISM", "-1")
+	assertInvalid(t, "WKSPH_ARGS_HASH_SALT_LENGTH", "notAnInt")
+	assertInvalid(t, "WKSPH_ARGS_HASH_SALT_LENGTH", fmt.Sprintf("%d", uint16(^uint8(0))+1))
+	assertInvalid(t, "WKSPH_ARGS_HASH_SALT_LENGTH", "-1")
+	assertInvalid(t, "WKSPH_ARGS_HASH_KEY_LENGTH", "notAnInt")
+	assertInvalid(t, "WKSPH_ARGS_HASH_KEY_LENGTH", fmt.Sprintf("%d", uint64(^uint32(0))+1))
+	assertInvalid(t, "WKSPH_ARGS_HASH_KEY_LENGTH", "-1")
 }
 
 func TestEdgeCases(t *testing.T) {
@@ -109,9 +155,7 @@ func assertBoolParses(t *testing.T, env string, value bool, getter func(cfg conf
 	t.Helper()
 	defer setEnv(t, env, strconv.FormatBool(value))()
 	cfg, errs := config.Parse()
-	if !assert.NoError(t, error(errs), "error was: \"%v\"", errs) {
-		return
-	}
+	require.NoError(t, error(errs), "error was: \"%v\"", errs)
 	assert.Equal(t, value, getter(cfg))
 }
 
@@ -119,9 +163,7 @@ func assertStringParses(t *testing.T, env string, value string, getter func(cfg 
 	t.Helper()
 	defer setEnv(t, env, value)()
 	cfg, errs := config.Parse()
-	if !assert.NoError(t, error(errs), "error was: \"%v\"", errs) {
-		return
-	}
+	require.NoError(t, error(errs), "error was: \"%v\"", errs)
 	assert.Equal(t, value, getter(cfg))
 }
 
@@ -129,15 +171,29 @@ func assertStringSliceParses(t *testing.T, env string, value []string, getter fu
 	t.Helper()
 	defer setEnv(t, env, strings.Join(value, ","))()
 	cfg, errs := config.Parse()
-	if !assert.NoError(t, errs) {
-		return
-	}
+	require.NoError(t, errs)
 	assert.Equal(t, value, getter(cfg))
 }
 
 func assertIntParses(t *testing.T, env string, value int, getter func(cfg config.Configuration) int) {
 	t.Helper()
 	defer setEnv(t, env, strconv.Itoa(value))()
+	cfg, errs := config.Parse()
+	require.NoError(t, errs)
+	assert.EqualValues(t, getter(cfg), value)
+}
+
+func assertUInt8Parses(t *testing.T, env string, value uint8, getter func(cfg config.Configuration) uint8) {
+	t.Helper()
+	defer setEnv(t, env, fmt.Sprintf("%d", value))()
+	cfg, errs := config.Parse()
+	require.NoError(t, errs)
+	assert.EqualValues(t, getter(cfg), value)
+}
+
+func assertUInt32Parses(t *testing.T, env string, value uint32, getter func(cfg config.Configuration) uint32) {
+	t.Helper()
+	defer setEnv(t, env, fmt.Sprintf("%d", value))()
 	cfg, errs := config.Parse()
 	require.NoError(t, errs)
 	assert.EqualValues(t, getter(cfg), value)
