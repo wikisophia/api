@@ -1,6 +1,10 @@
 package config
 
 import (
+	"crypto/ecdsa"
+	"crypto/x509"
+	"encoding/pem"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"time"
@@ -34,13 +38,23 @@ func Defaults() Configuration {
 				Password: "",
 			},
 		},
+		Hash: &Hash{
+			Time:        1,
+			Memory:      64 * 1024,
+			Parallelism: 1,
+			SaltLength:  32,
+			KeyLength:   32,
+		},
+		JwtPrivateKeyPath: filepath.FromSlash(exPath + "/certificates/dev-jwt-private-key.pem"),
 	}
 }
 
 // Configuration stores all the application config.
 type Configuration struct {
-	Server  *Server  `environment:"SERVER"`
-	Storage *Storage `environment:"STORAGE"`
+	Server            *Server  `environment:"SERVER"`
+	Storage           *Storage `environment:"STORAGE"`
+	Hash              *Hash    `environment:"HASH"`
+	JwtPrivateKeyPath string   `environment:"JWT_PRIVATE_KEY_PATH"`
 }
 
 // Server has all the config values which affect the http.Server which responds to requests.
@@ -80,6 +94,16 @@ func storageTypes() []StorageType {
 	}
 }
 
+// Hash configures the hashing algorithm used to store passwords.
+// This project hashes with Argon2: https://www.alexedwards.net/blog/how-to-hash-and-verify-passwords-with-argon2-in-go
+type Hash struct {
+	Time        uint32 `environment:"ITERATIONS"`
+	Memory      uint32 `environment:"MEMORY_BYTES"`
+	Parallelism uint8  `environment:"PARALLELISM"`
+	SaltLength  uint8  `environment:"SALT_LENGTH"`
+	KeyLength   uint32 `environment:"KEY_LENGTH"`
+}
+
 // Postgres configures the Postgres connection.
 // These options come from https://godoc.org/github.com/lib/pq#hdr-Connection_String_Parameters
 type Postgres struct {
@@ -94,4 +118,22 @@ type Postgres struct {
 // the HTTP headers before it just times out the request.
 func (cfg *Server) ReadHeaderTimeout() time.Duration {
 	return time.Duration(cfg.ReadHeaderTimeoutMillis) * time.Millisecond
+}
+
+// JwtPrivateKey returns the PrivateKey object from the file at the given path.
+// This is used to sign JWTs. Panic if the file doesn't exist, can't be read, or
+// didn't have a valid private key.
+func (cfg *Configuration) JwtPrivateKey() *ecdsa.PrivateKey {
+	data, err := ioutil.ReadFile(cfg.JwtPrivateKeyPath)
+	if err != nil {
+		panic("Failed to read " + prefix + "_JWT_PRIVATE_KEY_PATH file " + cfg.JwtPrivateKeyPath + ": " + err.Error())
+	}
+
+	block, _ := pem.Decode(data)
+	key, err := x509.ParseECPrivateKey(block.Bytes)
+	if err != nil {
+		panic("Couldn't parse a private key from " + cfg.JwtPrivateKeyPath + ": " + err.Error())
+	}
+
+	return key
 }
