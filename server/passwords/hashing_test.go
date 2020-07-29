@@ -33,8 +33,8 @@ func TestHasher(t *testing.T) {
 
 func doHashTests(t *testing.T, hasher *passwords.Hasher, wg *sync.WaitGroup) {
 	thisPassword := make([]byte, rand.Intn(50))
-	wg.Add(50)
-	for i := 0; i < 50; i++ {
+	wg.Add(10)
+	for i := 0; i < 10; i++ {
 		_, err := rand.Read(thisPassword)
 		require.NoError(t, err)
 		assertMatches(t, hasher, string(thisPassword), wg)
