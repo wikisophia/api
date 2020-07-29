@@ -14,17 +14,18 @@ jobs:
             - postgresql-client-12
       env:
         - WKSPH_ARGS_STORAGE_POSTGRES_DBNAME="wikisophia_test"
-        - WKSPH_ARGS_STORAGE_POSTGRES_USER="postgres"
+        - WKSPH_ARGS_STORAGE_POSTGRES_USER="app_wikisophia"
+        - WKSPH_ARGS_STORAGE_POSTGRES_PASSWORD="app_wikisophia_password"
       before_script:
         - go get -u golang.org/x/lint/golint
-        - psql -c 'create database wikisophia_test;' -U postgres
-        - psql -c 'create user app_wikisophia;' -U postgres
+        - psql -c 'CREATE USER app_wikisophia WITH PASSWORD app_wikisophia_password;' -U postgres
+        - psql -c 'CREATE DATABASE wikisophia_test WITH OWNER app_wikisophia;' -U postgres
       script:
         - ./scripts/test-server.sh
     - language: node_js
       node_js:
         - node
-      dist: bionic
+      dist: focal
       if: branch = master
       install: cd client-js && npm install && cd ..
       script:
@@ -32,7 +33,7 @@ jobs:
     - language: node_js
       node_js:
         - node
-      dist: bionic
+      dist: focal
       if: branch = master AND tag =~ /^client-js-\d+\.\d+\.\d+$/
       install: cd client-js && npm ci && cd ..
       deploy:
