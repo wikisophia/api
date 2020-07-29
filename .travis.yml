@@ -7,7 +7,7 @@ jobs:
       go:
         - '1.14.4'
       addons:
-        postgresql: "10"
+        postgresql: "12"
       env:
         - WKSPH_ARGS_STORAGE_POSTGRES_DBNAME="wikisophia_test"
         - WKSPH_ARGS_STORAGE_POSTGRES_USER="postgres"
