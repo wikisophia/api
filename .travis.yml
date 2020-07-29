@@ -1,13 +1,17 @@
 jobs:
   include:
     - language: go
-      dist: bionic
+      dist: focal
       # Whitelist master so PRs only run one set of tests.
       if: branch = master
       go:
         - '1.14.4'
       addons:
         postgresql: "12"
+        apt:
+          packages:
+            - postgresql-12
+            - postgresql-client-12
       env:
         - WKSPH_ARGS_STORAGE_POSTGRES_DBNAME="wikisophia_test"
         - WKSPH_ARGS_STORAGE_POSTGRES_USER="postgres"
