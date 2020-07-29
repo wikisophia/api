@@ -18,7 +18,7 @@ jobs:
         - WKSPH_ARGS_STORAGE_POSTGRES_PASSWORD="app_wikisophia_password"
       before_script:
         - go get -u golang.org/x/lint/golint
-        - psql -c 'CREATE USER app_wikisophia WITH PASSWORD app_wikisophia_password;' -U postgres
+        - psql -c "CREATE USER app_wikisophia WITH PASSWORD 'app_wikisophia_password';" -U postgres
         - psql -c 'CREATE DATABASE wikisophia_test WITH OWNER app_wikisophia;' -U postgres
       script:
         - ./scripts/test-server.sh
