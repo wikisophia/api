@@ -2,9 +2,9 @@ package accounts
 
 import "time"
 
-// Account is a person who edits arguments on the site.
+// Account has the info which is tied to the email which signed up.
 type Account struct {
-	ID         int64  `json:"id"`
+	ID         int64  `json:"-"`
 	Email      string `json:"email"`
 	ResetToken string `json:"-"`
 }
