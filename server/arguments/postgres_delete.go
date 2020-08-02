@@ -1,11 +1,9 @@
-package postgres
+package arguments
 
 import (
 	"context"
 	"fmt"
 	"time"
-
-	"github.com/wikisophia/api-arguments/server/arguments"
 )
 
 const deleteQuery = `UPDATE arguments SET deleted_on = $1 WHERE id = $2 RETURNING id;`
@@ -27,7 +25,7 @@ func (store *Store) Delete(ctx context.Context, id int64) error {
 		return nil
 	}
 
-	return &arguments.NotFoundError{
+	return &NotFoundError{
 		Message: fmt.Sprintf("argument with id %d does not exist", id),
 	}
 }

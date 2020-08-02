@@ -1,12 +1,10 @@
-package postgres
+package arguments
 
 import (
 	"context"
 	"database/sql"
 	"fmt"
 	"strconv"
-
-	"github.com/wikisophia/api-arguments/server/arguments"
 )
 
 var newArgumentVersionQuery = `
@@ -22,7 +20,7 @@ INSERT INTO argument_versions (argument_id, argument_version, conclusion_id)
 const updateArgumentErrorMsg = "failed to update argument %d: %v"
 
 // Update saves a new version of an argument.
-func (store *Store) Update(ctx context.Context, argument arguments.Argument) (version int, err error) {
+func (store *Store) Update(ctx context.Context, argument Argument) (version int, err error) {
 	transaction, err := store.db.BeginTx(ctx, nil)
 	if didRollback := rollbackIfErr(transaction, err); didRollback {
 		return -1, err
@@ -52,7 +50,7 @@ func (store *Store) newArgumentVersion(ctx context.Context, transaction *sql.Tx,
 	var argumentVersion int
 	if err := row.Scan(&argumentVersionID, &argumentVersion); err != nil {
 		if err == sql.ErrNoRows {
-			return -1, -1, &arguments.NotFoundError{
+			return -1, -1, &NotFoundError{
 				Message: "argument " + strconv.FormatInt(argumentID, 10) + " does not exist",
 			}
 		}

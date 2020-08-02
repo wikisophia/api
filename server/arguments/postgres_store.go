@@ -1,4 +1,4 @@
-package postgres
+package arguments
 
 import (
 	"database/sql"
@@ -6,10 +6,10 @@ import (
 	"strings"
 )
 
-// NewStore returns a Store which is used to save and load Arguments.
+// NewPostgresStore returns a Store which is used to save and load Arguments.
 // The db should point to a Postgres database.
 // The returned Store.Close() function will *not* close this connection, since we did not open it.
-func NewStore(db *sql.DB) *Store {
+func NewPostgresStore(db *sql.DB) *Store {
 	if db == nil {
 		log.Fatalf("A database connection is required to make a Store.")
 	}
@@ -59,7 +59,7 @@ func (errs closeErrors) Error() string {
 
 // Close closes all the prepared statements used to make queries.
 // It does not shut down the database connection which was passed
-// into NewStore.
+// into NewPostgresStore().
 func (store *Store) Close() error {
 	var errs []error
 	errs = mayAppendError(store.deleteStatement.Close, errs)
