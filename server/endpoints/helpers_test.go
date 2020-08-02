@@ -11,8 +11,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/wikisophia/api-arguments/server/arguments"
-	"github.com/wikisophia/api-arguments/server/endpoints"
+	"github.com/wikisophia/api/server/arguments"
+	"github.com/wikisophia/api/server/endpoints"
 )
 
 // This file has a bunch of helper methods used throughout the test code

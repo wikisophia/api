@@ -1,4 +1,4 @@
-module github.com/wikisophia/api-arguments/server
+module github.com/wikisophia/api/server
 
 go 1.14
 

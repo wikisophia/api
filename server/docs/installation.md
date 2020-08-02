@@ -2,23 +2,25 @@
 
 Make sure to install [Golang](https://golang.org/doc/install).
 
-Clone the project with:
+To clone the project:
 
 ```sh
-export GOPATH=$(go env GOPATH)
-mkdir -p $GOPATH
-git clone https://github.com/wikisophia/api-arguments.git $GOPATH/src/github.com/wikisophia/api-arguments
-cd $GOPATH/src/github.com/wikisophia/api-arguments/server
+git clone https://github.com/wikisophia/api.git
 ```
 
-Then build and run the app:
+To build the project:
 
 ```sh
+cd api/server
 go build .
-./api-arguments
 ```
 
-You can hit the API through `http://localhost:8081`.
+To run the server:
 
-Beware that the default app config will store everything in memory.
-To use Postgres, set [the config options](./configuration.md).
+```sh
+./api
+```
+
+By default, the API will listen on `http://localhost:8081` and store all state in memory only.
+
+To use Postgres or set other config options, see [the config docs](./configuration.md).

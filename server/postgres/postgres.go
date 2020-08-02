@@ -8,7 +8,7 @@ import (
 
 	// Imports the postgres driver, so that sql.Open("postgres", "blah") means something
 	_ "github.com/lib/pq"
-	"github.com/wikisophia/api-arguments/server/config"
+	"github.com/wikisophia/api/server/config"
 )
 
 // NewDB makes a connection to a postgres database.

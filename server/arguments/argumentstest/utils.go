@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/wikisophia/api-arguments/server/arguments"
+	"github.com/wikisophia/api/server/arguments"
 )
 
 // ParseSample parses the JSON from the file at unixPath and returns

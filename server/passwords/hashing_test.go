@@ -7,8 +7,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/wikisophia/api-arguments/server/config"
-	"github.com/wikisophia/api-arguments/server/passwords"
+	"github.com/wikisophia/api/server/config"
+	"github.com/wikisophia/api/server/passwords"
 )
 
 func TestHasher(t *testing.T) {

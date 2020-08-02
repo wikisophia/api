@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/wikisophia/api-arguments/server/arguments"
+	"github.com/wikisophia/api/server/arguments"
 )
 
 var wordSplitter = regexp.MustCompile("[a-zA-Z]+")

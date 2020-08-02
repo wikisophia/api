@@ -3,10 +3,10 @@ package main
 import (
 	_ "net/http/pprof"
 
-	"github.com/wikisophia/api-arguments/server/arguments"
-	"github.com/wikisophia/api-arguments/server/config"
-	"github.com/wikisophia/api-arguments/server/endpoints"
-	"github.com/wikisophia/api-arguments/server/postgres"
+	"github.com/wikisophia/api/server/arguments"
+	"github.com/wikisophia/api/server/config"
+	"github.com/wikisophia/api/server/endpoints"
+	"github.com/wikisophia/api/server/postgres"
 )
 
 func main() {
