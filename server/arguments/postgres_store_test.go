@@ -32,7 +32,7 @@ func TestArgumentStorageIntegration(t *testing.T) {
 	}
 
 	db := postgres.NewDB(config.MustParse().Storage.Postgres)
-	sqlScripts, err := purse.New(filepath.Join(".", "scripts"))
+	sqlScripts, err := purse.New(filepath.Join("..", "postgres", "scripts"))
 	if !assert.NoError(t, err) {
 		return
 	}
