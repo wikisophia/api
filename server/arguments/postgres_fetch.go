@@ -1,4 +1,4 @@
-package postgres
+package arguments
 
 import (
 	"context"
@@ -10,8 +10,6 @@ import (
 	"strings"
 
 	"github.com/lib/pq"
-
-	"github.com/wikisophia/api-arguments/server/arguments"
 )
 
 const fetchQuery = `
@@ -59,10 +57,10 @@ ORDER BY o;
 `
 
 // FetchVersion fetches a specific version of an argument.
-func (store *Store) FetchVersion(ctx context.Context, id int64, version int) (arguments.Argument, error) {
+func (store *Store) FetchVersion(ctx context.Context, id int64, version int) (Argument, error) {
 	rows, err := store.fetchStatement.QueryContext(ctx, id, version)
 	if err != nil {
-		return arguments.Argument{}, fmt.Errorf("argument fetch query failed: %v", err)
+		return Argument{}, fmt.Errorf("argument fetch query failed: %v", err)
 	}
 	defer tryClose(rows)
 	return store.parseFetchResults(id, rows)
@@ -71,16 +69,16 @@ func (store *Store) FetchVersion(ctx context.Context, id int64, version int) (ar
 // FetchLive fetches the "active" version of an argument.
 // This is usually the newest one, but it may not be if an
 // update has been reverted.
-func (store *Store) FetchLive(ctx context.Context, id int64) (arguments.Argument, error) {
+func (store *Store) FetchLive(ctx context.Context, id int64) (Argument, error) {
 	rows, err := store.fetchLiveStatement.QueryContext(ctx, id)
 	if err != nil {
-		return arguments.Argument{}, fmt.Errorf("argument fetch query failed: %v", err)
+		return Argument{}, fmt.Errorf("argument fetch query failed: %v", err)
 	}
 	defer tryClose(rows)
 	return store.parseFetchResults(id, rows)
 }
 
-func (store *Store) parseFetchResults(id int64, rows *sql.Rows) (arguments.Argument, error) {
+func (store *Store) parseFetchResults(id int64, rows *sql.Rows) (Argument, error) {
 	var claim string
 	var version int
 	var dummy int
@@ -90,7 +88,7 @@ func (store *Store) parseFetchResults(id int64, rows *sql.Rows) (arguments.Argum
 
 	for rows.Next() {
 		if err := rows.Scan(&claim, &version, &dummy); err != nil {
-			return arguments.Argument{}, fmt.Errorf("fetch result scan failed: %v", err)
+			return Argument{}, fmt.Errorf("fetch result scan failed: %v", err)
 		}
 		if conclusion == "" {
 			conclusion = claim
@@ -99,11 +97,11 @@ func (store *Store) parseFetchResults(id int64, rows *sql.Rows) (arguments.Argum
 		}
 	}
 	if conclusion == "" {
-		return arguments.Argument{}, &arguments.NotFoundError{
+		return Argument{}, &NotFoundError{
 			Message: fmt.Sprintf("no argument found with id=%d", id),
 		}
 	}
-	return arguments.Argument{
+	return Argument{
 		ID:         id,
 		Version:    version,
 		Conclusion: conclusion,
@@ -113,7 +111,7 @@ func (store *Store) parseFetchResults(id int64, rows *sql.Rows) (arguments.Argum
 
 // FetchSome returns all the "live" arguments matching the given options.
 // If none exist, error will be nil and the slice empty.
-func (store *Store) FetchSome(ctx context.Context, options arguments.FetchSomeOptions) ([]arguments.Argument, error) {
+func (store *Store) FetchSome(ctx context.Context, options FetchSomeOptions) ([]Argument, error) {
 	// TODO: StringBuilder this
 	selectArgumentsQuery := `SELECT arguments.id, argument_versions.argument_version, argument_versions.id AS argument_version_id, claims.claim AS conclusion
 	FROM arguments
@@ -170,7 +168,7 @@ func (store *Store) FetchSome(ctx context.Context, options arguments.FetchSomeOp
 	}
 	defer tryClose(rows)
 
-	args := make(map[int64]*arguments.Argument, 10)
+	args := make(map[int64]*Argument, 10)
 	var id int64
 	var version int
 	var conclusion string
@@ -184,7 +182,7 @@ func (store *Store) FetchSome(ctx context.Context, options arguments.FetchSomeOp
 		} else {
 			premises := make([]string, 0, 10)
 			premises = append(premises, premise)
-			args[id] = &arguments.Argument{
+			args[id] = &Argument{
 				Conclusion: conclusion,
 				Premises:   premises,
 				ID:         id,
@@ -192,12 +190,12 @@ func (store *Store) FetchSome(ctx context.Context, options arguments.FetchSomeOp
 			}
 		}
 	}
-	toReturn := make([]arguments.Argument, 0, len(args))
+	toReturn := make([]Argument, 0, len(args))
 	for _, val := range args {
 		toReturn = append(toReturn, *val)
 	}
 	// Fixes #1: re-sort because iteration order on maps isn't guaranteed
-	sort.Sort(arguments.ByID(toReturn))
+	sort.Sort(ByID(toReturn))
 	return toReturn, nil
 }
 

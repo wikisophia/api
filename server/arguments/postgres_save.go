@@ -1,12 +1,10 @@
-package postgres
+package arguments
 
 import (
 	"context"
 	"database/sql"
 	"fmt"
 	"log"
-
-	"github.com/wikisophia/api-arguments/server/arguments"
 )
 
 const saveClaimQuery = `
@@ -42,7 +40,7 @@ const saveArgumentErrorMsg = "failed to save argument"
 
 // Save stores an argument and returns its ID.
 // If the call succeeds, the Version will be 1.
-func (store *Store) Save(ctx context.Context, argument arguments.Argument) (int64, error) {
+func (store *Store) Save(ctx context.Context, argument Argument) (int64, error) {
 	transaction, err := store.db.BeginTx(ctx, nil)
 	if err != nil {
 		return -1, fmt.Errorf("%s: %v", saveArgumentErrorMsg, err)

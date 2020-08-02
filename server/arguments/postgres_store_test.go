@@ -1,4 +1,4 @@
-package postgres_test
+package arguments_test
 
 import (
 	"database/sql"
@@ -7,12 +7,13 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/wikisophia/api-arguments/server/arguments/argumentstest"
 	"github.com/wikisophia/api-arguments/server/endpoints"
 
 	"github.com/smotes/purse"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+	"github.com/wikisophia/api-arguments/server/arguments"
+	"github.com/wikisophia/api-arguments/server/arguments/argumentstest"
 	"github.com/wikisophia/api-arguments/server/config"
 	"github.com/wikisophia/api-arguments/server/postgres"
 )
@@ -44,7 +45,7 @@ func TestArgumentStorageIntegration(t *testing.T) {
 		return
 	}
 
-	store := postgres.NewStore(db)
+	store := arguments.NewPostgresStore(db)
 
 	// Run all the same tests from the StoreTests suite.
 	empty, ok := sqlScripts.Get("empty.sql")

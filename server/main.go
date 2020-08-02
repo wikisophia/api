@@ -25,7 +25,7 @@ func newStore(cfg *config.Storage) (endpoints.Store, func() error) {
 	case config.StorageTypeMemory:
 		return arguments.NewMemoryStore(), func() error { return nil }
 	case config.StorageTypePostgres:
-		store := postgres.NewStore(postgres.NewDB(cfg.Postgres))
+		store := arguments.NewPostgresStore(postgres.NewDB(cfg.Postgres))
 		return store, store.Close
 	default:
 		panic("Invalid config storage.type: " + cfg.Type + ". This should be caught during config valation.")
