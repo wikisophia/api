@@ -9,7 +9,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/wikisophia/api-arguments/server/config"
+	"github.com/wikisophia/api/server/config"
 	"golang.org/x/crypto/argon2"
 )
 

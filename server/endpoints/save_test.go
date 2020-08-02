@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/wikisophia/api-arguments/server/arguments/argumentstest"
+	"github.com/wikisophia/api/server/arguments/argumentstest"
 )
 
 func TestSaveGetRoundtrip(t *testing.T) {

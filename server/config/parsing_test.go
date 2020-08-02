@@ -9,7 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/wikisophia/api-arguments/server/config"
+	"github.com/wikisophia/api/server/config"
 )
 
 func TestEnvironmentOverrides(t *testing.T) {

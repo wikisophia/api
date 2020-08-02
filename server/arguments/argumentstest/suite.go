@@ -5,8 +5,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
-	"github.com/wikisophia/api-arguments/server/arguments"
-	"github.com/wikisophia/api-arguments/server/endpoints"
+	"github.com/wikisophia/api/server/arguments"
+	"github.com/wikisophia/api/server/endpoints"
 )
 
 // StoreTests is a testing suite which makes sure that a Store obeys

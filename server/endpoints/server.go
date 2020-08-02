@@ -10,7 +10,7 @@ import (
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/rs/cors"
-	"github.com/wikisophia/api-arguments/server/config"
+	"github.com/wikisophia/api/server/config"
 )
 
 // Server runs the service. Use NewServer() to construct one from an app config,

@@ -4,9 +4,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/wikisophia/api-arguments/server/arguments"
-	"github.com/wikisophia/api-arguments/server/arguments/argumentstest"
-	"github.com/wikisophia/api-arguments/server/endpoints"
+	"github.com/wikisophia/api/server/arguments"
+	"github.com/wikisophia/api/server/arguments/argumentstest"
+	"github.com/wikisophia/api/server/endpoints"
 )
 
 func TestGetAll(t *testing.T) {

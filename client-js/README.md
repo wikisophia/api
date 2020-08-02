@@ -5,7 +5,7 @@ A javascript client library for the Wikisophia Arguments API.
 # Usage
 
 ```javascript
-import newArgumentsClient from 'api-arguments-client';
+import newArgumentsClient from '@wikisophia/api-client';
 
 const arguments = newArgumentsClient({
     url: "www.wikisophia.net",

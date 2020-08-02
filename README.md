@@ -1,15 +1,13 @@
-[![Build Status](https://travis-ci.com/wikisophia/api-arguments.svg?branch=master)](https://travis-ci.com/wikisophia/api-arguments)
+[![Build Status](https://travis-ci.com/wikisophia/api.svg?branch=master)](https://travis-ci.com/wikisophia/api)
 
 # Overview
 
-This project houses Wikisophia code for working with Arguments.
-It's a [monorepo](https://en.wikipedia.org/wiki/Monorepo) designed to hold
-the API Server code as well Client libraries which call it.
+This monorepo holds code for the Wikisophia API and Client libraries for calling it.
 
 ## Organization
 
-[client-js](./client-js) -- Javascript library for Server commands. This can be used in browsers or Node.
+[client-js](./client-js) -- An isomorphic Javascript library for calling the API
 
-[server](./server) -- The Server code which implements the Arguments API
+[server](./server) -- The Server code which runs the API
 
 [scripts](./scripts) -- Scripts to run tests, linting, formatting, etc.
