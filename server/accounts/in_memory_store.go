@@ -25,11 +25,14 @@ type accountInfo struct {
 	password string
 }
 
-// NewAccount makes a new account and returns a password reset token.
-// If the email is already in use the error will be an EmailExistsError.
-func (s *InMemoryStore) NewAccount(email string) (string, error) {
-	if _, ok := s.accounts[email]; ok {
-		return "", EmailExistsError{email}
+// NewResetTokenWithAccount sets a password reset token for an account.
+// If the email doesn't exist yet, an account will be created for it.
+func (s *InMemoryStore) NewResetTokenWithAccount(email string) (string, error) {
+	if accountInfo, ok := s.accounts[email]; ok {
+		accountInfo.token = "token-" + strconv.FormatInt(accountInfo.id, 10) +
+			"-reset-" + strconv.FormatInt(s.nextReset, 10)
+		s.nextReset++
+		return accountInfo.token, nil
 	}
 	info := &accountInfo{
 		id:       s.nextID,
@@ -38,20 +41,6 @@ func (s *InMemoryStore) NewAccount(email string) (string, error) {
 	}
 	s.nextID++
 	s.accounts[email] = info
-	return info.token, nil
-}
-
-// ResetPassword sets and returns a password reset token for this email.
-// If the email doesn't exist, it returns an EmailNotExistsError.
-func (s *InMemoryStore) ResetPassword(email string) (string, error) {
-	info, ok := s.accounts[email]
-	if !ok {
-		return "", EmailNotExistsError{
-			Email: email,
-		}
-	}
-	info.token = "token-" + strconv.FormatInt(info.id, 10) + "-reset-" + strconv.FormatInt(s.nextReset, 10)
-	s.nextReset++
 	return info.token, nil
 }
 
