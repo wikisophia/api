@@ -1,6 +1,7 @@
 package endpoints
 
 import (
+	"context"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
@@ -32,7 +33,7 @@ func accountHandler(tokenGenerator accounts.ResetTokenGenerator) http.HandlerFun
 			return
 		}
 
-		_, err = tokenGenerator.NewResetTokenWithAccount(req.Email)
+		_, err = tokenGenerator.NewResetTokenWithAccount(context.Background(), req.Email)
 		if err != nil {
 			http.Error(w, "An internal error occurred. Please try again later.", http.StatusInternalServerError)
 		}
