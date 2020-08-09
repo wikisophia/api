@@ -6,6 +6,10 @@ import "github.com/julienschmidt/httprouter"
 func newRouter(store Store) *httprouter.Router {
 	router := httprouter.New()
 
+	// Accounts
+	router.HandlerFunc("POST", "/accounts", accountHandler(store))
+
+	// Arguments
 	router.HandlerFunc("POST", "/arguments", saveHandler(store))
 	router.HandlerFunc("GET", "/arguments", getAllArgumentsHandler(store))
 	router.GET("/arguments/:id", getLiveArgumentHandler(store))

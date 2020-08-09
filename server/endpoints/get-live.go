@@ -9,15 +9,8 @@ import (
 	"github.com/wikisophia/api/server/arguments"
 )
 
-// ArgumentGetterLiveVersion can fetch the live version of an argument.
-type ArgumentGetterLiveVersion interface {
-	// FetchLive should return the latest "active" version of an argument.
-	// If no argument with this ID exists, the error should be an arguments.NotFoundError.
-	FetchLive(ctx context.Context, id int64) (arguments.Argument, error)
-}
-
 // Implements GET /arguments/:id
-func getLiveArgumentHandler(getter ArgumentGetterLiveVersion) httprouter.Handle {
+func getLiveArgumentHandler(getter arguments.GetLive) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 		id, goodID := parseInt64Param(params.ByName("id"))
 		if !goodID {

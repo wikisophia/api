@@ -24,6 +24,15 @@ func NewDB(cfg *config.Postgres) *sql.DB {
 	return db
 }
 
+// MustPrepareQuery wraps db.Prepare(query), but panics on errors.
+func MustPrepareQuery(db *sql.DB, query string) *sql.Stmt {
+	statement, err := db.Prepare(query)
+	if err != nil {
+		log.Fatalf("Failed to prepare statement with query %s. Error was %v", query, err)
+	}
+	return statement
+}
+
 // connectionString turns the config into a string accepted by lib/pq.
 // For details, see https://godoc.org/github.com/lib/pq#hdr-Connection_String_Parameters
 func connectionString(cfg *config.Postgres) string {

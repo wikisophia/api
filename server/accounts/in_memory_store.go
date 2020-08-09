@@ -82,3 +82,8 @@ func (s *InMemoryStore) Authenticate(email, password string) (int64, error) {
 	}
 	return userInfo.id, nil
 }
+
+// Close frees all the resources the InMemoryStore is using (needed to implement the interface)
+func (s *InMemoryStore) Close() error {
+	return nil
+}

@@ -3,6 +3,7 @@ package main
 import (
 	_ "net/http/pprof"
 
+	"github.com/wikisophia/api/server/accounts"
 	"github.com/wikisophia/api/server/arguments"
 	"github.com/wikisophia/api/server/config"
 	"github.com/wikisophia/api/server/endpoints"
@@ -23,9 +24,17 @@ func main() {
 func newStore(cfg *config.Storage) (endpoints.Store, func() error) {
 	switch cfg.Type {
 	case config.StorageTypeMemory:
-		return arguments.NewMemoryStore(), func() error { return nil }
+		store := endpoints.AggregateStore{
+			AccountsStore:  accounts.NewMemoryStore(),
+			ArgumentsStore: arguments.NewMemoryStore(),
+		}
+		return store, store.Close
 	case config.StorageTypePostgres:
-		store := arguments.NewPostgresStore(postgres.NewDB(cfg.Postgres))
+		db := postgres.NewDB(cfg.Postgres)
+		store := endpoints.AggregateStore{
+			AccountsStore:  accounts.NewPostgresStore(db),
+			ArgumentsStore: arguments.NewPostgresStore(db),
+		}
 		return store, store.Close
 	default:
 		panic("Invalid config storage.type: " + cfg.Type + ". This should be caught during config valation.")

@@ -6,14 +6,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"github.com/wikisophia/api/server/arguments"
-	"github.com/wikisophia/api/server/endpoints"
 )
 
 // StoreTests is a testing suite which makes sure that a Store obeys
 // the interface contract
 type StoreTests struct {
 	suite.Suite
-	StoreFactory func() endpoints.Store
+	StoreFactory func() arguments.Store
 }
 
 // TestSaveIsLive makes sure that an argument is "live" immediately after being saved.
@@ -204,7 +203,7 @@ func (suite *StoreTests) TestFetchWithConclusionSearch() {
 	assert.Equal(suite.T(), first, found[0])
 }
 
-func (suite *StoreTests) saveCopyWithConclusion(store endpoints.Store, template arguments.Argument, conclusion string) arguments.Argument {
+func (suite *StoreTests) saveCopyWithConclusion(store arguments.Store, template arguments.Argument, conclusion string) arguments.Argument {
 	copy := template
 	copy.Conclusion = conclusion
 	copy.ID = suite.saveWithUpdates(store, copy)
@@ -351,7 +350,7 @@ func (suite *StoreTests) TestFetchWithExclusions() {
 	assert.Equal(suite.T(), id3, allArgs[1].ID)
 }
 
-func (suite *StoreTests) saveWithUpdates(store endpoints.Store, arg arguments.Argument, updates ...arguments.Argument) int64 {
+func (suite *StoreTests) saveWithUpdates(store arguments.Store, arg arguments.Argument, updates ...arguments.Argument) int64 {
 	id, err := store.Save(context.Background(), arg)
 	if !assert.NoError(suite.T(), err) {
 		return -1

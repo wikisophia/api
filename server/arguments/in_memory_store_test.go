@@ -6,7 +6,6 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/wikisophia/api/server/arguments"
 	"github.com/wikisophia/api/server/arguments/argumentstest"
-	"github.com/wikisophia/api/server/endpoints"
 )
 
 // TestInMemoryStore makes sure that the inMemoryStore is consistent with the StoreTests suite.
@@ -15,7 +14,7 @@ import (
 //    2.The StoreTests suite, which is reused to test the real Postgres implementation.
 func TestInMemoryStore(t *testing.T) {
 	suite.Run(t, &argumentstest.StoreTests{
-		StoreFactory: func() endpoints.Store {
+		StoreFactory: func() arguments.Store {
 			return arguments.NewMemoryStore()
 		},
 	})

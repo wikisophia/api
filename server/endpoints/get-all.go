@@ -13,14 +13,7 @@ import (
 
 var wordSplitter = regexp.MustCompile("[a-zA-Z]+")
 
-// ArgumentsGetter can fetch lists of arguments at once.
-type ArgumentsGetter interface {
-	// FetchSome finds the arguments which match the options.
-	// If none exist, error will be nil and the slice empty.
-	FetchSome(ctx context.Context, options arguments.FetchSomeOptions) ([]arguments.Argument, error)
-}
-
-func getAllArgumentsHandler(getter ArgumentsGetter) http.HandlerFunc {
+func getAllArgumentsHandler(getter arguments.GetSome) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.URL == nil {
 			http.Error(w, "URL was nil. Bad Request-Line?", http.StatusBadRequest)

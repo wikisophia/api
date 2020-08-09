@@ -3,32 +3,34 @@ package arguments
 import (
 	"database/sql"
 	"log"
-	"strings"
+
+	"github.com/hashicorp/go-multierror"
+	"github.com/wikisophia/api/server/postgres"
 )
 
 // NewPostgresStore returns a Store which is used to save and load Arguments.
 // The db should point to a Postgres database.
 // The returned Store.Close() function will *not* close this connection, since we did not open it.
-func NewPostgresStore(db *sql.DB) *Store {
+func NewPostgresStore(db *sql.DB) *PostgresStore {
 	if db == nil {
-		log.Fatalf("A database connection is required to make a Store.")
+		log.Fatal("A database connection is required to make an arguments.PostgresStore.")
 	}
-	return &Store{
+	return &PostgresStore{
 		db:                           db,
-		deleteStatement:              mustPrepareQuery(db, deleteQuery),
-		fetchStatement:               mustPrepareQuery(db, fetchQuery),
-		fetchLiveStatement:           mustPrepareQuery(db, fetchLiveQuery),
-		newArgumentVersionStatement:  mustPrepareQuery(db, newArgumentVersionQuery),
-		saveArgumentStatement:        mustPrepareQuery(db, saveArgumentQuery),
-		saveArgumentVersionStatement: mustPrepareQuery(db, saveArgumentVersionQuery),
-		saveClaimStatement:           mustPrepareQuery(db, saveClaimQuery),
-		savePremiseStatement:         mustPrepareQuery(db, savePremiseQuery),
+		deleteStatement:              postgres.MustPrepareQuery(db, deleteQuery),
+		fetchStatement:               postgres.MustPrepareQuery(db, fetchQuery),
+		fetchLiveStatement:           postgres.MustPrepareQuery(db, fetchLiveQuery),
+		newArgumentVersionStatement:  postgres.MustPrepareQuery(db, newArgumentVersionQuery),
+		saveArgumentStatement:        postgres.MustPrepareQuery(db, saveArgumentQuery),
+		saveArgumentVersionStatement: postgres.MustPrepareQuery(db, saveArgumentVersionQuery),
+		saveClaimStatement:           postgres.MustPrepareQuery(db, saveClaimQuery),
+		savePremiseStatement:         postgres.MustPrepareQuery(db, savePremiseQuery),
 	}
 }
 
-// The Store expects that {projectRoot}/postgres/scripts/create.sql
+// PostgresStore expects that {projectRoot}/postgres/scripts/create.sql
 // has already been run on your database so that the expected schema exists.
-type Store struct {
+type PostgresStore struct {
 	db                           *sql.DB
 	deleteStatement              *sql.Stmt
 	fetchStatement               *sql.Stmt
@@ -40,53 +42,18 @@ type Store struct {
 	savePremiseStatement         *sql.Stmt
 }
 
-type closeErrors []error
-
-func (errs closeErrors) Error() string {
-	if len(errs) == 0 {
-		return ""
-	}
-
-	sb := strings.Builder{}
-	sb.WriteString("error(s) occurred while shutting down the postgres.Store:\n")
-	for i := 0; i < len(errs); i++ {
-		sb.WriteString("  ")
-		sb.WriteString(errs[i].Error())
-		sb.WriteString("\n")
-	}
-	return sb.String()
-}
-
 // Close closes all the prepared statements used to make queries.
 // It does not shut down the database connection which was passed
 // into NewPostgresStore().
-func (store *Store) Close() error {
-	var errs []error
-	errs = mayAppendError(store.deleteStatement.Close, errs)
-	errs = mayAppendError(store.fetchStatement.Close, errs)
-	errs = mayAppendError(store.fetchLiveStatement.Close, errs)
-	errs = mayAppendError(store.newArgumentVersionStatement.Close, errs)
-	errs = mayAppendError(store.saveArgumentStatement.Close, errs)
-	errs = mayAppendError(store.saveArgumentVersionStatement.Close, errs)
-	errs = mayAppendError(store.saveClaimStatement.Close, errs)
-	errs = mayAppendError(store.savePremiseStatement.Close, errs)
-	if len(errs) == 0 {
-		return nil
-	}
-	return closeErrors(errs)
-}
-
-func mayAppendError(f func() error, errs []error) []error {
-	if err := f(); err != nil {
-		return append(errs, err)
-	}
-	return errs
-}
-
-func mustPrepareQuery(db *sql.DB, query string) *sql.Stmt {
-	statement, err := db.Prepare(query)
-	if err != nil {
-		log.Fatalf("Failed to prepare statement with query %s. Error was %v", query, err)
-	}
-	return statement
+func (store *PostgresStore) Close() error {
+	var result *multierror.Error
+	result = multierror.Append(result, store.deleteStatement.Close())
+	result = multierror.Append(result, store.fetchStatement.Close())
+	result = multierror.Append(result, store.fetchLiveStatement.Close())
+	result = multierror.Append(result, store.newArgumentVersionStatement.Close())
+	result = multierror.Append(result, store.saveArgumentStatement.Close())
+	result = multierror.Append(result, store.saveArgumentVersionStatement.Close())
+	result = multierror.Append(result, store.saveClaimStatement.Close())
+	result = multierror.Append(result, store.savePremiseStatement.Close())
+	return result.ErrorOrNil()
 }
