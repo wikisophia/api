@@ -19,7 +19,6 @@ func TestAccountRejectsBadRequestBodies(t *testing.T) {
 	assertBadRequest(t, doSaveAccount(newServerForTests(), "not json"))
 	assertBadRequest(t, doSaveAccount(newServerForTests(), "{}"))
 	assertBadRequest(t, doSaveAccount(newServerForTests(), `{"email":null}`))
-	assertBadRequest(t, doSaveAccount(newServerForTests(), `{"email":"not a valid email address"}`))
 	assertBadRequest(t, doSaveAccount(newServerForTests(), `{"email":5}`))
 	assertBadRequest(t, doSaveAccount(newServerForTests(), `{"email":true}`))
 	assertBadRequest(t, doSaveAccount(newServerForTests(), `{"email":3.4}`))

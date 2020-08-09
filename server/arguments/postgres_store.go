@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/hashicorp/go-multierror"
+	"github.com/wikisophia/api/server/postgres"
 )
 
 // NewPostgresStore returns a Store which is used to save and load Arguments.
@@ -16,14 +17,14 @@ func NewPostgresStore(db *sql.DB) *PostgresStore {
 	}
 	return &PostgresStore{
 		db:                           db,
-		deleteStatement:              mustPrepareQuery(db, deleteQuery),
-		fetchStatement:               mustPrepareQuery(db, fetchQuery),
-		fetchLiveStatement:           mustPrepareQuery(db, fetchLiveQuery),
-		newArgumentVersionStatement:  mustPrepareQuery(db, newArgumentVersionQuery),
-		saveArgumentStatement:        mustPrepareQuery(db, saveArgumentQuery),
-		saveArgumentVersionStatement: mustPrepareQuery(db, saveArgumentVersionQuery),
-		saveClaimStatement:           mustPrepareQuery(db, saveClaimQuery),
-		savePremiseStatement:         mustPrepareQuery(db, savePremiseQuery),
+		deleteStatement:              postgres.MustPrepareQuery(db, deleteQuery),
+		fetchStatement:               postgres.MustPrepareQuery(db, fetchQuery),
+		fetchLiveStatement:           postgres.MustPrepareQuery(db, fetchLiveQuery),
+		newArgumentVersionStatement:  postgres.MustPrepareQuery(db, newArgumentVersionQuery),
+		saveArgumentStatement:        postgres.MustPrepareQuery(db, saveArgumentQuery),
+		saveArgumentVersionStatement: postgres.MustPrepareQuery(db, saveArgumentVersionQuery),
+		saveClaimStatement:           postgres.MustPrepareQuery(db, saveClaimQuery),
+		savePremiseStatement:         postgres.MustPrepareQuery(db, savePremiseQuery),
 	}
 }
 
@@ -46,28 +47,13 @@ type PostgresStore struct {
 // into NewPostgresStore().
 func (store *PostgresStore) Close() error {
 	var result *multierror.Error
-	result = mayAppendError(result, store.deleteStatement.Close())
-	result = mayAppendError(result, store.fetchStatement.Close())
-	result = mayAppendError(result, store.fetchLiveStatement.Close())
-	result = mayAppendError(result, store.newArgumentVersionStatement.Close())
-	result = mayAppendError(result, store.saveArgumentStatement.Close())
-	result = mayAppendError(result, store.saveArgumentVersionStatement.Close())
-	result = mayAppendError(result, store.saveClaimStatement.Close())
-	result = mayAppendError(result, store.savePremiseStatement.Close())
+	result = multierror.Append(result, store.deleteStatement.Close())
+	result = multierror.Append(result, store.fetchStatement.Close())
+	result = multierror.Append(result, store.fetchLiveStatement.Close())
+	result = multierror.Append(result, store.newArgumentVersionStatement.Close())
+	result = multierror.Append(result, store.saveArgumentStatement.Close())
+	result = multierror.Append(result, store.saveArgumentVersionStatement.Close())
+	result = multierror.Append(result, store.saveClaimStatement.Close())
+	result = multierror.Append(result, store.savePremiseStatement.Close())
 	return result.ErrorOrNil()
-}
-
-func mayAppendError(existing *multierror.Error, errOrNil error) *multierror.Error {
-	if errOrNil != nil {
-		return multierror.Append(existing, errOrNil)
-	}
-	return existing
-}
-
-func mustPrepareQuery(db *sql.DB, query string) *sql.Stmt {
-	statement, err := db.Prepare(query)
-	if err != nil {
-		log.Fatalf("Failed to prepare statement with query %s. Error was %v", query, err)
-	}
-	return statement
 }
