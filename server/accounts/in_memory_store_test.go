@@ -13,7 +13,7 @@ import (
 //    2.The StoreTests suite, which is reused to test the real Postgres implementation.
 func TestInMemoryStore(t *testing.T) {
 	suite.Run(t, &StoreTests{
-		StoreFactory: func() Store {
+		StoreFactory: func() accounts.Store {
 			return accounts.NewMemoryStore()
 		},
 	})
