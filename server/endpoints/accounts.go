@@ -4,18 +4,13 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
-)
 
-// ResetTokenGenerator creates accounts and generate password reset tokens
-type ResetTokenGenerator interface {
-	// NewResetTokenWithAccount assigns a new password reset token to the account
-	// with this email. If no accounts exist with this email, one will be created.
-	NewResetTokenWithAccount(email string) (string, error)
-}
+	"github.com/wikisophia/api/server/accounts"
+)
 
 // Handle POST /accounts requests. This either registers a new account or
 // generates a password reset token if the account already exists.
-func accountHandler(tokenGenerator ResetTokenGenerator) http.HandlerFunc {
+func accountHandler(tokenGenerator accounts.ResetTokenGenerator) http.HandlerFunc {
 	type request struct {
 		Email string
 	}

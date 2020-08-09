@@ -8,8 +8,10 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/julienschmidt/httprouter"
 	"github.com/rs/cors"
+	"github.com/wikisophia/api/server/accounts"
 	"github.com/wikisophia/api/server/arguments"
 	"github.com/wikisophia/api/server/config"
 )
@@ -29,8 +31,22 @@ func NewServer(store Store) *Server {
 
 // Store has all the functions needed by the server for persistent storage
 type Store interface {
-	ResetTokenGenerator
+	accounts.Store
 	arguments.Store
+}
+
+type AccountsStore = accounts.Store
+type ArgumentsStore = arguments.Store
+type AggregateStore struct {
+	AccountsStore
+	ArgumentsStore
+}
+
+func (store AggregateStore) Close() error {
+	var result *multierror.Error
+	multierror.Append(result, store.AccountsStore.Close())
+	multierror.Append(result, store.ArgumentsStore.Close())
+	return result.ErrorOrNil()
 }
 
 // Handle exists to make testing easier.

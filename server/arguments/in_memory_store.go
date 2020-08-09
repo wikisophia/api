@@ -136,6 +136,11 @@ func (s *InMemoryStore) Update(ctx context.Context, argument Argument) (version 
 	return argument.Version, nil
 }
 
+// Close frees all the resources the InMemoryStore is using (needed to implement the interface)
+func (s *InMemoryStore) Close() error {
+	return nil
+}
+
 func (s *InMemoryStore) argumentExists(id int64) bool {
 	return int64(len(s.arguments)) > id && s.arguments[id] != nil
 }

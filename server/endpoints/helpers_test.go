@@ -21,9 +21,9 @@ import (
 
 // newServerForTests returns a Server that stores arguments in memory.
 func newServerForTests() *endpoints.Server {
-	return endpoints.NewServer(memoryStore{
-		accountsInMemory:  accounts.NewMemoryStore(),
-		argumentsInMemory: arguments.NewMemoryStore(),
+	return endpoints.NewServer(endpoints.AggregateStore{
+		AccountsStore:  accounts.NewMemoryStore(),
+		ArgumentsStore: arguments.NewMemoryStore(),
 	})
 }
 
@@ -171,11 +171,4 @@ func doRequest(server *endpoints.Server, req *http.Request) *httptest.ResponseRe
 	rr := httptest.NewRecorder()
 	server.Handle(rr, req)
 	return rr
-}
-
-type accountsInMemory = accounts.InMemoryStore
-type argumentsInMemory = arguments.InMemoryStore
-type memoryStore struct {
-	*accountsInMemory
-	*argumentsInMemory
 }
