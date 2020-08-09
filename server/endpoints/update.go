@@ -12,15 +12,8 @@ import (
 	"github.com/wikisophia/api/server/arguments"
 )
 
-// ArgumentUpdater can update existing arguments.
-type ArgumentUpdater interface {
-	// Update makes a new version of the argument. It returns the new argument's version.
-	// If no argument with this ID exists, the returned error is an arguments.NotFoundError.
-	Update(ctx context.Context, argument arguments.Argument) (version int, err error)
-}
-
 // Implements PATCH /arguments/:id
-func updateHandler(updater ArgumentUpdater) httprouter.Handle {
+func updateHandler(updater arguments.Updater) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 		id, goodID := parseInt64Param(params.ByName("id"))
 		if !goodID || id < 1 {

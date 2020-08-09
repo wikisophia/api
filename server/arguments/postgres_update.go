@@ -20,7 +20,7 @@ INSERT INTO argument_versions (argument_id, argument_version, conclusion_id)
 const updateArgumentErrorMsg = "failed to update argument %d: %v"
 
 // Update saves a new version of an argument.
-func (store *Store) Update(ctx context.Context, argument Argument) (version int, err error) {
+func (store *PostgresStore) Update(ctx context.Context, argument Argument) (version int, err error) {
 	transaction, err := store.db.BeginTx(ctx, nil)
 	if didRollback := rollbackIfErr(transaction, err); didRollback {
 		return -1, err
@@ -44,7 +44,7 @@ func (store *Store) Update(ctx context.Context, argument Argument) (version int,
 	return argumentVersion, nil
 }
 
-func (store *Store) newArgumentVersion(ctx context.Context, transaction *sql.Tx, argumentID int64, conclusionID int64) (int64, int, error) {
+func (store *PostgresStore) newArgumentVersion(ctx context.Context, transaction *sql.Tx, argumentID int64, conclusionID int64) (int64, int, error) {
 	row := transaction.StmtContext(ctx, store.newArgumentVersionStatement).QueryRowContext(ctx, argumentID, conclusionID)
 	var argumentVersionID int64
 	var argumentVersion int

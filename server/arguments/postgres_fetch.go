@@ -57,7 +57,7 @@ ORDER BY o;
 `
 
 // FetchVersion fetches a specific version of an argument.
-func (store *Store) FetchVersion(ctx context.Context, id int64, version int) (Argument, error) {
+func (store *PostgresStore) FetchVersion(ctx context.Context, id int64, version int) (Argument, error) {
 	rows, err := store.fetchStatement.QueryContext(ctx, id, version)
 	if err != nil {
 		return Argument{}, fmt.Errorf("argument fetch query failed: %v", err)
@@ -69,7 +69,7 @@ func (store *Store) FetchVersion(ctx context.Context, id int64, version int) (Ar
 // FetchLive fetches the "active" version of an argument.
 // This is usually the newest one, but it may not be if an
 // update has been reverted.
-func (store *Store) FetchLive(ctx context.Context, id int64) (Argument, error) {
+func (store *PostgresStore) FetchLive(ctx context.Context, id int64) (Argument, error) {
 	rows, err := store.fetchLiveStatement.QueryContext(ctx, id)
 	if err != nil {
 		return Argument{}, fmt.Errorf("argument fetch query failed: %v", err)
@@ -78,7 +78,7 @@ func (store *Store) FetchLive(ctx context.Context, id int64) (Argument, error) {
 	return store.parseFetchResults(id, rows)
 }
 
-func (store *Store) parseFetchResults(id int64, rows *sql.Rows) (Argument, error) {
+func (store *PostgresStore) parseFetchResults(id int64, rows *sql.Rows) (Argument, error) {
 	var claim string
 	var version int
 	var dummy int
@@ -111,7 +111,7 @@ func (store *Store) parseFetchResults(id int64, rows *sql.Rows) (Argument, error
 
 // FetchSome returns all the "live" arguments matching the given options.
 // If none exist, error will be nil and the slice empty.
-func (store *Store) FetchSome(ctx context.Context, options FetchSomeOptions) ([]Argument, error) {
+func (store *PostgresStore) FetchSome(ctx context.Context, options FetchSomeOptions) ([]Argument, error) {
 	// TODO: StringBuilder this
 	selectArgumentsQuery := `SELECT arguments.id, argument_versions.argument_version, argument_versions.id AS argument_version_id, claims.claim AS conclusion
 	FROM arguments

@@ -6,16 +6,10 @@ import (
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
+	"github.com/wikisophia/api/server/arguments"
 )
 
-// ArgumentDeleter can delete arguments by ID.
-type ArgumentDeleter interface {
-	// Delete deletes an argument (and all its versions) from the site.
-	// If the argument didn't exist, the error will be a NotFoundError.
-	Delete(ctx context.Context, id int64) error
-}
-
-func deleteHandler(deleter ArgumentDeleter) httprouter.Handle {
+func deleteHandler(deleter arguments.Deleter) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 		id, goodID := parseInt64Param(params.ByName("id"))
 		if !goodID {

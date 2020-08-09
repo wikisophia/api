@@ -10,6 +10,7 @@ import (
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/rs/cors"
+	"github.com/wikisophia/api/server/arguments"
 	"github.com/wikisophia/api/server/config"
 )
 
@@ -28,12 +29,8 @@ func NewServer(store Store) *Server {
 
 // Store has all the functions needed by the server for persistent storage
 type Store interface {
-	ArgumentDeleter
-	ArgumentsGetter
-	ArgumentGetterByVersion
-	ArgumentGetterLiveVersion
-	ArgumentSaver
-	ArgumentUpdater
+	ResetTokenGenerator
+	arguments.Store
 }
 
 // Handle exists to make testing easier.

@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/wikisophia/api/server/accounts"
 	"github.com/wikisophia/api/server/arguments"
 	"github.com/wikisophia/api/server/endpoints"
 )
@@ -20,7 +21,10 @@ import (
 
 // newServerForTests returns a Server that stores arguments in memory.
 func newServerForTests() *endpoints.Server {
-	return endpoints.NewServer(arguments.NewMemoryStore())
+	return endpoints.NewServer(memoryStore{
+		accountsInMemory:  accounts.NewMemoryStore(),
+		argumentsInMemory: arguments.NewMemoryStore(),
+	})
 }
 
 func parseGetAllResponse(t *testing.T, data []byte) endpoints.GetAllResponse {
@@ -167,4 +171,11 @@ func doRequest(server *endpoints.Server, req *http.Request) *httptest.ResponseRe
 	rr := httptest.NewRecorder()
 	server.Handle(rr, req)
 	return rr
+}
+
+type accountsInMemory = accounts.InMemoryStore
+type argumentsInMemory = arguments.InMemoryStore
+type memoryStore struct {
+	*accountsInMemory
+	*argumentsInMemory
 }

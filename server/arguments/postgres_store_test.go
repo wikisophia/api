@@ -7,8 +7,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/wikisophia/api/server/endpoints"
-
 	"github.com/smotes/purse"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -53,7 +51,7 @@ func TestArgumentStorageIntegration(t *testing.T) {
 		return
 	}
 	suite.Run(t, &argumentstest.StoreTests{
-		StoreFactory: func() endpoints.Store {
+		StoreFactory: func() arguments.Store {
 			if _, err := db.Query(empty); !assert.NoError(t, err) {
 				t.FailNow()
 			}
