@@ -1,6 +1,9 @@
 package accounts
 
-import "strconv"
+import (
+	"context"
+	"strconv"
+)
 
 // NewMemoryStore makes an empty InMemoryStore with all its variables initialized.
 func NewMemoryStore() *InMemoryStore {
@@ -27,7 +30,7 @@ type accountInfo struct {
 
 // NewResetTokenWithAccount sets a password reset token for an account.
 // If the email doesn't exist yet, an account will be created for it.
-func (s *InMemoryStore) NewResetTokenWithAccount(email string) (string, error) {
+func (s *InMemoryStore) NewResetTokenWithAccount(ctx context.Context, email string) (string, error) {
 	if accountInfo, ok := s.accounts[email]; ok {
 		accountInfo.token = "token-" + strconv.FormatInt(accountInfo.id, 10) +
 			"-reset-" + strconv.FormatInt(s.nextReset, 10)
@@ -48,7 +51,7 @@ func (s *InMemoryStore) NewResetTokenWithAccount(email string) (string, error) {
 // If the email doesn't exist, it returns an EmailNotExistsError.
 // If the resetToken is wrong (expired or never returned by ResetPassword(email)),
 //   it returns an InvalidPasswordError.
-func (s *InMemoryStore) SetPassword(email, password, resetToken string) (int64, error) {
+func (s *InMemoryStore) SetPassword(ctx context.Context, email, password, resetToken string) (int64, error) {
 	info, ok := s.accounts[email]
 	if !ok {
 		return -1, EmailNotExistsError{
@@ -69,7 +72,7 @@ func (s *InMemoryStore) SetPassword(email, password, resetToken string) (int64, 
 // Authenticate returns the account's ID.
 // If the email doesn't exist, it returns an EmailNotExistsError.
 // If the password is wrong, it returns an InvalidPasswordError.
-func (s *InMemoryStore) Authenticate(email, password string) (int64, error) {
+func (s *InMemoryStore) Authenticate(ctx context.Context, email, password string) (int64, error) {
 	userInfo, ok := s.accounts[email]
 	if !ok {
 		return -1, EmailNotExistsError{email}
