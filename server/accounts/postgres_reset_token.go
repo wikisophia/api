@@ -5,8 +5,7 @@ import (
 	"errors"
 )
 
-// NewResetTokenWithAccount gets a password reset token for the given email.
-// If the account doesn't exist yet, it will be created first.
-func (s *PostgresStore) NewResetTokenWithAccount(ctx context.Context, email string) (string, error) {
-	return "", errors.New("not yet implemented")
+// See the docs on interfaces in store.go
+func (s *PostgresStore) NewResetToken(ctx context.Context, email string) (Account, error) {
+	return Account{}, errors.New("not yet implemented")
 }

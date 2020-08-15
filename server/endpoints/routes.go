@@ -8,6 +8,7 @@ func newRouter(store Store) *httprouter.Router {
 
 	// Accounts
 	router.HandlerFunc("POST", "/accounts", accountHandler(store))
+	router.POST("/accounts/:id/password", setPasswordHandler(store))
 
 	// Arguments
 	router.HandlerFunc("POST", "/arguments", saveHandler(store))
