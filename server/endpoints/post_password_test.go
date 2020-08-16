@@ -3,6 +3,7 @@ package endpoints_test
 import (
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -11,24 +12,44 @@ import (
 	"github.com/wikisophia/api/server/endpoints"
 )
 
-// TODO: When emails go out find a way to mock it and check values during tests.
-
-func TestSetPasswordRejectsBadRequestsProperly(t *testing.T) {
-	s := newAppForTests(testServerConfig{}).server
-	rr := doSaveAccount(s, `{"email":"some-email@soph.wiki"}`)
+func TestPasswordSetsProperly(t *testing.T) {
+	app := newAppForTests(testServerConfig{emailerSucceeds: true})
+	require.Equal(t, http.StatusNoContent, doSaveAccount(app.server, `{"email":"some-email@soph.wiki"}`).Code)
+	welcomeEmail := app.emailer.welcomes[0]
+	rr := doSetPassword(app.server, strconv.FormatInt(welcomeEmail.ID, 10), `{"password":"some-password","resetToken":"wrong-`+welcomeEmail.ResetToken+`"}`)
+	require.Equal(t, http.StatusUnauthorized, rr.Code)
+	rr = doSetPassword(app.server, strconv.FormatInt(welcomeEmail.ID, 10), `{"password":"some-password","resetToken":"`+welcomeEmail.ResetToken+`"}`)
 	require.Equal(t, http.StatusNoContent, rr.Code)
 
-	assert.Equal(t, http.StatusNotFound, doSetPassword(s, "2", `{"password":"password","resetToken":"abc"}`).Code)
+	// TODO: Authenticate once the endpoint exists and make sure the password sets properly
+
+	rr = doSetPassword(app.server, strconv.FormatInt(welcomeEmail.ID, 10), `{"password":"some-new-password","oldPassword":"some-wrong-password"}`)
+	require.Equal(t, http.StatusUnauthorized, rr.Code)
+	rr = doSetPassword(app.server, strconv.FormatInt(welcomeEmail.ID, 10), `{"password":"some-new-password","oldPassword":"some-password"}`)
+	require.Equal(t, http.StatusNoContent, rr.Code)
+
+	// TODO: Authenticate again once that endpoint exists to make sure the password changes properly
+}
+
+func TestSetPasswordRejectsBadRequestsProperly(t *testing.T) {
+	app := newAppForTests(testServerConfig{})
+	s := app.server
+	rr := doSaveAccount(s, `{"email":"some-email@soph.wiki"}`)
+	require.Equal(t, http.StatusNoContent, rr.Code)
+	id := app.emailer.welcomes[0].ID
+	idString := strconv.FormatInt(id, 10)
+
+	assert.Equal(t, http.StatusNotFound, doSetPassword(s, strconv.FormatInt(id+1, 10), `{"password":"password","resetToken":"abc"}`).Code)
 	assert.Equal(t, http.StatusNotFound, doSetPassword(s, "non-numeric", "").Code)
-	assert.Equal(t, http.StatusUnauthorized, doSetPassword(s, "1", `{"password":"abc","resetToken":"*"}`).Code)
-	assertBadRequest(t, doSetPassword(s, "1", "not json"))
-	assertBadRequest(t, doSetPassword(s, "1", "5"))
-	assertBadRequest(t, doSetPassword(s, "1", "true"))
-	assertBadRequest(t, doSetPassword(s, "1", "null"))
-	assertBadRequest(t, doSetPassword(s, "1", "\"\""))
-	assertBadRequest(t, doSetPassword(s, "1", "{}"))
-	assertBadRequest(t, doSetPassword(s, "1", `{"password":"something"}`))
-	assertBadRequest(t, doSetPassword(s, "1", `{"password":"something","resetToken":"abc","oldPassword":"something-else"}`))
+	assert.Equal(t, http.StatusUnauthorized, doSetPassword(s, idString, `{"password":"abc","resetToken":"*"}`).Code)
+	assertBadRequest(t, doSetPassword(s, idString, "not json"))
+	assertBadRequest(t, doSetPassword(s, idString, "5"))
+	assertBadRequest(t, doSetPassword(s, idString, "true"))
+	assertBadRequest(t, doSetPassword(s, idString, "null"))
+	assertBadRequest(t, doSetPassword(s, idString, "\"\""))
+	assertBadRequest(t, doSetPassword(s, idString, "{}"))
+	assertBadRequest(t, doSetPassword(s, idString, `{"password":"something"}`))
+	assertBadRequest(t, doSetPassword(s, idString, `{"password":"something","resetToken":"abc","oldPassword":"something-else"}`))
 }
 
 func doSetPassword(s *endpoints.Server, id string, body string) *httptest.ResponseRecorder {

@@ -7,12 +7,32 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/wikisophia/api/server/endpoints"
 )
 
 func TestAccountAcceptsEmails(t *testing.T) {
-	rr := doSaveAccount(newAppForTests(testServerConfig{}).server, `{"email":"some-email@soph.wiki"}`)
+	app := newAppForTests(testServerConfig{
+		emailerSucceeds: true,
+	})
+	rr := doSaveAccount(app.server, `{"email":"some-email@soph.wiki"}`)
 	assert.Equal(t, http.StatusNoContent, rr.Code)
+	welcomeEmails := app.emailer.welcomes
+	require.Len(t, welcomeEmails, 1)
+	require.Equal(t, "some-email@soph.wiki", welcomeEmails[0].Email)
+	require.Len(t, welcomeEmails[0].ResetToken, 20) // Tokens need to be long enough for security
+}
+
+func TestAccountSendsResetEmails(t *testing.T) {
+	app := newAppForTests(testServerConfig{
+		emailerSucceeds: true,
+	})
+	assert.Equal(t, http.StatusNoContent, doSaveAccount(app.server, `{"email":"some-email@soph.wiki"}`).Code)
+	assert.Equal(t, http.StatusNoContent, doSaveAccount(app.server, `{"email":"some-email@soph.wiki"}`).Code)
+	require.Len(t, app.emailer.welcomes, 1)
+	require.Len(t, app.emailer.passwordResets, 1)
+	require.Equal(t, app.emailer.welcomes[0].ID, app.emailer.passwordResets[0].ID)
+	require.Equal(t, app.emailer.welcomes[0].Email, app.emailer.passwordResets[0].Email)
 }
 
 func TestAccountRejectsBadRequestBodies(t *testing.T) {
