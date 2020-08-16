@@ -39,6 +39,7 @@ type ResetTokenGenerator interface {
 	// This associates a temporary password reset token with the account with the given email.
 	// This token can be used in the PasswordSetter.SetForgottenPassword() method.
 	//
-	// If no Account exists with this email yet, one will be created.
-	NewResetToken(ctx context.Context, email string) (Account, error)
+	// If no Account exists with this email yet, one will be created. The bool return value is
+	// true if the Account is new, and false if it existed already.
+	NewResetToken(ctx context.Context, email string) (Account, bool, error)
 }

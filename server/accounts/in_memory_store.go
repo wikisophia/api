@@ -27,15 +27,15 @@ type accountInfo struct {
 }
 
 // See the docs on interfaces in store.go
-func (s *InMemoryStore) NewResetToken(ctx context.Context, email string) (Account, error) {
+func (s *InMemoryStore) NewResetToken(ctx context.Context, email string) (Account, bool, error) {
 	token, err := newVerificationToken(20)
 	if err != nil {
-		return Account{}, err
+		return Account{}, false, err
 	}
 	if accountInfo, ok := s.accounts[email]; ok {
 		accountInfo.account.ResetToken = token
 		s.nextReset++
-		return accountInfo.account, nil
+		return accountInfo.account, false, nil
 	}
 
 	info := &accountInfo{
@@ -48,7 +48,7 @@ func (s *InMemoryStore) NewResetToken(ctx context.Context, email string) (Accoun
 	}
 	s.nextID++
 	s.accounts[email] = info
-	return info.account, nil
+	return info.account, true, nil
 }
 
 // See the docs on interfaces in store.go

@@ -23,26 +23,28 @@ type Server struct {
 }
 
 // NewServer makes a server which defines REST endpoints for the service.
-func NewServer(store Store) *Server {
+func NewServer(store Dependencies) *Server {
 	return &Server{
 		router: newRouter(store),
 	}
 }
 
-// Store has all the functions needed by the server for persistent storage
-type Store interface {
+// Dependencies for all the server's endpoints
+type Dependencies interface {
+	accounts.Emailer
 	accounts.Store
 	arguments.Store
 }
 
 type AccountsStore = accounts.Store
 type ArgumentsStore = arguments.Store
-type AggregateStore struct {
+type ServerDependencies struct {
+	accounts.Emailer
 	AccountsStore
 	ArgumentsStore
 }
 
-func (store AggregateStore) Close() error {
+func (store ServerDependencies) Close() error {
 	var result *multierror.Error
 	multierror.Append(result, store.AccountsStore.Close())
 	multierror.Append(result, store.ArgumentsStore.Close())

@@ -14,7 +14,7 @@ import (
 // TODO: When emails go out find a way to mock it and check values during tests.
 
 func TestSetPasswordRejectsBadRequestsProperly(t *testing.T) {
-	s := newServerForTests()
+	s := newAppForTests(testServerConfig{}).server
 	rr := doSaveAccount(s, `{"email":"some-email@soph.wiki"}`)
 	require.Equal(t, http.StatusNoContent, rr.Code)
 

@@ -4,14 +4,20 @@ import (
 	"context"
 	"encoding/json"
 	"io/ioutil"
+	"log"
 	"net/http"
 
 	"github.com/wikisophia/api/server/accounts"
 )
 
+type accountResetDependencies interface {
+	accounts.ResetTokenGenerator
+	accounts.Emailer
+}
+
 // Handle POST /accounts requests. This either registers a new account or
 // generates a password reset token if the account already exists.
-func accountHandler(tokenGenerator accounts.ResetTokenGenerator) http.HandlerFunc {
+func accountHandler(dependencies accountResetDependencies) http.HandlerFunc {
 	type request struct {
 		Email string
 	}
@@ -33,11 +39,20 @@ func accountHandler(tokenGenerator accounts.ResetTokenGenerator) http.HandlerFun
 			return
 		}
 
-		_, err = tokenGenerator.NewResetToken(context.Background(), req.Email)
+		account, accountIsNew, err := dependencies.NewResetToken(context.Background(), req.Email)
 		if err != nil {
 			http.Error(w, "An internal error occurred. Please try again later.", http.StatusInternalServerError)
 		}
 
+		if accountIsNew {
+			if err = dependencies.SendWelcome(context.Background(), account); err != nil {
+				log.Printf("ERROR: Failed to send welcome email to %s: %v", account.Email, err)
+			}
+		} else {
+			if err = dependencies.SendReset(context.Background(), account); err != nil {
+				log.Printf("ERROR: Failed to send password reset email to %s: %v", account.Email, err)
+			}
+		}
 		w.WriteHeader(http.StatusNoContent)
 	}
 }

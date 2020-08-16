@@ -11,17 +11,17 @@ import (
 )
 
 func TestAccountAcceptsEmails(t *testing.T) {
-	rr := doSaveAccount(newServerForTests(), `{"email":"some-email@soph.wiki"}`)
+	rr := doSaveAccount(newAppForTests(testServerConfig{}).server, `{"email":"some-email@soph.wiki"}`)
 	assert.Equal(t, http.StatusNoContent, rr.Code)
 }
 
 func TestAccountRejectsBadRequestBodies(t *testing.T) {
-	assertBadRequest(t, doSaveAccount(newServerForTests(), "not json"))
-	assertBadRequest(t, doSaveAccount(newServerForTests(), "{}"))
-	assertBadRequest(t, doSaveAccount(newServerForTests(), `{"email":null}`))
-	assertBadRequest(t, doSaveAccount(newServerForTests(), `{"email":5}`))
-	assertBadRequest(t, doSaveAccount(newServerForTests(), `{"email":true}`))
-	assertBadRequest(t, doSaveAccount(newServerForTests(), `{"email":3.4}`))
+	assertBadRequest(t, doSaveAccount(newAppForTests(testServerConfig{}).server, "not json"))
+	assertBadRequest(t, doSaveAccount(newAppForTests(testServerConfig{}).server, "{}"))
+	assertBadRequest(t, doSaveAccount(newAppForTests(testServerConfig{}).server, `{"email":null}`))
+	assertBadRequest(t, doSaveAccount(newAppForTests(testServerConfig{}).server, `{"email":5}`))
+	assertBadRequest(t, doSaveAccount(newAppForTests(testServerConfig{}).server, `{"email":true}`))
+	assertBadRequest(t, doSaveAccount(newAppForTests(testServerConfig{}).server, `{"email":3.4}`))
 }
 
 func doSaveAccount(s *endpoints.Server, body string) *httptest.ResponseRecorder {

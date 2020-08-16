@@ -10,7 +10,7 @@ import (
 
 func TestSaveGetRoundtrip(t *testing.T) {
 	expected := argumentstest.ParseSample(t, "../samples/save-request.json")
-	server := newServerForTests()
+	server := newAppForTests(testServerConfig{}).server
 	id := doSaveObject(t, server, expected)
 	expected.ID = id
 	expected.Version = 1
@@ -21,19 +21,19 @@ func TestSaveGetRoundtrip(t *testing.T) {
 }
 
 func TestSaveNoConclusion(t *testing.T) {
-	rr := doSaveArgument(newServerForTests(), `{"premises":["Socrates is a man","All men are mortal"]}`)
+	rr := doSaveArgument(newAppForTests(testServerConfig{}).server, `{"premises":["Socrates is a man","All men are mortal"]}`)
 	assert.Equal(t, http.StatusBadRequest, rr.Code)
 	assert.Equal(t, "text/plain; charset=utf-8", rr.Header().Get("Content-Type"))
 }
 
 func TestSaveNoPremises(t *testing.T) {
-	rr := doSaveArgument(newServerForTests(), `{"conclusion":"Socrates is mortal"}`)
+	rr := doSaveArgument(newAppForTests(testServerConfig{}).server, `{"conclusion":"Socrates is mortal"}`)
 	assert.Equal(t, http.StatusBadRequest, rr.Code)
 	assert.Equal(t, "text/plain; charset=utf-8", rr.Header().Get("Content-Type"))
 }
 
 func TestSaveNotJSON(t *testing.T) {
-	rr := doSaveArgument(newServerForTests(), `bad payload`)
+	rr := doSaveArgument(newAppForTests(testServerConfig{}).server, `bad payload`)
 	assert.Equal(t, http.StatusBadRequest, rr.Code)
 	assert.Equal(t, "text/plain; charset=utf-8", rr.Header().Get("Content-Type"))
 }

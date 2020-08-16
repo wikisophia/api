@@ -3,20 +3,20 @@ package endpoints
 import "github.com/julienschmidt/httprouter"
 
 // newRouter defines the server's API
-func newRouter(store Store) *httprouter.Router {
+func newRouter(dependencies Dependencies) *httprouter.Router {
 	router := httprouter.New()
 
 	// Accounts
-	router.HandlerFunc("POST", "/accounts", accountHandler(store))
-	router.POST("/accounts/:id/password", setPasswordHandler(store))
+	router.HandlerFunc("POST", "/accounts", accountHandler(dependencies))
+	router.POST("/accounts/:id/password", setPasswordHandler(dependencies))
 
 	// Arguments
-	router.HandlerFunc("POST", "/arguments", saveHandler(store))
-	router.HandlerFunc("GET", "/arguments", getAllArgumentsHandler(store))
-	router.GET("/arguments/:id", getLiveArgumentHandler(store))
-	router.PATCH("/arguments/:id", updateHandler(store))
-	router.DELETE("/arguments/:id", deleteHandler(store))
-	router.GET("/arguments/:id/version/:version", getArgumentByVersionHandler(store))
+	router.HandlerFunc("POST", "/arguments", saveHandler(dependencies))
+	router.HandlerFunc("GET", "/arguments", getAllArgumentsHandler(dependencies))
+	router.GET("/arguments/:id", getLiveArgumentHandler(dependencies))
+	router.PATCH("/arguments/:id", updateHandler(dependencies))
+	router.DELETE("/arguments/:id", deleteHandler(dependencies))
+	router.GET("/arguments/:id/version/:version", getArgumentByVersionHandler(dependencies))
 
 	return router
 }
