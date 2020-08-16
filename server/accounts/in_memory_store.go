@@ -2,7 +2,6 @@ package accounts
 
 import (
 	"context"
-	"strconv"
 )
 
 // NewMemoryStore makes an empty InMemoryStore with all its variables initialized.
@@ -23,59 +22,79 @@ type InMemoryStore struct {
 }
 
 type accountInfo struct {
-	id       int64
-	token    string
+	account  Account
 	password string
 }
 
-// NewResetTokenWithAccount sets a password reset token for an account.
-// If the email doesn't exist yet, an account will be created for it.
-func (s *InMemoryStore) NewResetTokenWithAccount(ctx context.Context, email string) (string, error) {
-	if accountInfo, ok := s.accounts[email]; ok {
-		accountInfo.token = "token-" + strconv.FormatInt(accountInfo.id, 10) +
-			"-reset-" + strconv.FormatInt(s.nextReset, 10)
-		s.nextReset++
-		return accountInfo.token, nil
+// See the docs on interfaces in store.go
+func (s *InMemoryStore) NewResetToken(ctx context.Context, email string) (Account, bool, error) {
+	token, err := newVerificationToken(20)
+	if err != nil {
+		return Account{}, false, err
 	}
+	if accountInfo, ok := s.accounts[email]; ok {
+		accountInfo.account.ResetToken = token
+		s.nextReset++
+		return accountInfo.account, false, nil
+	}
+
 	info := &accountInfo{
-		id:       s.nextID,
-		token:    "token-" + strconv.FormatInt(s.nextID, 10),
+		account: Account{
+			ID:         s.nextID,
+			Email:      email,
+			ResetToken: token,
+		},
 		password: "",
 	}
 	s.nextID++
 	s.accounts[email] = info
-	return info.token, nil
+	return info.account, true, nil
 }
 
-// SetPassword changes the password associated with the email and returns the account's ID.
-// If the email doesn't exist, it returns an EmailNotExistsError.
-// If the resetToken is wrong (expired or never returned by ResetPassword(email)),
-//   it returns an InvalidPasswordError.
-func (s *InMemoryStore) SetPassword(ctx context.Context, email, password, resetToken string) (int64, error) {
-	info, ok := s.accounts[email]
-	if !ok {
-		return -1, EmailNotExistsError{
-			Email: email,
+// See the docs on interfaces in store.go
+func (s *InMemoryStore) SetForgottenPassword(ctx context.Context, id int64, password, resetToken string) error {
+	if password == "" {
+		return ProhibitedPasswordError{}
+	}
+	if resetToken == "" {
+		return InvalidResetTokenError{}
+	}
+
+	for _, accountInfo := range s.accounts {
+		if accountInfo.account.ID == id {
+			if resetToken != accountInfo.account.ResetToken {
+				return InvalidResetTokenError{}
+			}
+			accountInfo.password = password
+			accountInfo.account.ResetToken = ""
+			return nil
 		}
 	}
-	if info.token == "" || info.token != resetToken {
-		return -1, InvalidResetTokenError{}
-	}
-	if password == "" {
-		return -1, ProhibitedPasswordError{}
-	}
-	info.token = ""
-	info.password = password
-	return info.id, nil
+	return AccountNotExistsError{}
 }
 
-// Authenticate returns the account's ID.
-// If the email doesn't exist, it returns an EmailNotExistsError.
-// If the password is wrong, it returns an InvalidPasswordError.
+// See the docs on interfaces in store.go
+func (s *InMemoryStore) ChangePassword(ctx context.Context, id int64, oldPassword, newPassword string) error {
+	if newPassword == "" {
+		return ProhibitedPasswordError{}
+	}
+	for _, accountInfo := range s.accounts {
+		if accountInfo.account.ID == id {
+			if oldPassword != accountInfo.password {
+				return InvalidPasswordError{}
+			}
+			accountInfo.password = newPassword
+			return nil
+		}
+	}
+	return AccountNotExistsError{}
+}
+
+// See the docs on interfaces in store.go
 func (s *InMemoryStore) Authenticate(ctx context.Context, email, password string) (int64, error) {
 	userInfo, ok := s.accounts[email]
 	if !ok {
-		return -1, EmailNotExistsError{email}
+		return -1, AccountNotExistsError{email}
 	}
 	if userInfo.password == "" {
 		return -1, InvalidPasswordError{}
@@ -83,10 +102,10 @@ func (s *InMemoryStore) Authenticate(ctx context.Context, email, password string
 	if userInfo.password != password {
 		return -1, InvalidPasswordError{}
 	}
-	return userInfo.id, nil
+	return userInfo.account.ID, nil
 }
 
-// Close frees all the resources the InMemoryStore is using (needed to implement the interface)
+// See the docs on interfaces in store.go
 func (s *InMemoryStore) Close() error {
 	return nil
 }

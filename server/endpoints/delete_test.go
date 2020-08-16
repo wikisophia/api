@@ -11,7 +11,7 @@ import (
 
 func TestGetDeleted(t *testing.T) {
 	saved := argumentstest.ParseSample(t, "../samples/save-request.json")
-	server := newServerForTests()
+	server := newAppForTests(testServerConfig{}).server
 	id := doSaveObject(t, server, saved)
 
 	rr := doDeleteArgument(server, id)
@@ -23,14 +23,14 @@ func TestGetDeleted(t *testing.T) {
 }
 
 func TestDeleteUnknown(t *testing.T) {
-	server := newServerForTests()
+	server := newAppForTests(testServerConfig{}).server
 	rr := doDeleteArgument(server, 1)
 	assert.Equal(t, http.StatusNotFound, rr.Code)
 	assert.Equal(t, "text/plain; charset=utf-8", rr.Header().Get("Content-Type"))
 }
 
 func TestDeleteUnknownString(t *testing.T) {
-	server := newServerForTests()
+	server := newAppForTests(testServerConfig{}).server
 	req := httptest.NewRequest("DELETE", "/arguments/badID", nil)
 	rr := doRequest(server, req)
 	assert.Equal(t, http.StatusNotFound, rr.Code)
