@@ -20,13 +20,13 @@ func (e CorruptedPasswordError) Error() string {
 	return "the password for " + e.Email + " has been corrupted in the storage backend"
 }
 
-// EmailNotExistsError will be returned if the user tried to operate on an email address
-// which doesn't have an associated Account in the system.
-type EmailNotExistsError struct {
+// AccountNotExistsError will be returned if the user tried to operate on an account
+// which didn't exist in the system.
+type AccountNotExistsError struct {
 	Email string
 }
 
-func (e EmailNotExistsError) Error() string {
+func (e AccountNotExistsError) Error() string {
 	return e.Email + " does not have an account"
 }
 

@@ -5,10 +5,12 @@ import (
 	"errors"
 )
 
-// SetPassword associates the password with this email, if the resetToken is valid.
-// If the email doesn't exist, it returns an EmailNotExistsError.
-// If the resetToken is wrong (expired or never returned by ResetPassword(email)),
-//   it returns an InvalidPasswordError.
-func (s *PostgresStore) SetPassword(ctx context.Context, email, password, resetToken string) (int64, error) {
-	return -1, errors.New("not yet implemented")
+// See the docs on interfaces in store.go
+func (s *PostgresStore) SetForgottenPassword(ctx context.Context, id int64, password, resetToken string) error {
+	return errors.New("not yet implemented")
+}
+
+// See the docs on interfaces in store.go
+func (s *PostgresStore) ChangePassword(ctx context.Context, id int64, oldPassword, newPassword string) error {
+	return errors.New("not yet implemented")
 }

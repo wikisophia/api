@@ -7,21 +7,41 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/wikisophia/api/server/endpoints"
 )
 
 func TestAccountAcceptsEmails(t *testing.T) {
-	rr := doSaveAccount(newServerForTests(), `{"email":"some-email@soph.wiki"}`)
+	app := newAppForTests(testServerConfig{
+		emailerSucceeds: true,
+	})
+	rr := doSaveAccount(app.server, `{"email":"some-email@soph.wiki"}`)
 	assert.Equal(t, http.StatusNoContent, rr.Code)
+	welcomeEmails := app.emailer.welcomes
+	require.Len(t, welcomeEmails, 1)
+	require.Equal(t, "some-email@soph.wiki", welcomeEmails[0].Email)
+	require.Len(t, welcomeEmails[0].ResetToken, 20) // Tokens need to be long enough for security
+}
+
+func TestAccountSendsResetEmails(t *testing.T) {
+	app := newAppForTests(testServerConfig{
+		emailerSucceeds: true,
+	})
+	assert.Equal(t, http.StatusNoContent, doSaveAccount(app.server, `{"email":"some-email@soph.wiki"}`).Code)
+	assert.Equal(t, http.StatusNoContent, doSaveAccount(app.server, `{"email":"some-email@soph.wiki"}`).Code)
+	require.Len(t, app.emailer.welcomes, 1)
+	require.Len(t, app.emailer.passwordResets, 1)
+	require.Equal(t, app.emailer.welcomes[0].ID, app.emailer.passwordResets[0].ID)
+	require.Equal(t, app.emailer.welcomes[0].Email, app.emailer.passwordResets[0].Email)
 }
 
 func TestAccountRejectsBadRequestBodies(t *testing.T) {
-	assertBadRequest(t, doSaveAccount(newServerForTests(), "not json"))
-	assertBadRequest(t, doSaveAccount(newServerForTests(), "{}"))
-	assertBadRequest(t, doSaveAccount(newServerForTests(), `{"email":null}`))
-	assertBadRequest(t, doSaveAccount(newServerForTests(), `{"email":5}`))
-	assertBadRequest(t, doSaveAccount(newServerForTests(), `{"email":true}`))
-	assertBadRequest(t, doSaveAccount(newServerForTests(), `{"email":3.4}`))
+	assertBadRequest(t, doSaveAccount(newAppForTests(testServerConfig{}).server, "not json"))
+	assertBadRequest(t, doSaveAccount(newAppForTests(testServerConfig{}).server, "{}"))
+	assertBadRequest(t, doSaveAccount(newAppForTests(testServerConfig{}).server, `{"email":null}`))
+	assertBadRequest(t, doSaveAccount(newAppForTests(testServerConfig{}).server, `{"email":5}`))
+	assertBadRequest(t, doSaveAccount(newAppForTests(testServerConfig{}).server, `{"email":true}`))
+	assertBadRequest(t, doSaveAccount(newAppForTests(testServerConfig{}).server, `{"email":3.4}`))
 }
 
 func doSaveAccount(s *endpoints.Server, body string) *httptest.ResponseRecorder {

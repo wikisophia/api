@@ -16,7 +16,7 @@ func TestPatchLive(t *testing.T) {
 	original := argumentstest.ParseSample(t, "../samples/save-request.json")
 	update := argumentstest.ParseSample(t, "../samples/update-request.json")
 
-	server := newServerForTests()
+	server := newAppForTests(testServerConfig{}).server
 	id := doSaveObject(t, server, original)
 	update.ID = id
 
@@ -37,7 +37,7 @@ func TestUpdateLocation(t *testing.T) {
 	original := argumentstest.ParseSample(t, "../samples/save-request.json")
 	update := argumentstest.ParseSample(t, "../samples/update-request.json")
 
-	server := newServerForTests()
+	server := newAppForTests(testServerConfig{}).server
 	id := doSaveObject(t, server, original)
 	update.ID = id
 	rr := doValidUpdate(t, server, update)
@@ -45,7 +45,7 @@ func TestUpdateLocation(t *testing.T) {
 }
 
 func TestPatchUnknown(t *testing.T) {
-	server := newServerForTests()
+	server := newAppForTests(testServerConfig{}).server
 	payload := string(argumentstest.ReadFile(t, "../samples/update-request.json"))
 	rr := doRequest(server, httptest.NewRequest("PATCH", "/arguments/1", strings.NewReader(payload)))
 	assert.Equal(t, http.StatusNotFound, rr.Code, "body: %s", rr.Body.String())
@@ -68,7 +68,7 @@ func assertPatchRejected(t *testing.T, payload string) {
 	t.Helper()
 	original := argumentstest.ParseSample(t, "../samples/save-request.json")
 
-	server := newServerForTests()
+	server := newAppForTests(testServerConfig{}).server
 	id := doSaveObject(t, server, original)
 	rr := doRequest(server, httptest.NewRequest("PATCH", "/arguments/"+strconv.FormatInt(id, 10), strings.NewReader(payload)))
 	assert.Equal(t, http.StatusBadRequest, rr.Code, "body: %s", rr.Body.String())

@@ -1,7 +1,9 @@
 package endpoints_test
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -19,12 +21,52 @@ import (
 // This file has a bunch of helper methods used throughout the test code
 // in this package.
 
-// newServerForTests returns a Server that stores arguments in memory.
-func newServerForTests() *endpoints.Server {
-	return endpoints.NewServer(endpoints.AggregateStore{
+// newAppForTests returns a Server that stores arguments in memory.
+func newAppForTests(cfg testServerConfig) testApplication {
+	emailer := &emailerForTests{
+		shouldSucceed: cfg.emailerSucceeds,
+	}
+	server := endpoints.NewServer(endpoints.ServerDependencies{
 		AccountsStore:  accounts.NewMemoryStore(),
 		ArgumentsStore: arguments.NewMemoryStore(),
+		Emailer:        emailer,
 	})
+	return testApplication{
+		server:  server,
+		emailer: emailer,
+	}
+}
+
+type testApplication struct {
+	server  *endpoints.Server
+	emailer *emailerForTests
+}
+
+type testServerConfig struct {
+	emailerSucceeds bool
+}
+
+type emailerForTests struct {
+	shouldSucceed bool
+
+	welcomes       []*accounts.Account
+	passwordResets []*accounts.Account
+}
+
+func (e *emailerForTests) SendWelcome(ctx context.Context, account accounts.Account) error {
+	e.welcomes = append(e.welcomes, &account)
+	if e.shouldSucceed {
+		return nil
+	}
+	return errors.New("Welcome message failed to send")
+}
+
+func (e *emailerForTests) SendReset(ctx context.Context, account accounts.Account) error {
+	e.passwordResets = append(e.passwordResets, &account)
+	if e.shouldSucceed {
+		return nil
+	}
+	return errors.New("Password reset message failed to send")
 }
 
 func parseGetAllResponse(t *testing.T, data []byte) endpoints.GetAllResponse {

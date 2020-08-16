@@ -10,24 +10,36 @@ type Store interface {
 	ResetTokenGenerator
 	Close() error
 }
-
 type Authenticator interface {
 	// Authenticate returns the account's ID.
-	// If the email doesn't exist, it returns an EmailNotExistsError.
+	//
+	// If the email doesn't exist, it returns an AccountNotExistsError.
 	// If the password is wrong, it returns an InvalidPasswordError.
 	Authenticate(ctx context.Context, email, password string) (int64, error)
 }
 
 type PasswordSetter interface {
-	// SetPassword changes the password associated with the email and returns the account's ID.
-	// If the email doesn't exist, it returns an EmailNotExistsError.
-	// If the resetToken is wrong (expired or never returned by ResetPassword(email)),
-	//   it returns an InvalidPasswordError.
-	SetPassword(ctx context.Context, email, password, resetToken string) (int64, error)
+	// Change the password associated with the account using a reset token returned recently by
+	//   ResetTokenGenerator.NewResetTokenWithAccount().
+	//
+	// If no account exists with this ID, it returns an AccountNotExistsError.
+	// If the resetToken is wrong, it returns an InvalidResetTokenError.
+	// If the password is unacceptable, it returns a ProhibitedPasswordError.
+	SetForgottenPassword(ctx context.Context, id int64, password, resetToken string) error
+
+	// Change the password for this account by using the old one, rather than a reset token.
+	//
+	// If the newPassword is unacceptable, it returns a ProhibitedPasswordError.
+	// If no account with the ID exists, it returns an AccountNotExistsError.
+	// If the old password is wrong, it returns an InvalidPasswordError.
+	ChangePassword(ctx context.Context, id int64, oldPassword, newPassword string) error
 }
 
 type ResetTokenGenerator interface {
-	// NewResetTokenWithAccount assigns a new password reset token to the account
-	// with this email. If no accounts exist with this email, one will be created.
-	NewResetTokenWithAccount(ctx context.Context, email string) (string, error)
+	// This associates a temporary password reset token with the account with the given email.
+	// This token can be used in the PasswordSetter.SetForgottenPassword() method.
+	//
+	// If no Account exists with this email yet, one will be created. The bool return value is
+	// true if the Account is new, and false if it existed already.
+	NewResetToken(ctx context.Context, email string) (Account, bool, error)
 }

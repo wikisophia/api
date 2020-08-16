@@ -15,7 +15,7 @@ func TestErrorMessages(t *testing.T) {
 		accounts.CorruptedPasswordError{"some-mail@soph.wiki"},
 		"the password for some-mail@soph.wiki has been corrupted in the storage backend")
 	assert.EqualError(t,
-		accounts.EmailNotExistsError{"some-mail@soph.wiki"},
+		accounts.AccountNotExistsError{"some-mail@soph.wiki"},
 		"some-mail@soph.wiki does not have an account")
 	assert.EqualError(t, accounts.InvalidPasswordError{}, "invalid password")
 	assert.EqualError(t, accounts.ProhibitedPasswordError{}, "the password is unacceptable")
