@@ -13,7 +13,7 @@ import (
 )
 
 func TestPasswordSetsProperly(t *testing.T) {
-	app := newAppForTests(testServerConfig{emailerSucceeds: true})
+	app := newAppForTests(t, nil)
 	require.Equal(t, http.StatusNoContent, doSaveAccount(app.server, `{"email":"some-email@soph.wiki"}`).Code)
 	welcomeEmail := app.emailer.welcomes[0]
 	rr := doSetPassword(app.server, strconv.FormatInt(welcomeEmail.ID, 10), `{"password":"some-password","resetToken":"wrong-`+welcomeEmail.ResetToken+`"}`)
@@ -32,7 +32,7 @@ func TestPasswordSetsProperly(t *testing.T) {
 }
 
 func TestSetPasswordRejectsBadRequestsProperly(t *testing.T) {
-	app := newAppForTests(testServerConfig{})
+	app := newAppForTests(t, nil)
 	s := app.server
 	rr := doSaveAccount(s, `{"email":"some-email@soph.wiki"}`)
 	require.Equal(t, http.StatusNoContent, rr.Code)

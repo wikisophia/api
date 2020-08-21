@@ -12,9 +12,7 @@ import (
 )
 
 func TestAccountAcceptsEmails(t *testing.T) {
-	app := newAppForTests(testServerConfig{
-		emailerSucceeds: true,
-	})
+	app := newAppForTests(t, nil)
 	rr := doSaveAccount(app.server, `{"email":"some-email@soph.wiki"}`)
 	assert.Equal(t, http.StatusNoContent, rr.Code)
 	welcomeEmails := app.emailer.welcomes
@@ -24,9 +22,7 @@ func TestAccountAcceptsEmails(t *testing.T) {
 }
 
 func TestAccountSendsResetEmails(t *testing.T) {
-	app := newAppForTests(testServerConfig{
-		emailerSucceeds: true,
-	})
+	app := newAppForTests(t, nil)
 	assert.Equal(t, http.StatusNoContent, doSaveAccount(app.server, `{"email":"some-email@soph.wiki"}`).Code)
 	assert.Equal(t, http.StatusNoContent, doSaveAccount(app.server, `{"email":"some-email@soph.wiki"}`).Code)
 	require.Len(t, app.emailer.welcomes, 1)
@@ -36,12 +32,12 @@ func TestAccountSendsResetEmails(t *testing.T) {
 }
 
 func TestAccountRejectsBadRequestBodies(t *testing.T) {
-	assertBadRequest(t, doSaveAccount(newAppForTests(testServerConfig{}).server, "not json"))
-	assertBadRequest(t, doSaveAccount(newAppForTests(testServerConfig{}).server, "{}"))
-	assertBadRequest(t, doSaveAccount(newAppForTests(testServerConfig{}).server, `{"email":null}`))
-	assertBadRequest(t, doSaveAccount(newAppForTests(testServerConfig{}).server, `{"email":5}`))
-	assertBadRequest(t, doSaveAccount(newAppForTests(testServerConfig{}).server, `{"email":true}`))
-	assertBadRequest(t, doSaveAccount(newAppForTests(testServerConfig{}).server, `{"email":3.4}`))
+	assertBadRequest(t, doSaveAccount(newAppForTests(t, nil).server, "not json"))
+	assertBadRequest(t, doSaveAccount(newAppForTests(t, nil).server, "{}"))
+	assertBadRequest(t, doSaveAccount(newAppForTests(t, nil).server, `{"email":null}`))
+	assertBadRequest(t, doSaveAccount(newAppForTests(t, nil).server, `{"email":5}`))
+	assertBadRequest(t, doSaveAccount(newAppForTests(t, nil).server, `{"email":true}`))
+	assertBadRequest(t, doSaveAccount(newAppForTests(t, nil).server, `{"email":3.4}`))
 }
 
 func doSaveAccount(s *endpoints.Server, body string) *httptest.ResponseRecorder {

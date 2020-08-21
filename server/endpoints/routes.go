@@ -1,14 +1,19 @@
 package endpoints
 
-import "github.com/julienschmidt/httprouter"
+import (
+	"crypto/ecdsa"
+
+	"github.com/julienschmidt/httprouter"
+)
 
 // newRouter defines the server's API
-func newRouter(dependencies Dependencies) *httprouter.Router {
+func newRouter(key *ecdsa.PrivateKey, dependencies Dependencies) *httprouter.Router {
 	router := httprouter.New()
 
 	// Accounts
 	router.HandlerFunc("POST", "/accounts", accountHandler(dependencies))
 	router.POST("/accounts/:id/password", setPasswordHandler(dependencies))
+	router.HandlerFunc("POST", "/sessions", postSessionHandler(key, dependencies))
 
 	// Arguments
 	router.HandlerFunc("POST", "/arguments", saveHandler(dependencies))

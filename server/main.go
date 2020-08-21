@@ -15,7 +15,7 @@ import (
 func main() {
 	cfg := config.MustParse()
 	store, cleanup := newDependencies(cfg.Storage)
-	server := endpoints.NewServer(store)
+	server := endpoints.NewServer(cfg.JwtPrivateKey(), store)
 
 	done := make(chan struct{}, 1)
 	go server.Start(*cfg.Server, done)

@@ -13,7 +13,7 @@ func TestGetLatest(t *testing.T) {
 	expected := argumentstest.ParseSample(t, "../samples/save-request.json")
 	var mistaken = expected
 	mistaken.Premises = []string{"wrong", "stuff"}
-	server := newAppForTests(testServerConfig{}).server
+	server := newAppForTests(t, nil).server
 	id := doSaveObject(t, server, mistaken)
 	expected.ID = id
 	doValidUpdate(t, server, expected)
@@ -25,13 +25,18 @@ func TestGetLatest(t *testing.T) {
 }
 
 func TestGetMissingArgument(t *testing.T) {
-	rr := doGetArgument(newAppForTests(testServerConfig{}).server, 1)
+	rr := doGetArgument(newAppForTests(t, nil).server, 1)
 	assert.Equal(t, http.StatusNotFound, rr.Code)
 	assert.Equal(t, "text/plain; charset=utf-8", rr.Header().Get("Content-Type"))
 }
 
 func TestGetStringID(t *testing.T) {
-	rr := doRequest(newAppForTests(testServerConfig{}).server, httptest.NewRequest("GET", "/arguments/foo", nil))
+	rr := doRequest(newAppForTests(t, nil).server, httptest.NewRequest("GET", "/arguments/foo", nil))
 	assert.Equal(t, http.StatusNotFound, rr.Code)
 	assert.Equal(t, "text/plain; charset=utf-8", rr.Header().Get("Content-Type"))
+}
+
+func TestPostSpecificArgumentsNotAllowed(t *testing.T) {
+	assertMethodNotAllowed(t, "POST", "/arguments/1")
+	assertMethodNotAllowed(t, "POST", "/arguments/1/version/1")
 }
