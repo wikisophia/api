@@ -25,8 +25,8 @@ func Defaults() Configuration {
 			ReadHeaderTimeoutMillis: 5000,
 			CorsAllowedOrigins:      []string{"*"},
 			UseSSL:                  false,
-			CertPath:                filepath.FromSlash(exPath + "/dev-certificates/cert.pem"),
-			KeyPath:                 filepath.FromSlash(exPath + "/dev-certificates/key.pem"),
+			CertPath:                filepath.FromSlash(exPath + "/dev-certificates/ssl-cert.pem"),
+			KeyPath:                 filepath.FromSlash(exPath + "/dev-certificates/ssl-key.pem"),
 		},
 		Storage: &Storage{
 			Type: StorageTypeMemory,
