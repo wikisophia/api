@@ -25,8 +25,8 @@ func Defaults() Configuration {
 			ReadHeaderTimeoutMillis: 5000,
 			CorsAllowedOrigins:      []string{"*"},
 			UseSSL:                  false,
-			CertPath:                filepath.FromSlash(exPath + "/certificates/cert.pem"),
-			KeyPath:                 filepath.FromSlash(exPath + "/certificates/key.pem"),
+			CertPath:                filepath.FromSlash(exPath + "/dev-certificates/ssl-cert.pem"),
+			KeyPath:                 filepath.FromSlash(exPath + "/dev-certificates/ssl-key.pem"),
 		},
 		Storage: &Storage{
 			Type: StorageTypeMemory,
@@ -45,7 +45,7 @@ func Defaults() Configuration {
 			SaltLength:  32,
 			KeyLength:   32,
 		},
-		JwtPrivateKeyPath: filepath.FromSlash(exPath + "/certificates/dev-jwt-private-key.pem"),
+		JwtPrivateKeyPath: filepath.FromSlash(exPath + "/dev-certificates/jwt-private-key.pem"),
 	}
 }
 
