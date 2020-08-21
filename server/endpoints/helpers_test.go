@@ -2,7 +2,10 @@ package endpoints_test
 
 import (
 	"context"
+	"crypto/ecdsa"
+	"crypto/x509"
 	"encoding/json"
+	"encoding/pem"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -13,6 +16,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/wikisophia/api/server/accounts"
 	"github.com/wikisophia/api/server/arguments"
 	"github.com/wikisophia/api/server/endpoints"
@@ -22,11 +26,16 @@ import (
 // in this package.
 
 // newAppForTests returns a Server that stores arguments in memory.
-func newAppForTests(cfg testServerConfig) testApplication {
+func newAppForTests(t *testing.T, cfg *testServerConfig) testApplication {
+	if cfg == nil {
+		cfg = &testServerConfig{
+			emailerSucceeds: true,
+		}
+	}
 	emailer := &emailerForTests{
 		shouldSucceed: cfg.emailerSucceeds,
 	}
-	server := endpoints.NewServer(endpoints.ServerDependencies{
+	server := endpoints.NewServer(newKeyForTests(t), endpoints.ServerDependencies{
 		AccountsStore:  accounts.NewMemoryStore(),
 		ArgumentsStore: arguments.NewMemoryStore(),
 		Emailer:        emailer,
@@ -35,6 +44,20 @@ func newAppForTests(cfg testServerConfig) testApplication {
 		server:  server,
 		emailer: emailer,
 	}
+}
+
+func newKeyForTests(t *testing.T) *ecdsa.PrivateKey {
+	data := `-----BEGIN EC PRIVATE KEY-----
+MIGkAgEBBDAAT0uP+yvZG/miupKFfwmEetHH71/aBcwZLcThBleGSp7pj3Y3lsAq
+dGj/LESq07ygBwYFK4EEACKhZANiAATxCwIvHjShDKaLqv9sHDLelsjVlC5YoRnZ
+T7uz6EGYcGfvnuIkD12uolnsuqvgzybhxFw2/311B1t7eXNJEBh6VdqkC4k8DhhH
+BMLqx6d62CqjE3PIUXzJR9mtgNo1PrA=
+-----END EC PRIVATE KEY-----
+`
+	block, _ := pem.Decode([]byte(data))
+	key, err := x509.ParseECPrivateKey(block.Bytes)
+	require.NoError(t, err, "Error generating private key for tests")
+	return key
 }
 
 type testApplication struct {

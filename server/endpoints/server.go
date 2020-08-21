@@ -2,6 +2,7 @@ package endpoints
 
 import (
 	"context"
+	"crypto/ecdsa"
 	"log"
 	"net/http"
 	"os"
@@ -23,9 +24,9 @@ type Server struct {
 }
 
 // NewServer makes a server which defines REST endpoints for the service.
-func NewServer(store Dependencies) *Server {
+func NewServer(key *ecdsa.PrivateKey, store Dependencies) *Server {
 	return &Server{
-		router: newRouter(store),
+		router: newRouter(key, store),
 	}
 }
 

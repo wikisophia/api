@@ -11,14 +11,14 @@ import (
 
 func TestGetAll(t *testing.T) {
 	expected := parseGetAllResponse(t, argumentstest.ReadFile(t, "../samples/get-all-response.json"))
-	server := newAppForTests(testServerConfig{}).server
+	server := newAppForTests(t, nil).server
 	addAllArguments(t, server, expected.Arguments)
 	assertFetchSome(t, server, arguments.FetchSomeOptions{}, expected.Arguments)
 }
 
 func TestGetWithConclusion(t *testing.T) {
 	expected := parseGetAllResponse(t, argumentstest.ReadFile(t, "../samples/get-all-response.json"))
-	server := newAppForTests(testServerConfig{}).server
+	server := newAppForTests(t, nil).server
 	addAllArguments(t, server, expected.Arguments)
 
 	for i := 1; i < len(expected.Arguments); i++ {
@@ -34,7 +34,7 @@ func TestGetWithConclusion(t *testing.T) {
 
 func TestGetWithOffsets(t *testing.T) {
 	expected := parseGetAllResponse(t, argumentstest.ReadFile(t, "../samples/get-all-response.json"))
-	server := newAppForTests(testServerConfig{}).server
+	server := newAppForTests(t, nil).server
 	addAllArguments(t, server, expected.Arguments)
 	assertFetchSome(t, server, arguments.FetchSomeOptions{
 		Count: 1,
@@ -47,7 +47,7 @@ func TestGetWithOffsets(t *testing.T) {
 
 func TestGetWithExclusions(t *testing.T) {
 	expected := parseGetAllResponse(t, argumentstest.ReadFile(t, "../samples/get-all-response.json"))
-	server := newAppForTests(testServerConfig{}).server
+	server := newAppForTests(t, nil).server
 	addAllArguments(t, server, expected.Arguments)
 	assertFetchSome(t, server, arguments.FetchSomeOptions{
 		Exclude: []int64{expected.Arguments[0].ID},
@@ -66,7 +66,7 @@ func TestGetWithSearch(t *testing.T) {
 			expected = append(expected, available.Arguments[i])
 		}
 	}
-	server := newAppForTests(testServerConfig{}).server
+	server := newAppForTests(t, nil).server
 	addAllArguments(t, server, available.Arguments)
 	assertFetchSome(t, server, arguments.FetchSomeOptions{
 		ConclusionContainsAll: containing,
