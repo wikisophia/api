@@ -5,6 +5,8 @@
  * This file is run once for integration tests, immediately before
  * create.sql is run. All statements here must be guarded by IF EXISTS
  * clauses so that they can be run on an empty database without errors.
+ *
+ * It should be kept in sync with create.sql and empty.sql.
  */
 
 DROP INDEX IF EXISTS argument_premises_premise_idx;

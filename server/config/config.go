@@ -34,8 +34,8 @@ func Defaults() Configuration {
 				Database: "wikisophia",
 				Host:     "localhost",
 				Port:     5432,
-				User:     "postgres",
-				Password: "",
+				User:     "app_wikisophia",
+				Password: "app_wikisophia_password",
 			},
 		},
 		Hash: &Hash{
