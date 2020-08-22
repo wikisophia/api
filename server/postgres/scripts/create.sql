@@ -2,17 +2,10 @@
  * This script initializes the database with all the tables
  * the app expects.
  *
- * This should be run by the default postgres user. It will create a user
- * with the same values as the app config.
- *
- * This gets run once at the start of the integration tests which use the database.
- * It's also intended for initializing a database for a new dev environment.
+ * It gets run once at the start of the integration tests which use the database.
+ * It can also be used to bootstrap a dev environment.
  *
  * Changes here must be kept in sync with destroy.sql and empty.sql.
- *
- * Note: this script expects the following to exist already:
- *   A user named "app_wikisophia" to exist already.
- *   A database named {config.postgres.dbname} WITH OWNER app_wikisophia
  */
 
 CREATE FUNCTION update_last_modified()
