@@ -2,6 +2,7 @@ package arguments
 
 import (
 	"context"
+	"fmt"
 )
 
 // Store combines all the functions needed to read & write Arguments
@@ -56,4 +57,35 @@ type Updater interface {
 	// Update makes a new version of the argument. It returns the new argument's version.
 	// If no argument with this ID exists, the returned error is an arguments.NotFoundError.
 	Update(ctx context.Context, argument Argument) (version int, err error)
+}
+
+// FetchSomeOptions has some ways to limit what gets returned when fetching all the arguments.
+type FetchSomeOptions struct {
+	// Conclusion only finds arguments which support a given conclusion
+	Conclusion string
+	// ConclusionContainsAll limits returned arguments to ones with conclusions that
+	// contain all the words in this array.
+	ConclusionContainsAll []string
+	// Count limits the number of fetched arguments.
+	Count int
+	// Exclude prevents arguments which have any of these IDs from being returned
+	Exclude []int64
+	// Offset changes which arguments start being returned.
+	//
+	// An offset of 0 will return arguments starting with the first one.
+	// An offset of 1 will skip the first argument, and return arguments starting with the second.
+	//
+	// When combined with Count, this can be used to paginate the results.
+	Offset int
+}
+
+// NotFoundError will be returned by Store.Fetch() calls when the cause of the returned error is
+// that the argument simply doesn't exist.
+type NotFoundError struct {
+	Message string
+	Args    []interface{}
+}
+
+func (e *NotFoundError) Error() string {
+	return fmt.Sprintf(e.Message, e.Args...)
 }

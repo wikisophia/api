@@ -19,6 +19,7 @@ github.com/stretchr/objx v0.1.0 h1:4G4v2dO3VZwixGIRoQ5Lfboy6nUhCyYzaqnIAPPhYs4=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.6.1 h1:hDPOHmpOpP40lSULcqw7IrRb/u7w6RpDC9399XyoNd0=
 github.com/stretchr/testify v1.6.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
+github.com/wikisophia/api v0.0.0-20200822142313-39a49e56086a h1:po8jZXdoOwEvTwcv1FAVzi+BYf+uV+2cGIiN/oumAzM=
 github.com/wikisophia/go-environment-configs v0.1.0 h1:5OOf3xSb11s7oi5RvYpN2iG0ikf6D/GjJ3hZ0MxlRi8=
 github.com/wikisophia/go-environment-configs v0.1.0/go.mod h1:CKpqDdk1VVSQjieh4HMwz8+nufJhw6TH+liBWJDw5Qw=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
