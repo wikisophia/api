@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/wikisophia/api/server/arguments"
 )
 
@@ -127,7 +128,16 @@ func (store *PostgresStore) FetchSome(ctx context.Context, options arguments.Fet
 		params = append(params, options.Conclusion)
 	}
 	if len(options.ConclusionContainsAll) != 0 {
-		tsQuery := strings.Join(escapeAll(options.ConclusionContainsAll), " & ")
+		connection, err := store.pool.Acquire(ctx)
+		if err != nil {
+			return nil, err
+		}
+		defer connection.Release()
+		escaped, err := escapeAll(connection, options.ConclusionContainsAll)
+		if err != nil {
+			return nil, err
+		}
+		tsQuery := strings.Join(escaped, " & ")
 		selectArgumentsQuery += "\n\t\t AND to_tsvector(claim) @@ to_tsquery('" + tsQuery + "')"
 	}
 	if len(options.Exclude) != 0 {
@@ -198,24 +208,16 @@ func (store *PostgresStore) FetchSome(ctx context.Context, options arguments.Fet
 	return toReturn, nil
 }
 
-func escapeAll(inputs []string) []string {
+func escapeAll(connection *pgxpool.Conn, inputs []string) ([]string, error) {
 	outputs := make([]string, len(inputs))
 	for i := 0; i < len(inputs); i++ {
-		outputs[i] = strings.TrimSuffix(strings.TrimPrefix(quoteLiteral(inputs[i]), "'"), "'")
+		escaped, err := connection.Conn().PgConn().EscapeString(inputs[i])
+		if err != nil {
+			return nil, err
+		}
+		outputs[i] = strings.TrimSuffix(strings.TrimPrefix(escaped, "'"), "'")
 	}
-	return outputs
-}
-
-func quoteLiteral(literal string) string {
-	literal = strings.Replace(literal, `'`, `''`, -1)
-	if strings.Contains(literal, `\`) {
-		literal = strings.Replace(literal, `\`, `\\`, -1)
-		literal = ` E'` + literal + `'`
-	} else {
-		// otherwise, we can just wrap the literal with a pair of single quotes
-		literal = `'` + literal + `'`
-	}
-	return literal
+	return outputs, nil
 }
 
 func toIntArray(arr []int64) []int {
