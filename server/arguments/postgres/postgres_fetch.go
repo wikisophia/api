@@ -9,7 +9,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/lib/pq"
 	"github.com/wikisophia/api/server/arguments"
 )
 
@@ -203,9 +202,21 @@ func (store *PostgresStore) FetchSome(ctx context.Context, options arguments.Fet
 func escapeAll(inputs []string) []string {
 	outputs := make([]string, len(inputs))
 	for i := 0; i < len(inputs); i++ {
-		outputs[i] = strings.TrimSuffix(strings.TrimPrefix(pq.QuoteLiteral(inputs[i]), "'"), "'")
+		outputs[i] = strings.TrimSuffix(strings.TrimPrefix(quoteLiteral(inputs[i]), "'"), "'")
 	}
 	return outputs
+}
+
+func quoteLiteral(literal string) string {
+	literal = strings.Replace(literal, `'`, `''`, -1)
+	if strings.Contains(literal, `\`) {
+		literal = strings.Replace(literal, `\`, `\\`, -1)
+		literal = ` E'` + literal + `'`
+	} else {
+		// otherwise, we can just wrap the literal with a pair of single quotes
+		literal = `'` + literal + `'`
+	}
+	return literal
 }
 
 func tryClose(rows *sql.Rows) {

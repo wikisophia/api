@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/smotes/purse"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"github.com/wikisophia/api/server/arguments"
 	argumentsPostgres "github.com/wikisophia/api/server/arguments/postgres"
@@ -32,30 +32,21 @@ func TestArgumentStorageIntegration(t *testing.T) {
 
 	db := postgres.NewDB(config.MustParse().Storage.Postgres)
 	sqlScripts, err := purse.New(filepath.Join("..", "..", "postgres", "scripts"))
-	if !assert.NoError(t, err) {
-		return
-	}
+	require.NoError(t, err)
 
 	// Start with a clean slate.
-	if !runOnce(t, sqlScripts, "destroy.sql", db) {
-		return
-	}
-	if !runOnce(t, sqlScripts, "create.sql", db) {
-		return
-	}
+	runOnce(t, sqlScripts, "destroy.sql", db)
+	runOnce(t, sqlScripts, "create.sql", db)
 
 	store := argumentsPostgres.NewPostgresStore(db)
 
 	// Run all the same tests from the StoreTests suite.
 	empty, ok := sqlScripts.Get("empty.sql")
-	if !assert.True(t, ok) {
-		return
-	}
+	require.True(t, ok)
 	suite.Run(t, &storetest.StoreTests{
 		StoreFactory: func() arguments.Store {
-			if _, err := db.Query(empty); !assert.NoError(t, err) {
-				t.FailNow()
-			}
+			_, err := db.Exec(empty)
+			require.NoError(t, err)
 			return store
 		},
 	})
@@ -64,13 +55,9 @@ func TestArgumentStorageIntegration(t *testing.T) {
 	db.Close()
 }
 
-func runOnce(t *testing.T, p purse.Purse, file string, db *sql.DB) bool {
+func runOnce(t *testing.T, p purse.Purse, file string, db *sql.DB) {
 	destroy, ok := p.Get(file)
-	if !assert.True(t, ok) {
-		return false
-	}
-	if _, err := db.Query(destroy); !assert.NoError(t, err) {
-		return false
-	}
-	return true
+	require.True(t, ok)
+	_, err := db.Exec(destroy)
+	require.NoError(t, err)
 }

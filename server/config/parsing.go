@@ -29,7 +29,7 @@ func Parse() (Configuration, error) {
 	log.SetOutput(os.Stderr)
 
 	errs = requirePositive(cfg.Server.ReadHeaderTimeoutMillis, prefix+"_SERVER_READ_HEADER_TIMEOUT_MILLIS", errs)
-	errs = requirePositive(cfg.Storage.Postgres.Port, prefix+"_STORAGE_POSTGRES_PORT", errs)
+	errs = requirePositive(int(cfg.Storage.Postgres.Port), prefix+"_STORAGE_POSTGRES_PORT", errs)
 	errs = requireValidStorageType(cfg.Storage.Type, prefix+"_STORAGE_TYPE", errs)
 	return cfg, errs
 }

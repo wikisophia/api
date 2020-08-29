@@ -2,19 +2,22 @@ package postgres
 
 import (
 	"bytes"
+	"context"
 	"database/sql"
 	"log"
 	"strconv"
 
 	// Imports the postgres driver, so that sql.Open("postgres", "blah") means something
-	_ "github.com/lib/pq"
+
+	"github.com/jackc/pgx/v4/pgxpool"
+	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/wikisophia/api/server/config"
 )
 
 // NewDB makes a connection to a postgres database.
 func NewDB(cfg *config.Postgres) *sql.DB {
-	connStr := connectionString(cfg)
-	db, err := sql.Open("postgres", connStr)
+	connStr := ParseConnectionString(cfg)
+	db, err := sql.Open("pgx", connStr)
 	if err != nil {
 		log.Fatalf("Failed to open postgres connection: %v", err)
 	}
@@ -22,6 +25,15 @@ func NewDB(cfg *config.Postgres) *sql.DB {
 		log.Fatalf("Failed to ping postgres: %v", err)
 	}
 	return db
+}
+
+// Make a new pgx connection pool.
+func NewPGXPool(cfg *config.Postgres) *pgxpool.Pool {
+	pool, err := pgxpool.Connect(context.Background(), ParseConnectionString(cfg))
+	if err != nil {
+		log.Fatalf("Failed to open postgres connection: %v", err)
+	}
+	return pool
 }
 
 // MustPrepareQuery wraps db.Prepare(query), but panics on errors.
@@ -33,9 +45,8 @@ func MustPrepareQuery(db *sql.DB, query string) *sql.Stmt {
 	return statement
 }
 
-// connectionString turns the config into a string accepted by lib/pq.
-// For details, see https://godoc.org/github.com/lib/pq#hdr-Connection_String_Parameters
-func connectionString(cfg *config.Postgres) string {
+// Turn the config into a connection string.
+func ParseConnectionString(cfg *config.Postgres) string {
 	buffer := bytes.NewBuffer(nil)
 
 	if cfg.Host != "" {
@@ -46,7 +57,7 @@ func connectionString(cfg *config.Postgres) string {
 
 	if cfg.Port > 0 {
 		buffer.WriteString("port=")
-		buffer.WriteString(strconv.Itoa(cfg.Port))
+		buffer.WriteString(strconv.Itoa(int(cfg.Port)))
 		buffer.WriteString(" ")
 	}
 
