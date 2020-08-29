@@ -7,7 +7,7 @@ import (
 	configs "github.com/wikisophia/go-environment-configs"
 )
 
-const prefix = "WKSPH_ARGS"
+const prefix = "WKSPH"
 
 // MustParse wraps Parse, but prints the errors and exits rather than returning them.
 func MustParse() Configuration {
@@ -29,8 +29,10 @@ func Parse() (Configuration, error) {
 	log.SetOutput(os.Stderr)
 
 	errs = requirePositive(cfg.Server.ReadHeaderTimeoutMillis, prefix+"_SERVER_READ_HEADER_TIMEOUT_MILLIS", errs)
-	errs = requirePositive(int(cfg.Storage.Postgres.Port), prefix+"_STORAGE_POSTGRES_PORT", errs)
-	errs = requireValidStorageType(cfg.Storage.Type, prefix+"_STORAGE_TYPE", errs)
+	errs = requirePositive(int(cfg.AccountsStore.Postgres.Port), prefix+"_ACCOUNTS_STORE_POSTGRES_PORT", errs)
+	errs = requirePositive(int(cfg.ArgumentsStore.Postgres.Port), prefix+"_ARGUMENTS_STORE_POSTGRES_PORT", errs)
+	errs = requireValidStorageType(cfg.AccountsStore.Type, prefix+"_ACCOUNTS_STORE_TYPE", errs)
+	errs = requireValidStorageType(cfg.ArgumentsStore.Type, prefix+"_ARGUMENTS_STORE_TYPE", errs)
 	return cfg, errs
 }
 

@@ -6,8 +6,6 @@ import (
 	"log"
 	"strconv"
 
-	// Imports the postgres driver, so that sql.Open("postgres", "blah") means something
-
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/wikisophia/api/server/config"
 )
@@ -21,7 +19,7 @@ func NewPGXPool(cfg *config.Postgres) *pgxpool.Pool {
 	return pool
 }
 
-// Turn the config into a connection string.
+// connectionString turns the config into a string accepted by pgxpool
 func buildConnectionString(cfg *config.Postgres) string {
 	buffer := bytes.NewBuffer(nil)
 

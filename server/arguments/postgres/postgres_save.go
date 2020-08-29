@@ -110,7 +110,6 @@ func (store *PostgresStore) savePremises(ctx context.Context, tx pgx.Tx, argumen
 			return fmt.Errorf(`failed to save premise "%s": %v`, premises[i], err)
 		}
 		// Rows need to be closed before making the next query in a transaction.
-		// See https://github.com/lib/pq/issues/81#issuecomment-229598201
 		rows.Close()
 	}
 	return nil

@@ -28,14 +28,24 @@ func Defaults() Configuration {
 			CertPath:                filepath.FromSlash(exPath + "/dev-certificates/ssl-cert.pem"),
 			KeyPath:                 filepath.FromSlash(exPath + "/dev-certificates/ssl-key.pem"),
 		},
-		Storage: &Storage{
+		AccountsStore: &Storage{
 			Type: StorageTypeMemory,
 			Postgres: &Postgres{
-				Database: "wikisophia",
+				Database: "wikisophia_accounts",
 				Host:     "localhost",
 				Port:     5432,
-				User:     "app_wikisophia",
-				Password: "app_wikisophia_password",
+				User:     "wikisophia_accounts_dev",
+				Password: "wikisophia_accounts_dev_password",
+			},
+		},
+		ArgumentsStore: &Storage{
+			Type: StorageTypeMemory,
+			Postgres: &Postgres{
+				Database: "wikisophia_arguments",
+				Host:     "localhost",
+				Port:     5432,
+				User:     "wikisophia_arguments_dev",
+				Password: "wikisophia_arguments_dev_password",
 			},
 		},
 		Hash: &Hash{
@@ -52,7 +62,8 @@ func Defaults() Configuration {
 // Configuration stores all the application config.
 type Configuration struct {
 	Server            *Server  `environment:"SERVER"`
-	Storage           *Storage `environment:"STORAGE"`
+	AccountsStore     *Storage `environment:"ACCOUNTS_STORE"`
+	ArgumentsStore    *Storage `environment:"ARGUMENTS_STORE"`
 	Hash              *Hash    `environment:"HASH"`
 	JwtPrivateKeyPath string   `environment:"JWT_PRIVATE_KEY_PATH"`
 }
@@ -104,8 +115,7 @@ type Hash struct {
 	KeyLength   uint32 `environment:"KEY_LENGTH"`
 }
 
-// Postgres configures the Postgres connection.
-// These options come from https://godoc.org/github.com/lib/pq#hdr-Connection_String_Parameters
+// Postgres configures the Postgres connection
 type Postgres struct {
 	Database string `environment:"DBNAME"`
 	Host     string `environment:"HOST"`
