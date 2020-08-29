@@ -2,13 +2,12 @@ package postgres
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
-	"log"
 	"sort"
 	"strconv"
 	"strings"
 
+	"github.com/jackc/pgx/v4"
 	"github.com/wikisophia/api/server/arguments"
 )
 
@@ -58,11 +57,11 @@ ORDER BY o;
 
 // FetchVersion fetches a specific version of an argument.
 func (store *PostgresStore) FetchVersion(ctx context.Context, id int64, version int) (arguments.Argument, error) {
-	rows, err := store.fetchStatement.QueryContext(ctx, id, version)
+	rows, err := store.pool.Query(ctx, fetchQuery, id, version)
 	if err != nil {
 		return arguments.Argument{}, fmt.Errorf("argument fetch query failed: %v", err)
 	}
-	defer tryClose(rows)
+	defer rows.Close()
 	return store.parseFetchResults(id, rows)
 }
 
@@ -70,15 +69,15 @@ func (store *PostgresStore) FetchVersion(ctx context.Context, id int64, version 
 // This is usually the newest one, but it may not be if an
 // update has been reverted.
 func (store *PostgresStore) FetchLive(ctx context.Context, id int64) (arguments.Argument, error) {
-	rows, err := store.fetchLiveStatement.QueryContext(ctx, id)
+	rows, err := store.pool.Query(ctx, fetchLiveQuery, id)
 	if err != nil {
 		return arguments.Argument{}, fmt.Errorf("argument fetch query failed: %v", err)
 	}
-	defer tryClose(rows)
+	defer rows.Close()
 	return store.parseFetchResults(id, rows)
 }
 
-func (store *PostgresStore) parseFetchResults(id int64, rows *sql.Rows) (arguments.Argument, error) {
+func (store *PostgresStore) parseFetchResults(id int64, rows pgx.Rows) (arguments.Argument, error) {
 	var claim string
 	var version int
 	var dummy int
@@ -162,11 +161,11 @@ func (store *PostgresStore) FetchSome(ctx context.Context, options arguments.Fet
 	ORDER BY chosen_arguments.id;
 	`
 
-	rows, err := store.db.QueryContext(ctx, fetchAllQuery, params...)
+	rows, err := store.pool.Query(ctx, fetchAllQuery, params...)
 	if err != nil {
 		return nil, fmt.Errorf("failed fetchAll query: %v", err)
 	}
-	defer tryClose(rows)
+	defer rows.Close()
 
 	args := make(map[int64]*arguments.Argument, 10)
 	var id int64
@@ -217,12 +216,6 @@ func quoteLiteral(literal string) string {
 		literal = `'` + literal + `'`
 	}
 	return literal
-}
-
-func tryClose(rows *sql.Rows) {
-	if err := rows.Close(); err != nil {
-		log.Printf("ERROR: failed to close rows: %v", err)
-	}
 }
 
 func toIntArray(arr []int64) []int {

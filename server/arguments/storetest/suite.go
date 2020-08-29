@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"github.com/wikisophia/api/server/acceptancetest"
 	"github.com/wikisophia/api/server/arguments"
@@ -60,12 +61,9 @@ func (suite *StoreTests) TestUpdateUnknownReturnsError() {
 	unknown := acceptancetest.ParseSample(suite.T(), samplesPath+"save-request.json")
 	unknown.ID = 1
 	_, err := store.Update(context.Background(), unknown)
-	if !assert.Error(suite.T(), err) {
-		return
-	}
-
+	require.Error(suite.T(), err)
 	if _, ok := err.(*arguments.NotFoundError); !ok {
-		suite.T().Error("Store.UpdatePremises() should return a NotFoundError on arguments which don't exist.")
+		suite.T().Error("Store.Update() should return a NotFoundError on arguments which don't exist.")
 	}
 }
 

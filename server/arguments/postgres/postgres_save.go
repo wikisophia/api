@@ -2,10 +2,10 @@ package postgres
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"log"
 
+	"github.com/jackc/pgx/v4"
 	"github.com/wikisophia/api/server/arguments"
 )
 
@@ -43,36 +43,36 @@ const saveArgumentErrorMsg = "failed to save argument"
 // Save stores an argument and returns its ID.
 // If the call succeeds, the Version will be 1.
 func (store *PostgresStore) Save(ctx context.Context, argument arguments.Argument) (int64, error) {
-	transaction, err := store.db.BeginTx(ctx, nil)
+	transaction, err := store.pool.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		return -1, fmt.Errorf("%s: %v", saveArgumentErrorMsg, err)
 	}
 	conclusionID, err := store.saveClaim(ctx, transaction, argument.Conclusion)
-	if didRollback := rollbackIfErr(transaction, err); didRollback {
+	if didRollback := rollbackIfErr(ctx, transaction, err); didRollback {
 		return -1, fmt.Errorf("%s: %v", saveArgumentErrorMsg, err)
 	}
 	argumentID, err := store.saveArgument(ctx, transaction)
-	if didRollback := rollbackIfErr(transaction, err); didRollback {
+	if didRollback := rollbackIfErr(ctx, transaction, err); didRollback {
 		return -1, fmt.Errorf("%s: %v", saveArgumentErrorMsg, err)
 	}
 	argumentVersionID, err := store.saveArgumentVersion(ctx, transaction, argumentID, 1, conclusionID)
-	if didRollback := rollbackIfErr(transaction, err); didRollback {
+	if didRollback := rollbackIfErr(ctx, transaction, err); didRollback {
 		return -1, fmt.Errorf("%s: %v", saveArgumentErrorMsg, err)
 	}
 
 	err = store.savePremises(ctx, transaction, argumentVersionID, argument.Premises)
-	if didRollback := rollbackIfErr(transaction, err); didRollback {
+	if didRollback := rollbackIfErr(ctx, transaction, err); didRollback {
 		return -1, fmt.Errorf("%s: %v", saveArgumentErrorMsg, err)
 	}
-	err = transaction.Commit()
+	err = transaction.Commit(ctx)
 	if err != nil {
 		return -1, fmt.Errorf("%s: %v", saveArgumentErrorMsg, err)
 	}
 	return argumentID, nil
 }
 
-func (store *PostgresStore) saveClaim(ctx context.Context, tx *sql.Tx, claim string) (int64, error) {
-	row := tx.StmtContext(ctx, store.saveClaimStatement).QueryRowContext(ctx, claim)
+func (store *PostgresStore) saveClaim(ctx context.Context, tx pgx.Tx, claim string) (int64, error) {
+	row := tx.QueryRow(ctx, saveClaimQuery, claim)
 	var id int64
 	if err := row.Scan(&id); err != nil {
 		return -1, fmt.Errorf("failed to save claim \"%s\": %v", claim, err)
@@ -80,8 +80,8 @@ func (store *PostgresStore) saveClaim(ctx context.Context, tx *sql.Tx, claim str
 	return id, nil
 }
 
-func (store *PostgresStore) saveArgument(ctx context.Context, tx *sql.Tx) (int64, error) {
-	row := tx.StmtContext(ctx, store.saveArgumentStatement).QueryRowContext(ctx)
+func (store *PostgresStore) saveArgument(ctx context.Context, tx pgx.Tx) (int64, error) {
+	row := tx.QueryRow(ctx, saveArgumentQuery)
 	var id int64
 	if err := row.Scan(&id); err != nil {
 		return -1, fmt.Errorf("failed to scan argument ID: %v", err)
@@ -89,8 +89,8 @@ func (store *PostgresStore) saveArgument(ctx context.Context, tx *sql.Tx) (int64
 	return id, nil
 }
 
-func (store *PostgresStore) saveArgumentVersion(ctx context.Context, tx *sql.Tx, argumentID int64, versionID int, conclusionID int64) (int64, error) {
-	row := tx.StmtContext(ctx, store.saveArgumentVersionStatement).QueryRowContext(ctx, argumentID, conclusionID)
+func (store *PostgresStore) saveArgumentVersion(ctx context.Context, tx pgx.Tx, argumentID int64, versionID int, conclusionID int64) (int64, error) {
+	row := tx.QueryRow(ctx, saveArgumentVersionQuery, argumentID, conclusionID)
 	var id int64
 	if err := row.Scan(&id); err != nil {
 		return -1, fmt.Errorf("failed to scan argument ID: %v", err)
@@ -98,14 +98,14 @@ func (store *PostgresStore) saveArgumentVersion(ctx context.Context, tx *sql.Tx,
 	return id, nil
 }
 
-func (store *PostgresStore) savePremises(ctx context.Context, tx *sql.Tx, argumentVersionID int64, premises []string) error {
+func (store *PostgresStore) savePremises(ctx context.Context, tx pgx.Tx, argumentVersionID int64, premises []string) error {
 	for i := 0; i < len(premises); i++ {
 		claimID, err := store.saveClaim(ctx, tx, premises[i])
 		if err != nil {
 			return fmt.Errorf(`failed to save premise as claim "%s": %v`, premises[i], err)
 		}
 
-		rows, err := tx.StmtContext(ctx, store.savePremiseStatement).QueryContext(ctx, argumentVersionID, claimID)
+		rows, err := tx.Query(ctx, savePremiseQuery, argumentVersionID, claimID)
 		if err != nil {
 			return fmt.Errorf(`failed to save premise "%s": %v`, premises[i], err)
 		}
@@ -116,9 +116,9 @@ func (store *PostgresStore) savePremises(ctx context.Context, tx *sql.Tx, argume
 	return nil
 }
 
-func rollbackIfErr(transaction *sql.Tx, err error) bool {
+func rollbackIfErr(ctx context.Context, transaction pgx.Tx, err error) bool {
 	if err != nil {
-		if rollbackErr := transaction.Rollback(); rollbackErr != nil {
+		if rollbackErr := transaction.Rollback(ctx); rollbackErr != nil {
 			log.Printf("ERROR: Failed to rollback transaction: %v", rollbackErr)
 		}
 		return true

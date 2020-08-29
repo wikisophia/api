@@ -35,10 +35,10 @@ func newDependencies(cfg *config.Storage) (http.Dependencies, func() error) {
 		}
 		return store, store.Close
 	case config.StorageTypePostgres:
-		db := postgres.NewDB(cfg.Postgres)
+		pool := postgres.NewPGXPool(cfg.Postgres)
 		store := http.ServerDependencies{
-			AccountsStore:  accountsPostgres.NewPostgresStore(db),
-			ArgumentsStore: argumentsPostgres.NewPostgresStore(db),
+			AccountsStore:  accountsPostgres.NewPostgresStore(pool),
+			ArgumentsStore: argumentsPostgres.NewPostgresStore(pool),
 			Emailer:        email.ConsoleEmailer{},
 		}
 		return store, store.Close

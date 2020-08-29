@@ -12,11 +12,11 @@ const deleteQuery = `UPDATE arguments SET deleted_on = $1 WHERE id = $2 RETURNIN
 
 // Delete soft deletes an argument by ID.
 func (store *PostgresStore) Delete(ctx context.Context, id int64) error {
-	rows, err := store.deleteStatement.QueryContext(ctx, time.Now(), id)
+	rows, err := store.pool.Query(ctx, deleteQuery, time.Now(), id)
 	if err != nil {
 		return err
 	}
-	defer tryClose(rows)
+	defer rows.Close()
 
 	hadRow := false
 	for rows.Next() {
