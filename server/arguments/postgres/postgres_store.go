@@ -23,10 +23,3 @@ func NewPostgresStore(pool *pgxpool.Pool) *PostgresStore {
 type PostgresStore struct {
 	pool *pgxpool.Pool
 }
-
-// Close closes all the prepared statements used to make queries.
-// It does not shut down the database connection which was passed
-// into NewPostgresStore().
-func (store *PostgresStore) Close() error {
-	return nil
-}

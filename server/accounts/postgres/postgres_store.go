@@ -3,7 +3,6 @@ package postgres
 import (
 	"log"
 
-	"github.com/hashicorp/go-multierror"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
@@ -22,13 +21,4 @@ func NewPostgresStore(pool *pgxpool.Pool) *PostgresStore {
 // PostgresStore saves account info in Postgres.
 type PostgresStore struct {
 	pool *pgxpool.Pool
-}
-
-// Close closes all the prepared statements used to make queries.
-// It does not shut down the database connection which was passed
-// into NewPostgresStore().
-func (store *PostgresStore) Close() error {
-	var err *multierror.Error
-	// TODO: Close prepared statements & append errors here
-	return err.ErrorOrNil()
 }

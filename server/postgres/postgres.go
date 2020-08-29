@@ -3,29 +3,14 @@ package postgres
 import (
 	"bytes"
 	"context"
-	"database/sql"
 	"log"
 	"strconv"
 
 	// Imports the postgres driver, so that sql.Open("postgres", "blah") means something
 
 	"github.com/jackc/pgx/v4/pgxpool"
-	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/wikisophia/api/server/config"
 )
-
-// NewDB makes a connection to a postgres database.
-func NewDB(cfg *config.Postgres) *sql.DB {
-	connStr := buildConnectionString(cfg)
-	db, err := sql.Open("pgx", connStr)
-	if err != nil {
-		log.Fatalf("Failed to open postgres connection: %v", err)
-	}
-	if err := db.Ping(); err != nil {
-		log.Fatalf("Failed to ping postgres: %v", err)
-	}
-	return db
-}
 
 // Make a new pgx connection pool.
 func NewPGXPool(cfg *config.Postgres) *pgxpool.Pool {

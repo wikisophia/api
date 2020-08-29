@@ -49,7 +49,6 @@ func TestArgumentStorageIntegration(t *testing.T) {
 		},
 	})
 
-	store.Close()
 	pool.Close()
 }
 

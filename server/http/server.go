@@ -9,7 +9,6 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/hashicorp/go-multierror"
 	"github.com/julienschmidt/httprouter"
 	"github.com/rs/cors"
 	"github.com/wikisophia/api/server/accounts"
@@ -49,13 +48,6 @@ type ServerDependencies struct {
 	email.Emailer
 	AccountsStore
 	ArgumentsStore
-}
-
-func (store ServerDependencies) Close() error {
-	var result *multierror.Error
-	multierror.Append(result, store.AccountsStore.Close())
-	multierror.Append(result, store.ArgumentsStore.Close())
-	return result.ErrorOrNil()
 }
 
 // Handle exists to make testing easier.
