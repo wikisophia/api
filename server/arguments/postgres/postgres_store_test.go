@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"github.com/wikisophia/api/server/arguments"
@@ -31,34 +30,20 @@ func TestArgumentStorageIntegration(t *testing.T) {
 		return
 	}
 
-	pool := postgres.NewPGXPool(config.MustParse().ArgumentsStore.Postgres)
-	create := mustReadScript(t, "create.sql")
-	destroy := mustReadScript(t, "destroy.sql")
-	empty := mustReadScript(t, "empty.sql")
-
-	// Start with a clean slate.
-	mustRun(t, destroy, pool)
-	mustRun(t, create, pool)
+	cfg := config.MustParse().ArgumentsStore.Postgres
+	pool := postgres.NewPGXPool(cfg)
+	emptyData, err := ioutil.ReadFile(filepath.Join(".", "scripts", "empty.sql"))
+	require.NoError(t, err)
+	empty := string(emptyData)
 	store := argumentsPostgres.NewPostgresStore(pool)
 
-	// Run all the same tests from the StoreTests suite.
 	suite.Run(t, &storetest.StoreTests{
 		StoreFactory: func() arguments.Store {
-			mustRun(t, empty, pool)
+			_, err := pool.Exec(context.Background(), empty)
+			require.NoError(t, err)
 			return store
 		},
 	})
 
 	pool.Close()
-}
-
-func mustReadScript(t *testing.T, filename string) string {
-	data, err := ioutil.ReadFile(filepath.Join(".", "scripts", filename))
-	require.NoError(t, err)
-	return string(data)
-}
-
-func mustRun(t *testing.T, commands string, pool *pgxpool.Pool) {
-	_, err := pool.Exec(context.Background(), commands)
-	require.NoError(t, err)
 }
