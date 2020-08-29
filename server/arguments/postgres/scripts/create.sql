@@ -27,7 +27,7 @@ COMMENT ON COLUMN claims.created_on IS 'The time when this claim was added.';
 CREATE INDEX claims_claim_equals_idx ON claims (claim);
 CREATE INDEX claims_claim_search_idx ON claims USING gin(to_tsvector('english', claim));
 REVOKE ALL ON TABLE claims FROM PUBLIC;
-GRANT SELECT, INSERT ON TABLE claims TO app_wikisophia;
+GRANT SELECT, INSERT ON TABLE claims TO :argumentsUser;
 
 CREATE TABLE IF NOT EXISTS arguments (
   id bigserial PRIMARY KEY,
@@ -41,7 +41,7 @@ COMMENT ON COLUMN arguments.deleted_on IS 'The timestamp when this argument was 
 COMMENT ON COLUMN arguments.created_on IS 'Timestamp of when the first version of this argument was created.';
 COMMENT ON COLUMN arguments.last_modified IS 'Timestamp of when this argument was last deleted/restored. This does not update when the argument is edited to a new version.';
 REVOKE ALL ON TABLE arguments FROM PUBLIC;
-GRANT SELECT, INSERT, UPDATE ON TABLE arguments TO app_wikisophia;
+GRANT SELECT, INSERT, UPDATE ON TABLE arguments TO :argumentsUser;
 
 CREATE TABLE argument_versions (
   id bigserial PRIMARY KEY,
@@ -60,7 +60,7 @@ CREATE INDEX argument_versions_argument_idx ON argument_versions (argument_id);
 CREATE INDEX argument_versions_argument_version_idx ON argument_versions (argument_version);
 CREATE INDEX argument_versions_conclusion_idx ON argument_versions (conclusion_id);
 REVOKE ALL ON TABLE argument_versions FROM PUBLIC;
-GRANT SELECT, INSERT ON TABLE argument_versions TO app_wikisophia;
+GRANT SELECT, INSERT ON TABLE argument_versions TO :argumentsUser;
 
 CREATE TABLE argument_premises (
   id bigserial PRIMARY KEY,
@@ -76,7 +76,7 @@ COMMENT ON COLUMN argument_premises.created_on IS 'Timestamp of when this premis
 CREATE INDEX argument_premises_argument_version_idx ON argument_premises (argument_version_id);
 CREATE INDEX argument_premises_premise_idx ON argument_premises (premise_id);
 REVOKE ALL ON TABLE argument_premises FROM PUBLIC;
-GRANT SELECT, INSERT ON TABLE argument_premises TO app_wikisophia;
+GRANT SELECT, INSERT ON TABLE argument_premises TO :argumentsUser;
 
 CREATE TABLE IF NOT EXISTS accounts (
   id bigserial PRIMARY KEY,
@@ -99,4 +99,4 @@ COMMENT ON COLUMN accounts.created_on IS 'Timestamp of when this account was cre
 COMMENT ON COLUMN accounts.last_modified IS 'Timestamp of when this row was last modified.';
 CREATE INDEX accounts_email_idx ON accounts (email);
 REVOKE ALL ON TABLE accounts FROM PUBLIC;
-GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE accounts TO app_wikisophia;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE accounts TO :argumentsUser;

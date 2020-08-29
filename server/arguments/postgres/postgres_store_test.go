@@ -31,7 +31,7 @@ func TestArgumentStorageIntegration(t *testing.T) {
 		return
 	}
 
-	pool := postgres.NewPGXPool(config.MustParse().Storage.Postgres)
+	pool := postgres.NewPGXPool(config.MustParse().ArgumentsStore.Postgres)
 	create := mustReadScript(t, "create.sql")
 	destroy := mustReadScript(t, "destroy.sql")
 	empty := mustReadScript(t, "empty.sql")
@@ -53,7 +53,7 @@ func TestArgumentStorageIntegration(t *testing.T) {
 }
 
 func mustReadScript(t *testing.T, filename string) string {
-	data, err := ioutil.ReadFile(filepath.Join("..", "..", "postgres", "scripts", filename))
+	data, err := ioutil.ReadFile(filepath.Join(".", "scripts", filename))
 	require.NoError(t, err)
 	return string(data)
 }

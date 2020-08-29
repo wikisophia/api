@@ -3,9 +3,11 @@ package main
 import (
 	_ "net/http/pprof"
 
+	"github.com/wikisophia/api/server/accounts"
 	"github.com/wikisophia/api/server/accounts/email"
 	accountsMemory "github.com/wikisophia/api/server/accounts/memory"
 	accountsPostgres "github.com/wikisophia/api/server/accounts/postgres"
+	"github.com/wikisophia/api/server/arguments"
 	argumentsMemory "github.com/wikisophia/api/server/arguments/memory"
 	argumentsPostgres "github.com/wikisophia/api/server/arguments/postgres"
 	"github.com/wikisophia/api/server/http"
@@ -16,29 +18,39 @@ import (
 
 func main() {
 	cfg := config.MustParse()
-	store := newDependencies(cfg.Storage)
-	server := http.NewServer(cfg.JwtPrivateKey(), store)
+	deps := newDependencies(&cfg)
+	server := http.NewServer(cfg.JwtPrivateKey(), deps)
 
 	done := make(chan struct{}, 1)
 	go server.Start(*cfg.Server, done)
 	<-done
 }
 
-func newDependencies(cfg *config.Storage) http.Dependencies {
+func newDependencies(cfg *config.Configuration) http.Dependencies {
+	return http.ServerDependencies{
+		AccountsStore:  newAccountsStore(cfg.AccountsStore),
+		ArgumentsStore: newArgumentsStore(cfg.ArgumentsStore),
+		Emailer:        email.ConsoleEmailer{},
+	}
+}
+
+func newAccountsStore(cfg *config.Storage) accounts.Store {
 	switch cfg.Type {
 	case config.StorageTypeMemory:
-		return http.ServerDependencies{
-			AccountsStore:  accountsMemory.NewMemoryStore(),
-			ArgumentsStore: argumentsMemory.NewMemoryStore(),
-			Emailer:        email.ConsoleEmailer{},
-		}
+		return accountsMemory.NewMemoryStore()
 	case config.StorageTypePostgres:
-		pool := postgres.NewPGXPool(cfg.Postgres)
-		return http.ServerDependencies{
-			AccountsStore:  accountsPostgres.NewPostgresStore(pool),
-			ArgumentsStore: argumentsPostgres.NewPostgresStore(pool),
-			Emailer:        email.ConsoleEmailer{},
-		}
+		return accountsPostgres.NewPostgresStore(postgres.NewPGXPool(cfg.Postgres))
+	default:
+		panic("Invalid config storage.type: " + cfg.Type + ". This should be caught during config valation.")
+	}
+}
+
+func newArgumentsStore(cfg *config.Storage) arguments.Store {
+	switch cfg.Type {
+	case config.StorageTypeMemory:
+		return argumentsMemory.NewMemoryStore()
+	case config.StorageTypePostgres:
+		return argumentsPostgres.NewPostgresStore(postgres.NewPGXPool(cfg.Postgres))
 	default:
 		panic("Invalid config storage.type: " + cfg.Type + ". This should be caught during config valation.")
 	}

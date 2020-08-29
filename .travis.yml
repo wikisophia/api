@@ -9,11 +9,12 @@ jobs:
       addons:
         postgresql: "12"
       env:
-        - WKSPH_ARGS_STORAGE_POSTGRES_DBNAME="wikisophia_test"
-        - WKSPH_ARGS_STORAGE_POSTGRES_USER="app_wikisophia_test"
-        - WKSPH_ARGS_STORAGE_POSTGRES_PASSWORD="app_wikisophia_test_password"
+        - WKSPH_ARGUMENTS_STORE_POSTGRES_DBNAME="wikisophia_arguments_test"
+        - WKSPH_ARGUMENTS_STORE_POSTGRES_USER="app_wikisophia_arguments_test"
+        - WKSPH_ARGUMENTS_STORE_POSTGRES_PASSWORD="app_wikisophia_arguments_test_password"
       before_script:
-        - psql -U postgres -f ./server/postgres/scripts/bootstrap.sql
+        - psql -U postgres -v accountsUser="dev_wikisophia_accounts" -v accountsPass="'dev_wikisophia_accounts_password'" -f ./server/accounts/postgres/scripts/bootstrap.sql
+        - psql -U postgres -v argumentsUser="dev_wikisophia_arguments" -v argumentsPass="'dev_wikisophia_arguments_password'" -f ./server/arguments/postgres/scripts/bootstrap.sql
       script:
         - ./scripts/test-server.sh
     - language: node_js
