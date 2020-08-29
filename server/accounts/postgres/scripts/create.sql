@@ -29,4 +29,4 @@ COMMENT ON COLUMN accounts.created_on IS 'Timestamp of when this account was cre
 COMMENT ON COLUMN accounts.last_modified IS 'Timestamp of when this row was last modified.';
 CREATE INDEX accounts_email_idx ON accounts (email);
 REVOKE ALL ON TABLE accounts FROM PUBLIC;
-GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE accounts TO :accountsUser;
+GRANT SELECT, INSERT, UPDATE ON TABLE accounts TO :accountsUser;
