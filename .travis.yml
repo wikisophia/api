@@ -15,7 +15,7 @@ jobs:
       before_script:
         - psql -U postgres -v accountsUser="dev_wikisophia_accounts" -v accountsPass="'dev_wikisophia_accounts_password'" -f ./server/accounts/postgres/scripts/bootstrap.sql
         - psql -U postgres -v argumentsUser="dev_wikisophia_arguments" -v argumentsPass="'dev_wikisophia_arguments_password'" -f ./server/arguments/postgres/scripts/bootstrap.sql
-        - psql -U postgres -d wikisophia_accounts_test -v argumentsUser="app_wikisophia_accounts_test" -f ./server/accounts/postgres/scripts/create.sql
+        - psql -U postgres -d wikisophia_accounts_test -v accountsUser="app_wikisophia_accounts_test" -f ./server/accounts/postgres/scripts/create.sql
         - psql -U postgres -d wikisophia_arguments_test -v argumentsUser="app_wikisophia_arguments_test" -f ./server/arguments/postgres/scripts/create.sql
       script:
         - ./scripts/test-server.sh
