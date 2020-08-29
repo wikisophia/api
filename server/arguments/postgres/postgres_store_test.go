@@ -3,11 +3,11 @@ package postgres_test
 import (
 	"database/sql"
 	"flag"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
 
-	"github.com/smotes/purse"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"github.com/wikisophia/api/server/arguments"
@@ -31,22 +31,20 @@ func TestArgumentStorageIntegration(t *testing.T) {
 	}
 
 	db := postgres.NewDB(config.MustParse().Storage.Postgres)
-	sqlScripts, err := purse.New(filepath.Join("..", "..", "postgres", "scripts"))
-	require.NoError(t, err)
+	create := mustReadScript(t, "create.sql")
+	destroy := mustReadScript(t, "destroy.sql")
+	empty := mustReadScript(t, "empty.sql")
 
 	// Start with a clean slate.
-	runOnce(t, sqlScripts, "destroy.sql", db)
-	runOnce(t, sqlScripts, "create.sql", db)
+	mustRun(t, destroy, db)
+	mustRun(t, create, db)
 
 	store := argumentsPostgres.NewPostgresStore(db)
 
 	// Run all the same tests from the StoreTests suite.
-	empty, ok := sqlScripts.Get("empty.sql")
-	require.True(t, ok)
 	suite.Run(t, &storetest.StoreTests{
 		StoreFactory: func() arguments.Store {
-			_, err := db.Exec(empty)
-			require.NoError(t, err)
+			mustRun(t, empty, db)
 			return store
 		},
 	})
@@ -55,9 +53,13 @@ func TestArgumentStorageIntegration(t *testing.T) {
 	db.Close()
 }
 
-func runOnce(t *testing.T, p purse.Purse, file string, db *sql.DB) {
-	destroy, ok := p.Get(file)
-	require.True(t, ok)
-	_, err := db.Exec(destroy)
+func mustReadScript(t *testing.T, filename string) string {
+	data, err := ioutil.ReadFile(filepath.Join("..", "..", "postgres", "scripts", filename))
+	require.NoError(t, err)
+	return string(data)
+}
+
+func mustRun(t *testing.T, commands string, db *sql.DB) {
+	_, err := db.Exec(commands)
 	require.NoError(t, err)
 }
