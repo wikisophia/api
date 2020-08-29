@@ -45,7 +45,7 @@ func TestArgumentStorageIntegration(t *testing.T) {
 	require.True(t, ok)
 	suite.Run(t, &storetest.StoreTests{
 		StoreFactory: func() arguments.Store {
-			_, err := db.Query(empty)
+			_, err := db.Exec(empty)
 			require.NoError(t, err)
 			return store
 		},
@@ -58,6 +58,6 @@ func TestArgumentStorageIntegration(t *testing.T) {
 func runOnce(t *testing.T, p purse.Purse, file string, db *sql.DB) {
 	destroy, ok := p.Get(file)
 	require.True(t, ok)
-	_, err := db.Query(destroy)
+	_, err := db.Exec(destroy)
 	require.NoError(t, err)
 }
