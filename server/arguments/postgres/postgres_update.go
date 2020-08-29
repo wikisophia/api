@@ -2,10 +2,10 @@ package postgres
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"strconv"
 
+	"github.com/jackc/pgx/v4"
 	"github.com/wikisophia/api/server/arguments"
 )
 
@@ -23,35 +23,35 @@ const updateArgumentErrorMsg = "failed to update argument %d: %v"
 
 // Update saves a new version of an argument.
 func (store *PostgresStore) Update(ctx context.Context, argument arguments.Argument) (version int, err error) {
-	transaction, err := store.db.BeginTx(ctx, nil)
-	if didRollback := rollbackIfErr(transaction, err); didRollback {
+	tx, err := store.pool.BeginTx(ctx, pgx.TxOptions{})
+	if didRollback := rollbackIfErr(ctx, tx, err); didRollback {
 		return -1, err
 	}
-	conclusionID, err := store.saveClaim(ctx, transaction, argument.Conclusion)
-	if didRollback := rollbackIfErr(transaction, err); didRollback {
+	conclusionID, err := store.saveClaim(ctx, tx, argument.Conclusion)
+	if didRollback := rollbackIfErr(ctx, tx, err); didRollback {
 		return -1, err
 	}
-	argumentVersionID, argumentVersion, err := store.newArgumentVersion(ctx, transaction, argument.ID, conclusionID)
-	if didRollback := rollbackIfErr(transaction, err); didRollback {
+	argumentVersionID, argumentVersion, err := store.newArgumentVersion(ctx, tx, argument.ID, conclusionID)
+	if didRollback := rollbackIfErr(ctx, tx, err); didRollback {
 		return -1, err
 	}
-	err = store.savePremises(ctx, transaction, argumentVersionID, argument.Premises)
-	if didRollback := rollbackIfErr(transaction, err); didRollback {
+	err = store.savePremises(ctx, tx, argumentVersionID, argument.Premises)
+	if didRollback := rollbackIfErr(ctx, tx, err); didRollback {
 		return -1, fmt.Errorf(updateArgumentErrorMsg, argument.ID, err)
 	}
-	err = transaction.Commit()
+	err = tx.Commit(ctx)
 	if err != nil {
 		return -1, fmt.Errorf(updateArgumentErrorMsg, argument.ID, err)
 	}
 	return argumentVersion, nil
 }
 
-func (store *PostgresStore) newArgumentVersion(ctx context.Context, transaction *sql.Tx, argumentID int64, conclusionID int64) (int64, int, error) {
-	row := transaction.StmtContext(ctx, store.newArgumentVersionStatement).QueryRowContext(ctx, argumentID, conclusionID)
+func (store *PostgresStore) newArgumentVersion(ctx context.Context, tx pgx.Tx, argumentID int64, conclusionID int64) (int64, int, error) {
+	row := tx.QueryRow(ctx, newArgumentVersionQuery, argumentID, conclusionID)
 	var argumentVersionID int64
 	var argumentVersion int
 	if err := row.Scan(&argumentVersionID, &argumentVersion); err != nil {
-		if err == sql.ErrNoRows {
+		if err == pgx.ErrNoRows {
 			return -1, -1, &arguments.NotFoundError{
 				Message: "argument " + strconv.FormatInt(argumentID, 10) + " does not exist",
 			}

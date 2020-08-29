@@ -14,7 +14,6 @@ type Store interface {
 	GetLive
 	Saver
 	Updater
-	Close() error
 }
 
 // Deleter can delete arguments by ID.

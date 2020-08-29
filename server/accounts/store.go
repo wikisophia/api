@@ -8,7 +8,6 @@ type Store interface {
 	Authenticator
 	PasswordSetter
 	ResetTokenGenerator
-	Close() error
 }
 type Authenticator interface {
 	// Authenticate returns the account's ID.

@@ -107,8 +107,3 @@ func (s *InMemoryStore) Authenticate(ctx context.Context, email, password string
 	}
 	return userInfo.account.ID, nil
 }
-
-// See the docs on interfaces in store.go
-func (s *InMemoryStore) Close() error {
-	return nil
-}

@@ -1,13 +1,14 @@
 package postgres_test
 
 import (
-	"database/sql"
+	"context"
 	"flag"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
 
+	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"github.com/wikisophia/api/server/arguments"
@@ -30,27 +31,25 @@ func TestArgumentStorageIntegration(t *testing.T) {
 		return
 	}
 
-	db := postgres.NewDB(config.MustParse().Storage.Postgres)
+	pool := postgres.NewPGXPool(config.MustParse().Storage.Postgres)
 	create := mustReadScript(t, "create.sql")
 	destroy := mustReadScript(t, "destroy.sql")
 	empty := mustReadScript(t, "empty.sql")
 
 	// Start with a clean slate.
-	mustRun(t, destroy, db)
-	mustRun(t, create, db)
-
-	store := argumentsPostgres.NewPostgresStore(db)
+	mustRun(t, destroy, pool)
+	mustRun(t, create, pool)
+	store := argumentsPostgres.NewPostgresStore(pool)
 
 	// Run all the same tests from the StoreTests suite.
 	suite.Run(t, &storetest.StoreTests{
 		StoreFactory: func() arguments.Store {
-			mustRun(t, empty, db)
+			mustRun(t, empty, pool)
 			return store
 		},
 	})
 
-	store.Close()
-	db.Close()
+	pool.Close()
 }
 
 func mustReadScript(t *testing.T, filename string) string {
@@ -59,7 +58,7 @@ func mustReadScript(t *testing.T, filename string) string {
 	return string(data)
 }
 
-func mustRun(t *testing.T, commands string, db *sql.DB) {
-	_, err := db.Exec(commands)
+func mustRun(t *testing.T, commands string, pool *pgxpool.Pool) {
+	_, err := pool.Exec(context.Background(), commands)
 	require.NoError(t, err)
 }

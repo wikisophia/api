@@ -3,50 +3,26 @@ package postgres
 import (
 	"bytes"
 	"context"
-	"database/sql"
 	"log"
 	"strconv"
 
 	// Imports the postgres driver, so that sql.Open("postgres", "blah") means something
 
 	"github.com/jackc/pgx/v4/pgxpool"
-	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/wikisophia/api/server/config"
 )
 
-// NewDB makes a connection to a postgres database.
-func NewDB(cfg *config.Postgres) *sql.DB {
-	connStr := ParseConnectionString(cfg)
-	db, err := sql.Open("pgx", connStr)
-	if err != nil {
-		log.Fatalf("Failed to open postgres connection: %v", err)
-	}
-	if err := db.Ping(); err != nil {
-		log.Fatalf("Failed to ping postgres: %v", err)
-	}
-	return db
-}
-
 // Make a new pgx connection pool.
 func NewPGXPool(cfg *config.Postgres) *pgxpool.Pool {
-	pool, err := pgxpool.Connect(context.Background(), ParseConnectionString(cfg))
+	pool, err := pgxpool.Connect(context.Background(), buildConnectionString(cfg))
 	if err != nil {
 		log.Fatalf("Failed to open postgres connection: %v", err)
 	}
 	return pool
 }
 
-// MustPrepareQuery wraps db.Prepare(query), but panics on errors.
-func MustPrepareQuery(db *sql.DB, query string) *sql.Stmt {
-	statement, err := db.Prepare(query)
-	if err != nil {
-		log.Fatalf("Failed to prepare statement with query %s. Error was %v", query, err)
-	}
-	return statement
-}
-
 // Turn the config into a connection string.
-func ParseConnectionString(cfg *config.Postgres) string {
+func buildConnectionString(cfg *config.Postgres) string {
 	buffer := bytes.NewBuffer(nil)
 
 	if cfg.Host != "" {

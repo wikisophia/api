@@ -2,13 +2,13 @@ package postgres
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
-	"log"
 	"sort"
 	"strconv"
 	"strings"
 
+	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/wikisophia/api/server/arguments"
 )
 
@@ -58,11 +58,11 @@ ORDER BY o;
 
 // FetchVersion fetches a specific version of an argument.
 func (store *PostgresStore) FetchVersion(ctx context.Context, id int64, version int) (arguments.Argument, error) {
-	rows, err := store.fetchStatement.QueryContext(ctx, id, version)
+	rows, err := store.pool.Query(ctx, fetchQuery, id, version)
 	if err != nil {
 		return arguments.Argument{}, fmt.Errorf("argument fetch query failed: %v", err)
 	}
-	defer tryClose(rows)
+	defer rows.Close()
 	return store.parseFetchResults(id, rows)
 }
 
@@ -70,15 +70,15 @@ func (store *PostgresStore) FetchVersion(ctx context.Context, id int64, version 
 // This is usually the newest one, but it may not be if an
 // update has been reverted.
 func (store *PostgresStore) FetchLive(ctx context.Context, id int64) (arguments.Argument, error) {
-	rows, err := store.fetchLiveStatement.QueryContext(ctx, id)
+	rows, err := store.pool.Query(ctx, fetchLiveQuery, id)
 	if err != nil {
 		return arguments.Argument{}, fmt.Errorf("argument fetch query failed: %v", err)
 	}
-	defer tryClose(rows)
+	defer rows.Close()
 	return store.parseFetchResults(id, rows)
 }
 
-func (store *PostgresStore) parseFetchResults(id int64, rows *sql.Rows) (arguments.Argument, error) {
+func (store *PostgresStore) parseFetchResults(id int64, rows pgx.Rows) (arguments.Argument, error) {
 	var claim string
 	var version int
 	var dummy int
@@ -128,7 +128,16 @@ func (store *PostgresStore) FetchSome(ctx context.Context, options arguments.Fet
 		params = append(params, options.Conclusion)
 	}
 	if len(options.ConclusionContainsAll) != 0 {
-		tsQuery := strings.Join(escapeAll(options.ConclusionContainsAll), " & ")
+		connection, err := store.pool.Acquire(ctx)
+		if err != nil {
+			return nil, err
+		}
+		defer connection.Release()
+		escaped, err := escapeAll(connection, options.ConclusionContainsAll)
+		if err != nil {
+			return nil, err
+		}
+		tsQuery := strings.Join(escaped, " & ")
 		selectArgumentsQuery += "\n\t\t AND to_tsvector(claim) @@ to_tsquery('" + tsQuery + "')"
 	}
 	if len(options.Exclude) != 0 {
@@ -162,11 +171,11 @@ func (store *PostgresStore) FetchSome(ctx context.Context, options arguments.Fet
 	ORDER BY chosen_arguments.id;
 	`
 
-	rows, err := store.db.QueryContext(ctx, fetchAllQuery, params...)
+	rows, err := store.pool.Query(ctx, fetchAllQuery, params...)
 	if err != nil {
 		return nil, fmt.Errorf("failed fetchAll query: %v", err)
 	}
-	defer tryClose(rows)
+	defer rows.Close()
 
 	args := make(map[int64]*arguments.Argument, 10)
 	var id int64
@@ -199,30 +208,16 @@ func (store *PostgresStore) FetchSome(ctx context.Context, options arguments.Fet
 	return toReturn, nil
 }
 
-func escapeAll(inputs []string) []string {
+func escapeAll(connection *pgxpool.Conn, inputs []string) ([]string, error) {
 	outputs := make([]string, len(inputs))
 	for i := 0; i < len(inputs); i++ {
-		outputs[i] = strings.TrimSuffix(strings.TrimPrefix(quoteLiteral(inputs[i]), "'"), "'")
+		escaped, err := connection.Conn().PgConn().EscapeString(inputs[i])
+		if err != nil {
+			return nil, err
+		}
+		outputs[i] = strings.TrimSuffix(strings.TrimPrefix(escaped, "'"), "'")
 	}
-	return outputs
-}
-
-func quoteLiteral(literal string) string {
-	literal = strings.Replace(literal, `'`, `''`, -1)
-	if strings.Contains(literal, `\`) {
-		literal = strings.Replace(literal, `\`, `\\`, -1)
-		literal = ` E'` + literal + `'`
-	} else {
-		// otherwise, we can just wrap the literal with a pair of single quotes
-		literal = `'` + literal + `'`
-	}
-	return literal
-}
-
-func tryClose(rows *sql.Rows) {
-	if err := rows.Close(); err != nil {
-		log.Printf("ERROR: failed to close rows: %v", err)
-	}
+	return outputs, nil
 }
 
 func toIntArray(arr []int64) []int {
