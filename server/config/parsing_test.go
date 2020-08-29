@@ -64,7 +64,7 @@ func TestEnvironmentOverrides(t *testing.T) {
 
 	// WKSPH_ARGS_STORAGE_POSTGRES_PORT determines which port the service should use when connecting to postgres.
 	// If WKSPH_ARGS_STORAGE_TYPE is "memory", this is ignored.
-	assertIntParses(t, "WKSPH_ARGS_STORAGE_POSTGRES_PORT", 1234, func(cfg config.Configuration) int {
+	assertUInt16Parses(t, "WKSPH_ARGS_STORAGE_POSTGRES_PORT", 1234, func(cfg config.Configuration) uint16 {
 		return cfg.Storage.Postgres.Port
 	})
 
@@ -184,6 +184,14 @@ func assertIntParses(t *testing.T, env string, value int, getter func(cfg config
 }
 
 func assertUInt8Parses(t *testing.T, env string, value uint8, getter func(cfg config.Configuration) uint8) {
+	t.Helper()
+	defer setEnv(t, env, fmt.Sprintf("%d", value))()
+	cfg, errs := config.Parse()
+	require.NoError(t, errs)
+	assert.EqualValues(t, getter(cfg), value)
+}
+
+func assertUInt16Parses(t *testing.T, env string, value uint16, getter func(cfg config.Configuration) uint16) {
 	t.Helper()
 	defer setEnv(t, env, fmt.Sprintf("%d", value))()
 	cfg, errs := config.Parse()

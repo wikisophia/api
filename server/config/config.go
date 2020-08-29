@@ -109,7 +109,7 @@ type Hash struct {
 type Postgres struct {
 	Database string `environment:"DBNAME"`
 	Host     string `environment:"HOST"`
-	Port     int    `environment:"PORT"`
+	Port     uint16 `environment:"PORT"`
 	User     string `environment:"USER"`
 	Password string `environment:"PASSWORD"`
 }
