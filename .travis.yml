@@ -9,9 +9,9 @@ jobs:
       addons:
         postgresql: "12"
       env:
-        - WKSPH_ARGUMENTS_STORE_POSTGRES_DBNAME="wikisophia_accounts_test"
-        - WKSPH_ARGUMENTS_STORE_POSTGRES_USER="app_wikisophia_accounts_test"
-        - WKSPH_ARGUMENTS_STORE_POSTGRES_PASSWORD="app_wikisophia_accounts_test_password"
+        - WKSPH_ACCOUNTS_STORE_POSTGRES_DBNAME="wikisophia_accounts_test"
+        - WKSPH_ACCOUNTS_STORE_POSTGRES_USER="app_wikisophia_accounts_test"
+        - WKSPH_ACCOUNTS_STORE_POSTGRES_PASSWORD="app_wikisophia_accounts_test_password"
         - WKSPH_ARGUMENTS_STORE_POSTGRES_DBNAME="wikisophia_arguments_test"
         - WKSPH_ARGUMENTS_STORE_POSTGRES_USER="app_wikisophia_arguments_test"
         - WKSPH_ARGUMENTS_STORE_POSTGRES_PASSWORD="app_wikisophia_arguments_test_password"
