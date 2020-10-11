@@ -1,3 +1,3 @@
 -- Test code needs DELETE permissions to run "empty.sql" in between tests...
 -- but shouldn't exist in prod. This makes create.sql reusable.
-GRANT DELETE ON ALL TABLES IN SCHEMA public TO :argumentsUser;
+GRANT DELETE ON ALL TABLES IN SCHEMA public TO :accountsUser;
