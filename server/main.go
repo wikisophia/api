@@ -11,6 +11,7 @@ import (
 	argumentsMemory "github.com/wikisophia/api/server/arguments/memory"
 	argumentsPostgres "github.com/wikisophia/api/server/arguments/postgres"
 	"github.com/wikisophia/api/server/http"
+	"github.com/wikisophia/api/server/passwords"
 
 	"github.com/wikisophia/api/server/config"
 	"github.com/wikisophia/api/server/postgres"
@@ -28,18 +29,18 @@ func main() {
 
 func newDependencies(cfg *config.Configuration) http.Dependencies {
 	return http.ServerDependencies{
-		AccountsStore:  newAccountsStore(cfg.AccountsStore),
+		AccountsStore:  newAccountsStore(cfg.AccountsStore, cfg.Hash),
 		ArgumentsStore: newArgumentsStore(cfg.ArgumentsStore),
 		Emailer:        email.ConsoleEmailer{},
 	}
 }
 
-func newAccountsStore(cfg *config.Storage) accounts.Store {
+func newAccountsStore(cfg *config.Storage, cfgHash *config.Hash) accounts.Store {
 	switch cfg.Type {
 	case config.StorageTypeMemory:
 		return accountsMemory.NewMemoryStore()
 	case config.StorageTypePostgres:
-		return accountsPostgres.NewPostgresStore(postgres.NewPGXPool(cfg.Postgres))
+		return accountsPostgres.NewPostgresStore(postgres.NewPGXPool(cfg.Postgres), passwords.NewHasher(*cfgHash))
 	default:
 		panic("Invalid config storage.type: " + cfg.Type + ". This should be caught during config valation.")
 	}

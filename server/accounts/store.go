@@ -1,6 +1,8 @@
 package accounts
 
-import "context"
+import (
+	"context"
+)
 
 // Store combines all the functions needed to read & write Arguments
 // into a single interface.
