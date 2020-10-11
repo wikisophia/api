@@ -19,9 +19,9 @@ jobs:
         - psql -U postgres -v accountsUser="app_wikisophia_accounts_test" -v accountsPass="'app_wikisophia_accounts_test_password'" -f ./server/accounts/postgres/scripts/bootstrap.sql
         - psql -U postgres -d wikisophia_accounts_test -v accountsUser="app_wikisophia_accounts_test" -f ./server/accounts/postgres/scripts/create.sql
         - psql -U postgres -d wikisophia_accounts_test -v accountsUser="app_wikisophia_accounts_test" -f ./server/accounts/postgres/scripts/grants-for-tests.sql
+        - psql -U postgres -v argumentsUser="app_wikisophia_arguments_test" -v argumentsPass="'app_wikisophia_arguments_test_password'" -f ./server/arguments/postgres/scripts/bootstrap.sql
         - psql -U postgres -d wikisophia_arguments_test -v argumentsUser="app_wikisophia_arguments_test" -f ./server/arguments/postgres/scripts/create.sql
         - psql -U postgres -d wikisophia_arguments_test -v argumentsUser="app_wikisophia_arguments_test" -f ./server/arguments/postgres/scripts/grants-for-tests.sql
-        - psql -U postgres -v argumentsUser="app_wikisophia_arguments_test" -v argumentsPass="'app_wikisophia_arguments_test_password'" -f ./server/arguments/postgres/scripts/bootstrap.sql
       script:
         - ./scripts/test-server.sh
     - language: node_js
