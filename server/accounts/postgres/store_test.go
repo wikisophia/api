@@ -14,6 +14,7 @@ import (
 	accountsPostgres "github.com/wikisophia/api/server/accounts/postgres"
 	"github.com/wikisophia/api/server/accounts/storetest"
 	"github.com/wikisophia/api/server/config"
+	"github.com/wikisophia/api/server/passwords"
 	"github.com/wikisophia/api/server/postgres"
 )
 
@@ -33,12 +34,12 @@ func TestPostgresStore(t *testing.T) {
 		return
 	}
 
-	cfg := config.MustParse().AccountsStore.Postgres
-	pool := postgres.NewPGXPool(cfg)
+	cfg := config.MustParse()
+	pool := postgres.NewPGXPool(cfg.AccountsStore.Postgres)
 	emptyData, err := ioutil.ReadFile(filepath.Join(".", "scripts", "empty.sql"))
 	require.NoError(t, err)
 	empty := string(emptyData)
-	store := accountsPostgres.NewPostgresStore(pool)
+	store := accountsPostgres.NewPostgresStore(pool, passwords.NewHasher(*cfg.Hash))
 
 	suite.Run(t, &storetest.StoreTests{
 		StoreFactory: func() accounts.Store {
